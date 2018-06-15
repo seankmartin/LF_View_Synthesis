@@ -7,9 +7,9 @@ import numpy as np
 
 def load_data(data_path):
     """Returns an array of images from the hdf5 file in data_path"""
-    h5f = h5py.File(data_path, 'r')
-    all_images = h5f['images']
-    return all_images
+    with h5py.File(data_path, 'r') as h5f:
+        all_images = h5f['images']
+        return all_images
 
 def main(args, config):
     if args.base_dir == "":
