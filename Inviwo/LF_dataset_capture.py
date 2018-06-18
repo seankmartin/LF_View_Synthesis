@@ -62,8 +62,15 @@ class LightFieldCamera:
             
             if save:
                 #Loop over canvases in the workspace
-                for canvas in inviwopy.app.network.canvases:
-                    file_name = canvas.displayName + str(row_num) + str(col_num) + ".png"
+                canvases = inviwopy.app.network.canvases
+                same_names = any(
+                                                 [(canvases[i].displayName == canvases[i + 1].displayName) 
+                                                 for i in range(len(canvases) - 1)])
+                for canvas_idx, canvas in enumerate(canvases):
+                    if same_names:
+                          file_name = 'Canvas_' + str(canvas_idx) + '_' + str(row_num) + str(col_num) + '.png'
+                    else:
+                        file_name = canvas.displayName + str(row_num) + str(col_num) + '.png'
                     file_path = os.path.join(os.path.abspath(save_dir), file_name)
                     print('Saving to: ' + file_path)
                     canvas.snapshot(file_path)
@@ -121,8 +128,8 @@ def main(save_main_dir):
     app = inviwopy.app
     network = app.network
     cam = network.EntryExitPoints.camera
-    #cam.lookTo = vec3(0, 0, 0)
-    #cam.lookUp = vec3(0, 1, 0)
+    cam.lookTo = vec3(0, 0, 0)
+    cam.lookUp = vec3(0, 1, 0)
     
     if not os.path.isdir(save_main_dir):
         pathlib.Path(save_main_dir).mkdir(parents=True, exist_ok=True)
@@ -131,8 +138,8 @@ def main(save_main_dir):
     lf_camera_here = LightFieldCamera(cam.lookFrom, cam.lookTo, interspatial_distance = 0.5)
     
     #Preview the lf camera array
-    #lf_camera_here.view_array(cam)
-    
+    lf_camera_here.view_array(cam)
+    """
     #Save the images from the light field camera array
     sub_dir_to_save_to = get_sub_dir_for_saving(save_main_dir)
     try:
@@ -140,6 +147,7 @@ def main(save_main_dir):
     except ValueError as e:
         print(e)
         os.rmdir(sub_dir_to_save_to)
+    """
 
 if __name__ == '__main__':
     home = os.path.expanduser('~')
