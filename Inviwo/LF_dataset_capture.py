@@ -5,12 +5,12 @@ import inviwopy
 import ivw.utils as inviwo_utils
 from inviwopy.glm import vec3, normalize
 
-def cross_product(vec_1: vec3, vec_2: vec3):
-    return vec3(
+def cross_product(vec_1, vec_2):
+    result =  vec3(
         (vec_1.y * vec_2.z) - (vec_1.z * vec_2.y),
         (vec_1.z * vec_2.x) - (vec_1.x * vec_2.z),
-        (vec_1.x * vec_2.y) - (vec_1.y * vec_2.x)
-    )
+        (vec_1.x * vec_2.y) - (vec_1.y * vec_2.x))
+    return result
 
 class LightFieldCamera:
     def __init__(self, look_from, look_to, look_up = vec3(0, 1, 0), 
@@ -29,21 +29,27 @@ class LightFieldCamera:
 
     def set_look(self, look_from, look_to, look_up):
         """Set the top left camera in the array to look_from, look_to and look_up"""
-        self.look_from = normalize(look_from)
-        self.look_to = normalize(look_to)
-        self.look_up = normalize(look_up)
-
+        self.look_from = look_from
+        self.look_to = look_to
+        self.look_up = look_up
+    
+    def get_row_col_number(self, index):
+        row_num = index // self.spatial_cols
+        col_num = index % self.spatial_cols
+        return row_num, col_num
+    
     def preview_array(self, cam):
         """Move the inviwo camera through the array for the current workspace"""
         # Save the current camera position
         prev_cam_look_from = cam.lookFrom
         prev_cam_look_to = cam.lookTo
 
-        for (look_from, look_to) in self.calculate_camera_array():
+        for idx, (look_from, look_to) in enumerate(self.calculate_camera_array()):
             cam.lookFrom = look_from
             cam.lookTo = look_to
+            row_num, col_num = self.get_row_col_number(idx)
+            print("Viewing position ({}, {})".format(row_num, col_num))
             inviwo_utils.update()
-            print(look_from, look_to)
             sleep(0.1)
 
         # Reset the camera to original position
@@ -53,13 +59,14 @@ class LightFieldCamera:
     def get_look_right(self):
         """Get the right look vector for the top left camera"""
         view_direction = self.look_to - self.look_from
-        return normalize(cross_product(self.look_up, view_direction))
+        right_vec = normalize(cross_product(view_direction, self.look_up))
+        return right_vec
 
     def calculate_camera_array(self):
         """Returns a list of (look_from, look_to) tuples for the full camera array"""
         look_list = []
 
-        row_step_vec = self.look_up * self.interspatial_distance 
+        row_step_vec = normalize(self.look_up) * self.interspatial_distance 
         col_step_vec = self.get_look_right() * self.interspatial_distance
 
         #Start at the top left camera position
@@ -72,7 +79,7 @@ class LightFieldCamera:
                 col_movement = col_step_vec * j
                 cam_look_from = row_look_from + col_movement
                 cam_look_to = row_look_to + col_movement
-
+                
                 look_list.append((cam_look_from, cam_look_to))
         
         return look_list
@@ -95,12 +102,18 @@ def main():
     app = inviwopy.app
     network = app.network
     cam = network.EntryExitPoints.camera
-
+    #cam.lookTo = vec3(0, 0, 0)
+    #cam.lookUp = vec3(0, 1, 0)
+    
     #Get the names of the canvases in the workspace
     for canvas in network.canvases:
         print(canvas.displayName)
     
-    lf_camera_here = LightFieldCamera(cam.lookFrom, cam.lookTo)
+    print("camera properties")
+    print(cam.lookTo, cam.LookFrom)
+    lf_camera_here = LightFieldCamera(cam.lookFrom, cam.lookTo, interspatial_distance = 0.5)
+    print("lf properties")
+    print(lf_camera_here.look_from, lf_camera_here.look_to)
     lf_camera_here.preview_array(cam)
     
 
