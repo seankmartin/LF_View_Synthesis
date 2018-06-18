@@ -1,5 +1,6 @@
 import os
 from time import sleep
+import pathlib
 
 import inviwopy
 import ivw.utils as inviwo_utils
@@ -38,8 +39,17 @@ class LightFieldCamera:
         col_num = index % self.spatial_cols
         return row_num, col_num
     
-    def preview_array(self, cam):
-        """Move the inviwo camera through the array for the current workspace"""
+    def view_array(self, cam, save = False, save_dir = os.path.expanduser('~')):
+        """Move the inviwo camera through the array for the current workspace.
+        
+        Keyword arguments:
+        cam -- the camera to move through the light field array
+        save -- save the images to png files when moving through the array (default False)
+        save_dir -- the main directory to save the png images to (default home)
+        """
+        if not os.path.isdir(save_dir):
+            raise ValueError("save_dir is not a valid directory.")
+
         # Save the current camera position
         prev_cam_look_from = cam.lookFrom
         prev_cam_look_to = cam.lookTo
@@ -47,10 +57,19 @@ class LightFieldCamera:
         for idx, (look_from, look_to) in enumerate(self.calculate_camera_array()):
             cam.lookFrom = look_from
             cam.lookTo = look_to
-            row_num, col_num = self.get_row_col_number(idx)
-            print("Viewing position ({}, {})".format(row_num, col_num))
             inviwo_utils.update()
-            sleep(0.1)
+            row_num, col_num = self.get_row_col_number(idx)
+            
+            if save:
+                #Loop over canvases in the workspace
+                for canvas in inviwopy.app.network.canvases:
+                    file_name = canvas.displayName + str(row_num) + str(col_num) + ".png"
+                    file_path = os.path.join(os.path.abspath(save_dir), file_name)
+                    print('Saving to: ' + file_path)
+                    canvas.snapshot(file_path)
+            else:
+                print("Viewing position ({}, {})".format(row_num, col_num))
+                sleep(0.1)           
 
         # Reset the camera to original position
         cam.lookFrom = prev_cam_look_from
@@ -86,18 +105,18 @@ class LightFieldCamera:
 
 #Courtesy of Sean Bruton
 def get_sub_dir_for_saving(base_dir):
-    num_sub_dirs = sum(os.path.isdir(os.path.join(dataset_dir, el))
-                   for el in os.listdir(dataset_dir))
+    num_sub_dirs = sum(os.path.isdir(os.path.join(base_dir, el))
+                   for el in os.listdir(base_dir))
 
     sub_dir_to_save_to_name = str(num_sub_dirs)
     sub_dir_to_save_to_name = sub_dir_to_save_to_name.zfill(4)
 
-    sub_dir_to_save_to = os.path.join(dataset_dir, sub_dir_to_save_to_name)
+    sub_dir_to_save_to = os.path.join(base_dir, sub_dir_to_save_to_name)
     os.mkdir(sub_dir_to_save_to)
 
     return sub_dir_to_save_to
 
-def main():
+def main(save_main_dir):
     #Setup
     app = inviwopy.app
     network = app.network
@@ -105,17 +124,24 @@ def main():
     #cam.lookTo = vec3(0, 0, 0)
     #cam.lookUp = vec3(0, 1, 0)
     
-    #Get the names of the canvases in the workspace
-    for canvas in network.canvases:
-        print(canvas.displayName)
-    
-    print("camera properties")
-    print(cam.lookTo, cam.LookFrom)
+    if not os.path.isdir(save_main_dir):
+        pathlib.Path(save_main_dir).mkdir(parents=True, exist_ok=True)
+
+    #Create a light field camera at the current camera position
     lf_camera_here = LightFieldCamera(cam.lookFrom, cam.lookTo, interspatial_distance = 0.5)
-    print("lf properties")
-    print(lf_camera_here.look_from, lf_camera_here.look_to)
-    lf_camera_here.preview_array(cam)
     
+    #Preview the lf camera array
+    #lf_camera_here.view_array(cam)
+    
+    #Save the images from the light field camera array
+    sub_dir_to_save_to = get_sub_dir_for_saving(save_main_dir)
+    try:
+        lf_camera_here.view_array(cam, save = True, save_dir = sub_dir_to_save_to)
+    except ValueError as e:
+        print(e)
+        os.rmdir(sub_dir_to_save_to)
 
 if __name__ == '__main__':
-    main()
+    home = os.path.expanduser('~')
+    save_main_dir = os.path.join(home, 'lf_volume_sets','test')
+    main(save_main_dir)
