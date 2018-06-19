@@ -1,6 +1,8 @@
+from random import seed, random
 import os
-from time import sleep
+from time import sleep, time
 import pathlib
+import math
 
 import inviwopy
 import ivw.utils as inviwo_utils
@@ -40,6 +42,10 @@ class LightFieldCamera:
         col_num = index % self.spatial_cols
         return row_num, col_num
 
+    def print_look(self):
+        print("Look from: {} , Look to: {}, Look up: {}"
+                .format(self.look_from, self.look_to, self.look_up))
+
     def view_array(self, cam, save = False, save_dir = os.path.expanduser('~')):
         """Move the inviwo camera through the array for the current workspace.
 
@@ -51,6 +57,8 @@ class LightFieldCamera:
         if not os.path.isdir(save_dir):
             raise ValueError("save_dir is not a valid directory.")
 
+        print("Viewing array for lf camera with:")
+        self.print_look()
         # Save the current camera position
         prev_cam_look_from = cam.lookFrom
         prev_cam_look_to = cam.lookTo
@@ -122,8 +130,15 @@ class LightFieldCamera:
 
         return look_list
 
-#Courtesy of Sean Bruton
 def get_sub_dir_for_saving(base_dir):
+    """
+    Returns the number of sub directories of base_dir, n, in format
+    base_dir + path_separator + n
+    Where n is padded on the left by zeroes to be of length four
+
+    Example: base_dir is /home/sean/test with two sub directories
+    Output: /home/sean/test/0002
+    """
     num_sub_dirs = sum(os.path.isdir(os.path.join(base_dir, el))
                    for el in os.listdir(base_dir))
 
@@ -134,6 +149,33 @@ def get_sub_dir_for_saving(base_dir):
     os.mkdir(sub_dir_to_save_to)
 
     return sub_dir_to_save_to
+
+def random_float():
+    """returns a random float between -1 and 1"""
+    return (random() - 0.5) * 2
+
+def create_random_lf_cameras(num_to_create, max_distance_from_origin,
+                             interspatial_distance = 1.0,
+                             spatial_rows = 8, spatial_cols = 8):
+    """Create a list of randomnly positioned lf cameras
+
+    Keyword arguments:
+    num_to_create -- the number of lf cameras to create
+    max_distance_from_origin -- the furthest from the origin the cameras sit
+    interspatial_distance -- distance between cameras in array (default 1.0)
+    spatial_rows, spatial_cols -- dimensions of camera array (default 8 x 8)
+    """
+    lf_cameras = []
+    d = max_distance_from_origin
+    look_up = vec3(0, 1, 0)
+    for i in range(num_to_create):
+        look_from = vec3(random_float(), random_float(), random_float()) * d
+        look_to = vec3(random_float(), random_float(), random_float()) * d
+        lf_cam = LightFieldCamera(look_from, look_to, look_up,
+                                  interspatial_distance,
+                                  spatial_rows, spatial_cols)
+        lf_cameras.append(lf_cam)
+    return lf_cameras
 
 def main(save_main_dir):
     #Setup
@@ -151,7 +193,11 @@ def main(save_main_dir):
                                       interspatial_distance = 0.5)
 
     #Preview the lf camera array
-    lf_camera_here.view_array(cam)
+    random_lfs = create_random_lf_cameras(4, 8)
+    for lf in random_lfs:
+        lf.view_array(cam)
+
+    #lf_camera_here.view_array(cam)
     """
     #Save the images from the light field camera array
     sub_dir_to_save_to = get_sub_dir_for_saving(save_main_dir)
@@ -166,4 +212,5 @@ def main(save_main_dir):
 if __name__ == '__main__':
     home = os.path.expanduser('~')
     save_main_dir = os.path.join(home, 'lf_volume_sets','test')
+    seed(time())
     main(save_main_dir)
