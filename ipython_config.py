@@ -1,3 +1,8 @@
+#######
+# Please place this file into: ~/.ipython/profile_default/ipython_config.py
+# In order to make use of it
+#######
+
 ### If you want to auto-save .html and .py versions of your notebook:
 # modified from: https://github.com/ipython/ipython/issues/8009
 import os
