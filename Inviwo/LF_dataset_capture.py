@@ -77,16 +77,28 @@ class LightFieldCamera:
                     [(canvases[i].displayName == canvases[i + 1].displayName)
                     for i in range(len(canvases) - 1)]
                 )
+                #The identifier names could be different
+                identifier_same_names = False
+                if same_names:
+                    identifier_same_names = any(
+                    [(canvases[i].identifier == canvases[i + 1].identifier)
+                    for i in range(len(canvases) - 1)]
+                    )
                 for canvas_idx, canvas in enumerate(canvases):
-                    if same_names:
+                    if same_names and identifier_same_names:
                         file_name = ('Canvas_'
                                   + str(canvas_idx)
                                   + '_'
                                   + str(row_num)
                                   + str(col_num)
                                   + '.png')
-                    else:
+                    elif identifier_same_names:
                         file_name = (canvas.displayName
+                                  + str(row_num)
+                                  + str(col_num)
+                                  + '.png')
+                    else:
+                        file_name = (canvas.identifier
                                   + str(row_num)
                                   + str(col_num)
                                   + '.png')
@@ -193,11 +205,12 @@ def main(save_main_dir):
                                       interspatial_distance = 0.5)
 
     #Preview the lf camera array
-    random_lfs = create_random_lf_cameras(4, 8)
-    for lf in random_lfs:
-        lf.view_array(cam)
+    #random_lfs = create_random_lf_cameras(4, 8)
+    #for lf in random_lfs:
+        #lf.view_array(cam)
 
-    #lf_camera_here.view_array(cam)
+    sub_dir_to_save_to = get_sub_dir_for_saving(save_main_dir)
+    lf_camera_here.view_array(cam, save = True, save_dir = sub_dir_to_save_to)
     """
     #Save the images from the light field camera array
     sub_dir_to_save_to = get_sub_dir_for_saving(save_main_dir)
@@ -211,6 +224,7 @@ def main(save_main_dir):
 
 if __name__ == '__main__':
     home = os.path.expanduser('~')
+    #home = 'E:'
     save_main_dir = os.path.join(home, 'lf_volume_sets','test')
     seed(time())
     main(save_main_dir)
