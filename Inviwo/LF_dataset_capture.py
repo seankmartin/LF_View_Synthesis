@@ -6,7 +6,7 @@ import math
 
 import inviwopy
 import ivw.utils as inviwo_utils
-from inviwopy.glm import vec3, normalize
+from inviwopy.glm import vec3, normalize, ivec2
 
 def cross_product(vec_1, vec_2):
     result =  vec3(
@@ -42,9 +42,14 @@ class LightFieldCamera:
         col_num = index % self.spatial_cols
         return row_num, col_num
 
-    def print_look(self):
-        print("Look from: {} , Look to: {}, Look up: {}"
-                .format(self.look_from, self.look_to, self.look_up))
+    def __str__(self):
+        lf_string = ("baseline;{}\n").format(self.interspatial_distance)
+        lf_string += ("grid_rows;{}\n").format(self.spatial_rows)
+        lf_string += ("grid_cols;{}\n").format(self.spatial_rows)
+        lf_string += ("look_from;{}\n").format(self.look_from)
+        lf_string += ("look_to;{}\n").format(self.look_to)
+        lf_string += ("look_up;{}").format(self.look_up)
+        return lf_string
 
     def view_array(self, cam, save = False, save_dir = os.path.expanduser('~')):
         """Move the inviwo camera through the array for the current workspace.
@@ -189,14 +194,40 @@ def create_random_lf_cameras(num_to_create, max_distance_from_origin,
         lf_cameras.append(lf_cam)
     return lf_cameras
 
-def main(save_main_dir):
+def print_metadata(lf_camera, camera, pixel_size, file = sys.stdout):
+    """
+    Prints the metadata about a lf_camera grid and a cameras
+
+    Keyword arguments:
+    lf_camera -- input lf grid
+    camera -- input inviwo camera object
+    pixel_size -- output image size (assumed x_dim = y_dim)
+    file -- the file to print to (default sys.stdout)
+    """
+    print(lf_camera, end = '\n', file = file)
+    print(cam_to_string(camera), end = '\n', file = file)
+    print("pixels;{}".format(pixel_size), file = file)
+
+def cam_to_string(cam):
+    """Returns some important Inviwo camera properties as a string"""
+    cam_string = ("near;{:8f}\n").format(cam.nearPlane)
+    cam_string += ("far;{:8f}\n").format(cam.farPlane)
+    cam_string += ("focal_length;{:8f}\n"
+                  .format(cam.projectionMatrix[0][0]))
+    cam_string += ("fov;{}").format(cam.fov)
+    return cam_string
+
+def main(save_main_dir, pixel_dim):
     #Setup
     app = inviwopy.app
     network = app.network
     cam = network.EntryExitPoints.camera
-    cam.lookTo = vec3(0, 0, 0)
+    #cam.lookTo = vec3(0, 0, 0)
     cam.lookUp = vec3(0, 1, 0)
-
+    canvases = inviwopy.app.network.canvases
+    for canvas in canvases:
+        canvas.inputSize.dimensions.value = ivec2(pixel_dim, pixel_dim)
+    inviwo_utils.update()
     if not os.path.isdir(save_main_dir):
         pathlib.Path(save_main_dir).mkdir(parents=True, exist_ok=True)
 
@@ -209,8 +240,11 @@ def main(save_main_dir):
     #for lf in random_lfs:
         #lf.view_array(cam)
 
-    sub_dir_to_save_to = get_sub_dir_for_saving(save_main_dir)
-    lf_camera_here.view_array(cam, save = True, save_dir = sub_dir_to_save_to)
+    #sub_dir_to_save_to = get_sub_dir_for_saving(save_main_dir)
+    #lf_camera_here.view_array(cam, save = True, save_dir = sub_dir_to_save_to)
+    f = open('out.txt', 'w')
+    print_metadata(lf_camera_here, cam, pixel_dim, f)
+    f.close()
     """
     #Save the images from the light field camera array
     sub_dir_to_save_to = get_sub_dir_for_saving(save_main_dir)
@@ -227,4 +261,5 @@ if __name__ == '__main__':
     #home = 'E:'
     save_main_dir = os.path.join(home, 'lf_volume_sets','test')
     seed(time())
-    main(save_main_dir)
+    pixel_dim = 512
+    main(save_main_dir, pixel_dim)

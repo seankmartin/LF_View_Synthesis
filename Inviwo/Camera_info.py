@@ -1,4 +1,4 @@
-#Inviwo Python script 
+#Inviwo Python script
 import inviwopy
 from inviwopy.glm import vec3
 
