@@ -63,7 +63,7 @@ class LightFieldCamera:
             raise ValueError("save_dir is not a valid directory.")
 
         print("Viewing array for lf camera with:")
-        self.print_look()
+        print(self)
         # Save the current camera position
         prev_cam_look_from = cam.lookFrom
         prev_cam_look_to = cam.lookTo
@@ -114,6 +114,15 @@ class LightFieldCamera:
             else:
                 print("Viewing position ({}, {})".format(row_num, col_num))
                 sleep(0.1)
+
+        canvas = inviwopy.app.network.canvases[0]
+        pixel_dim = canvas.inputSize.dimensions.value[0]
+        if save:
+            metadata_filename = os.path.join(full_save_dir, "metadata.txt")
+            with open(metadata_filename, 'w') as f:
+                print_metadata(self, cam, pixel_dim, f)
+        else:
+            print_metadata(self, cam, pixel_dim)
 
         # Reset the camera to original position
         cam.lookFrom = prev_cam_look_from
@@ -224,6 +233,8 @@ def main(save_main_dir, pixel_dim):
     cam = network.EntryExitPoints.camera
     #cam.lookTo = vec3(0, 0, 0)
     cam.lookUp = vec3(0, 1, 0)
+    cam.nearPlane = 6.0
+    cam.farPlane = 1000.0
     canvases = inviwopy.app.network.canvases
     for canvas in canvases:
         canvas.inputSize.dimensions.value = ivec2(pixel_dim, pixel_dim)
@@ -240,11 +251,8 @@ def main(save_main_dir, pixel_dim):
     #for lf in random_lfs:
         #lf.view_array(cam)
 
-    #sub_dir_to_save_to = get_sub_dir_for_saving(save_main_dir)
-    #lf_camera_here.view_array(cam, save = True, save_dir = sub_dir_to_save_to)
-    f = open('out.txt', 'w')
-    print_metadata(lf_camera_here, cam, pixel_dim, f)
-    f.close()
+    sub_dir_to_save_to = get_sub_dir_for_saving(save_main_dir)
+    lf_camera_here.view_array(cam, save = True, save_dir = sub_dir_to_save_to)
     """
     #Save the images from the light field camera array
     sub_dir_to_save_to = get_sub_dir_for_saving(save_main_dir)
@@ -257,8 +265,8 @@ def main(save_main_dir, pixel_dim):
     """
 
 if __name__ == '__main__':
-    home = os.path.expanduser('~')
-    #home = 'E:'
+    #home = os.path.expanduser('~')
+    home = 'E:'
     save_main_dir = os.path.join(home, 'lf_volume_sets','test')
     seed(time())
     pixel_dim = 512
