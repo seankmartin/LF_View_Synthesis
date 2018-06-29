@@ -55,8 +55,15 @@ def main(config):
 
         #Save the images:
         #Can later be split into train test and val
-        depth.create_dataset('images', depth.attrs['shape'], np.uint8)
-        colour.create_dataset('images', colour.attrs['shape'], np.float32)
+        dim = int(meta_dict['pixels'])
+        depth.create_dataset('images', depth.attrs['shape'], np.uint8,
+                             chunks = (1, 1, dim, dim, 1),
+                             compression = "lfz",
+                             shuffle = True)
+        colour.create_dataset('images', colour.attrs['shape'], np.float32,
+                              chunks = (1, 1, dim, dim, 3),
+                              compression = "lfz",
+                              shuffle = True)
 
         cols = int(meta_dict['grid_cols'])
         size = int(meta_dict['grid_rows']) * int(meta_dict['grid_cols'])
@@ -68,7 +75,7 @@ def main(config):
                 depth_loc = os.path.join(dir, depth_name)
                 depth_image = Image.open(depth_loc)
                 depth_image.load()
-                depth_data = np.asarray(depth_image, dtype = np.float32)
+                depth_data = np.asarray(depth_image, dtype = np.uint8)
                 depth['images'][idx, x, :, :, 0] = depth_data
 
                 colour_name = 'Colour' + image_num + '.png'
