@@ -39,6 +39,6 @@ if __name__ == '__main__':
 
     #Config file modifiable parameters
     config = configparser.ConfigParser()
-    config.read('main_config.ini')
-    
+    config.read(os.path.join('config','main.ini'))
+
     main(args, config)
