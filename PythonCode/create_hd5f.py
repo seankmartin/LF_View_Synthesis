@@ -58,11 +58,11 @@ def main(config):
         dim = int(meta_dict['pixels'])
         depth.create_dataset('images', depth.attrs['shape'], np.uint8,
                              chunks = (1, 1, dim, dim, 1),
-                             compression = "lfz",
+                             compression = "lzf",
                              shuffle = True)
         colour.create_dataset('images', colour.attrs['shape'], np.float32,
                               chunks = (1, 1, dim, dim, 3),
-                              compression = "lfz",
+                              compression = "lzf",
                               shuffle = True)
 
         cols = int(meta_dict['grid_cols'])
