@@ -6,6 +6,8 @@ import h5py
 import numpy as np
 from PIL import Image
 
+import welford
+
 def get_row_col_number(index, spatial_cols):
     """Turns index into (x,y) grid reference with spatial_cols grid columns"""
     row_num = index // spatial_cols
@@ -60,15 +62,24 @@ def main(config):
                              chunks = (1, 1, dim, dim, 1),
                              compression = "lzf",
                              shuffle = True)
+        depth.create_dataset('mean', depth.attrs['shape'][:, 0, :, :, :])
+        depth.create_dataset('var', depth.attrs['shape'][:, 0, :, :, :])
         colour.create_dataset('images', colour.attrs['shape'], np.float32,
                               chunks = (1, 1, dim, dim, 3),
                               compression = "lzf",
                               shuffle = True)
+        colour.create_dataset('mean', colour.attrs['shape'][:, 0, :, :, :])
+        colour.create_dataset('var', colour.attrs['shape'][:, 0, :, :, :])
 
         cols = int(meta_dict['grid_cols'])
         size = int(meta_dict['grid_rows']) * int(meta_dict['grid_cols'])
         for idx, dir in enumerate(sub_dirs):
             print(dir)
+            depth_mean = np.zeros(depth.attrs['shape'][1:], np.float32)
+            colour_mean = np.zeros(colour.attrs['shape'][1:], np.float32)
+            depth_accumulator = (0, depth_mean, 0)
+            colour_accumulator = (0, colour_mean, 0)
+
             for x in range(size):
                 image_num = index_num_to_grid_loc(x, cols)
                 depth_name = 'Depth' + image_num + '.png'
@@ -77,6 +88,7 @@ def main(config):
                 depth_image.load()
                 depth_data = np.asarray(depth_image, dtype = np.uint8)
                 depth['images'][idx, x, :, :, 0] = depth_data
+                welford.update(depth_accumulator, depth_data)
 
                 colour_name = 'Colour' + image_num + '.png'
                 colour_loc = os.path.join(dir, colour_name)
@@ -84,6 +96,10 @@ def main(config):
                 colour_image.load()
                 colour_data = np.asarray(colour_image, dtype = np.uint8)
                 colour['images'][idx, x, :, :, :] = colour_data[:, :, :3]
+                welford.update(colour_accumulator, colour_data[:, :, :3])
+
+            depth['mean'], depth['var'], _ = finalize(depth_accumulator)
+            colour['mean'], colour['var'], _ = finalize(colour_accumulator)
 
         csvfile.close()
         hdf5_file.close()
