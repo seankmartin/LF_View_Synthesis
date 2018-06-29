@@ -4,12 +4,29 @@ import os
 
 import h5py
 import numpy as np
+from PIL import Image
+
+def get_row_col_number(index, spatial_cols):
+    """Turns index into (x,y) grid reference with spatial_cols grid columns"""
+    row_num = index // spatial_cols
+    col_num = index % spatial_cols
+    return row_num, col_num
+
+def index_num_to_grid_loc(index, spatial_cols):
+    """Turns index into 'xy' grid reference with spatial_cols grid columns"""
+    row_num, col_num = get_row_col_number(index, spatial_cols)
+    image_num_str = str(row_num) + str(col_num)
+    return image_num_str
 
 def main(config):
     hdf5_path = os.path.join(config['PATH']['output_dir'],
                              config['PATH']['hdf5_name'])
-    metadata_location = os.path.join(config['PATH']['image_dir'],
+    base_dir = config['PATH']['image_dir']
+    metadata_location = os.path.join(base_dir,
                                      config['PATH']['metadata_name'])
+    sub_dirs = [os.path.join(base_dir, el)
+                    for el in os.listdir(base_dir)
+                    if os.path.isdir(os.path.join(base_dir, el))]
 
     csvfile = open(metadata_location, 'rt')
     reader = csv.reader(csvfile, delimiter = ';', quoting=csv.QUOTE_NONE)
@@ -19,11 +36,11 @@ def main(config):
 
     with h5py.File(hdf5_path, mode = 'w') as hdf5_file:
         for key in shared_metadata_keys:
-            hdf5_file.attrs[key] = float(meta_dict[key])
+            hdf5_file.attrs[key] = np.float32(meta_dict[key])
 
         depth = hdf5_file.create_group('depth')
         # (num_images, grid_size, pixel_width, pixel_height, num_channels)
-        depth.attrs['shape'] = [int(config['LF_SIZE']['num_samples']),
+        depth.attrs['shape'] = [len(sub_dirs),
                                 int(meta_dict['grid_rows']) *
                                 int(meta_dict['grid_cols']),
                                 int(meta_dict['pixels']),
@@ -36,12 +53,34 @@ def main(config):
         temp[4] = 3
         colour.attrs['shape'] = temp
 
+        #Save the images:
+        #Can later be split into train test and val
+        depth.create_dataset('images', depth.attrs['shape'], np.uint8)
+        colour.create_dataset('images', colour.attrs['shape'], np.float32)
+
+        cols = int(meta_dict['grid_cols'])
+        size = int(meta_dict['grid_rows']) * int(meta_dict['grid_cols'])
+        for idx, dir in enumerate(sub_dirs):
+            print(dir)
+            for x in range(size):
+                image_num = index_num_to_grid_loc(x, cols)
+                depth_name = 'Depth' + image_num + '.png'
+                depth_loc = os.path.join(dir, depth_name)
+                depth_image = Image.open(depth_loc)
+                depth_image.load()
+                depth_data = np.asarray(depth_image, dtype = np.float32)
+                depth['images'][idx, x, :, :, 0] = depth_data
+
+                colour_name = 'Colour' + image_num + '.png'
+                colour_loc = os.path.join(dir, colour_name)
+                colour_image = Image.open(colour_loc)
+                colour_image.load()
+                colour_data = np.asarray(colour_image, dtype = np.uint8)
+                colour['images'][idx, x, :, :, :] = colour_data[:, :, :3]
+
         csvfile.close()
         hdf5_file.close()
-        # Can later be split into train test and val
-        #images_shape
-        #depth.create_dataset("colour_images", images_shape, np.uint8)
-        #colour.create_dataset()
+
 
 if __name__ == '__main__':
     config = configparser.ConfigParser()
