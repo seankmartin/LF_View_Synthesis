@@ -54,6 +54,13 @@ def main(config):
         temp = depth.attrs['shape']
         temp[4] = 3
         colour.attrs['shape'] = temp
+        depth_image_shape = [len(sub_dirs),
+            	             int(meta_dict['pixels']),
+                             int(meta_dict['pixels']),
+                             1]
+        temp = np.copy(depth_image_shape)
+        temp[3] = 3
+        colour_image_shape = temp
 
         #Save the images:
         #Can later be split into train test and val
@@ -62,21 +69,21 @@ def main(config):
                              chunks = (1, 1, dim, dim, 1),
                              compression = "lzf",
                              shuffle = True)
-        depth.create_dataset('mean', depth.attrs['shape'][:, 0, :, :, :])
-        depth.create_dataset('var', depth.attrs['shape'][:, 0, :, :, :])
+        depth.create_dataset('mean', depth_image_shape)
+        depth.create_dataset('var', depth_image_shape)
         colour.create_dataset('images', colour.attrs['shape'], np.float32,
                               chunks = (1, 1, dim, dim, 3),
                               compression = "lzf",
                               shuffle = True)
-        colour.create_dataset('mean', colour.attrs['shape'][:, 0, :, :, :])
-        colour.create_dataset('var', colour.attrs['shape'][:, 0, :, :, :])
+        colour.create_dataset('mean',colour_image_shape)
+        colour.create_dataset('var', colour_image_shape)
 
         cols = int(meta_dict['grid_cols'])
         size = int(meta_dict['grid_rows']) * int(meta_dict['grid_cols'])
         for idx, dir in enumerate(sub_dirs):
             print(dir)
-            depth_mean = np.zeros(depth.attrs['shape'][1:], np.float32)
-            colour_mean = np.zeros(colour.attrs['shape'][1:], np.float32)
+            depth_mean = np.zeros(depth_image_shape[1:-1], np.float32)
+            colour_mean = np.zeros(colour_image_shape[1:], np.float32)
             depth_accumulator = (0, depth_mean, 0)
             colour_accumulator = (0, colour_mean, 0)
 
@@ -88,7 +95,8 @@ def main(config):
                 depth_image.load()
                 depth_data = np.asarray(depth_image, dtype = np.uint8)
                 depth['images'][idx, x, :, :, 0] = depth_data
-                welford.update(depth_accumulator, depth_data)
+                depth_accumulator = (
+                    welford.update(depth_accumulator, depth_data))
 
                 colour_name = 'Colour' + image_num + '.png'
                 colour_loc = os.path.join(dir, colour_name)
@@ -96,14 +104,19 @@ def main(config):
                 colour_image.load()
                 colour_data = np.asarray(colour_image, dtype = np.uint8)
                 colour['images'][idx, x, :, :, :] = colour_data[:, :, :3]
-                welford.update(colour_accumulator, colour_data[:, :, :3])
+                colour_accumulator = (
+                    welford.update(colour_accumulator, colour_data[:, :, :3]))
 
-            depth['mean'], depth['var'], _ = finalize(depth_accumulator)
-            colour['mean'], colour['var'], _ = finalize(colour_accumulator)
+            (depth['mean'][idx, :, :, 0],
+             depth['var'][idx, :, :, 0], _) = (
+                welford.finalize(depth_accumulator))
+            (colour['mean'][idx, :, :, :],
+             colour['var'][idx, :, :, :], _) = (
+                welford.finalize(colour_accumulator))
 
         csvfile.close()
         hdf5_file.close()
-
+    print("Finished writing to", hdf5_path)
 
 if __name__ == '__main__':
     config = configparser.ConfigParser()
