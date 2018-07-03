@@ -112,13 +112,13 @@ class LightFieldCamera:
                     print('Saving to: ' + file_path)
                     canvas.snapshot(file_path)
             else:
-                print("Viewing position ({}, {})".format(row_num, col_num))
+                print('Viewing position ({}, {})'.format(row_num, col_num))
                 sleep(0.1)
 
         canvas = inviwopy.app.network.canvases[0]
         pixel_dim = canvas.inputSize.dimensions.value[0]
         if save:
-            metadata_filename = os.path.join(full_save_dir, "metadata.txt")
+            metadata_filename = os.path.join(full_save_dir, 'metadata.csv')
             with open(metadata_filename, 'w') as f:
                 print_metadata(self, cam, pixel_dim, f)
         else:
