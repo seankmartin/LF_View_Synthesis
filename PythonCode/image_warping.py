@@ -33,6 +33,14 @@ def depth_to_disparity(depth_value, baseline, focal_length, shift = 0.0):
     disparity = (baseline * focal_length) / depth_value - shift
     return disparity
 
+def valid_pixel(pixel, img_size):
+    """Returns true if the pixel co-ordinate lies inside the image grid"""
+    size_x, size_y = img_size
+    valid = ( ((pixel[0] > -1) and (pixel[0] < size_x)) and
+              ((pixel[1] > -1) and (pixel[1] < size_y)) )
+    return valid
+
+#TODO consider keeping pixels around so don't have to make it multiple times
 def fw_warp_image(ref_view, disparity_map, ref_pos, novel_pos):
     """
     Returns a forward warped novel from an input image and disparity_map
@@ -48,19 +56,27 @@ def fw_warp_image(ref_view, disparity_map, ref_pos, novel_pos):
     """
     size_x, size_y = ref_view.shape[0:2]
 
+    #Initialise an array of zeroes
+    novel_view = np.zeros(ref_view.shape, dtype = np.uint8)
+
     #Create an array of pixel positions
-    grid = np.meshgrid(np.arange(size_x),np.arange(size_y))
+    grid = np.meshgrid(np.arange(size_x), np.arange(size_y), indexing = 'ij')
     stacked = np.stack(grid, 2)
     pixels = stacked.reshape(-1, 2)
 
     distance = ref_pos - novel_pos
     #Repeat the elements of the disparity_map to match the distance
-    repeated = np.repeat(disparity_map, 2, -1).reshape((size_x, size_y, 2))
-    result = repeated * distance
+    repeated = np.repeat(disparity_map, 2, -1).reshape((size_x * size_y, 2))
 
-    novel_pixels = pixels + result
+    #Round to the nearest integer value
+    result = (repeated * distance).astype(int)
 
-    for
+    #Move the pixels from the reference view to the novel view
+    for x, y in zip(novel_pixels, pixels):
+        if valid_pixel(x, ref_view.shape[0:2]):
+            novel_view[x[0], x[1]] = ref_view[y[0], y[1]]
+
+    return novel_view
 
 def main(config):
 

@@ -1,0 +1,11 @@
+baseline;0.5
+grid_rows;8
+grid_cols;8
+look_from;[16.6318 16.0297 100]
+look_to;[-9.74585 15.1386 44.7021]
+look_up;[0 1 0]
+near;6.000000
+far;685.822876
+focal_length;1.545617
+fov;65.805
+pixels;512
