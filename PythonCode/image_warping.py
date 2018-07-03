@@ -55,6 +55,7 @@ def fw_warp_image(ref_view, disparity_map, ref_pos, novel_pos):
     novel_pos -- the target grid position for the novel view
     """
     size_x, size_y = ref_view.shape[0:2]
+    distance = ref_pos - novel_pos
 
     #Initialise an array of zeroes
     novel_view = np.zeros(ref_view.shape, dtype = np.uint8)
@@ -64,12 +65,12 @@ def fw_warp_image(ref_view, disparity_map, ref_pos, novel_pos):
     stacked = np.stack(grid, 2)
     pixels = stacked.reshape(-1, 2)
 
-    distance = ref_pos - novel_pos
     #Repeat the elements of the disparity_map to match the distance
     repeated = np.repeat(disparity_map, 2, -1).reshape((size_x * size_y, 2))
 
     #Round to the nearest integer value
     result = (repeated * distance).astype(int)
+    novel_pixels = pixels + result
 
     #Move the pixels from the reference view to the novel view
     for x, y in zip(novel_pixels, pixels):
@@ -78,6 +79,50 @@ def fw_warp_image(ref_view, disparity_map, ref_pos, novel_pos):
 
     return novel_view
 
+def slow_fw_warp_image(ref_view, disparity_map, ref_pos, novel_pos):
+    """
+    Returns a forward warped novel from an input image and disparity_map
+    For each pixel position in the reference view, shift it by the disparity,
+    and assign the value in the reference at that new pixel position to the
+    novel view.
+    Has a very large for loop, performance should be compared with
+    fw_warp_image
+
+    Keyword arguments:
+    ref_view -- colour image data at the reference position
+    disparity_map -- a disparity map at the reference position
+    ref_pos -- the grid co-ordinates of the ref_view
+    novel_pos -- the target grid position for the novel view
+    """
+    size_x, size_y = ref_view.shape[0:2]
+    distance = ref_pos - novel_pos
+
+    novel_view = np.zeros(ref_view.shape, dtype = np.uint8)
+    for x in range(size_x):
+        for y in range(size_y):
+            res = np.repeat(disparity_map[x, y], 2, -1) * distance
+            new_pixel = ((x, y) + res).astype(int)
+            if(valid_pixel(new_pixel, (size_x, size_y))):
+                novel_view[new_pixel[0], new_pixel[1]] = ref_view[x, y]
+
+def is_same_image(img1, img2):
+    """Returns true if img1 has the same values and size as img2, else False"""
+    size_x, size_y = img1.shape[0:2]
+    size_x1, size_y1 = img2.shape[0:2]
+    if(size_x != size_x1 or size_y != size_y1):
+        return False
+        
+    #Check all pixel values match up
+    for x in range(size_x):
+        for y in range(size_y):
+            arr1 = novel_view[x, y]
+            arr2 = novel_view[x, y]
+            if(np.all(arr1 != arr2)):
+                print('Images different at: {} {}'.format(x, y))
+                print('First image value is', arr1)
+                print('Second image value is', arr2)
+                return False
+    return True
 def main(config):
 
 
