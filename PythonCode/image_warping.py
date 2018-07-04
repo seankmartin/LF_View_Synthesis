@@ -3,35 +3,7 @@ import configparser
 from PIL import Image
 import numpy as np
 
-def depth_buffer_to_eye(buffer_depth, near, far):
-    """
-    Returns eye space depth from a [0,1] depth buffer value.
-    First converts the buffer value to NDC in [-1, 1].
-    Then inverts the perspective projection to give eye space depth.
-
-    Keyword arguments:
-    buffer_depth -- the input depth buffer value
-    near -- the depth of the near plane (positive)
-    far -- the depth of the far plane (positive)
-    """
-    ndc_depth = 2.0 * buffer_depth - 1.0
-    eye_depth = 2.0 * near * far / (near + far - ndc_depth * (far - near))
-    return eye_depth
-
-def depth_to_disparity(depth_value, baseline, focal_length, shift = 0.0):
-    """
-    Returns a disparity value from a depth value
-
-    Keyword arguments:
-    depth_value -- the input depth
-    baseline -- the distance between neighbouring cameras in the grid
-    focal_length -- the depth image capturing camera's focal length
-    shift -- an optional distance between neighbouring images
-          -- principal point offsets (default 0.0),
-          -- note that this is from the HCI paper on their capture process
-    """
-    disparity = (baseline * focal_length) / depth_value - shift
-    return disparity
+import conversions as cs
 
 def valid_pixel(pixel, img_size):
     """Returns true if the pixel co-ordinate lies inside the image grid"""
@@ -111,7 +83,7 @@ def is_same_image(img1, img2):
     size_x1, size_y1 = img2.shape[0:2]
     if(size_x != size_x1 or size_y != size_y1):
         return False
-        
+
     #Check all pixel values match up
     for x in range(size_x):
         for y in range(size_y):
@@ -123,8 +95,22 @@ def is_same_image(img1, img2):
                 print('Second image value is', arr2)
                 return False
     return True
-def main(config):
 
+def main(config):
+    with h5py.File(hdf5_path, mode = 'r') as hdf5_file:
+        depth_grp = hdf5_file['depth']
+        depth_image = depth_grp['images'][0, 32, :, :, :]
+        buffer_depth = (depth_image / 255.0).astype(np.float32)
+        eye_depth = cs.depth_buffer_to_eye(buffer_depth,
+                                           hdf5_file.attrs['near'],
+                                           hdf5_file.attrs['far'])
+        disparity = cs.depth_to_disparity(eye_depth,
+                                          hdf5_file.attrs['baseline'],
+                                          hdf5_file.attrs['focal_length'])
+        pixel_disp = cs.real_value_to_pixel(disparity,
+                                            hdf5_file.attrs['focal_length'],
+                                            hdf5_file.attrs['fov'],
+                                            depth.attrs['shape'][2])
 
 
 if __name__ == '__main__':
