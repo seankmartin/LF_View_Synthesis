@@ -1,5 +1,7 @@
 import configparser
+import os
 
+import h5py
 from PIL import Image
 import numpy as np
 
@@ -96,10 +98,19 @@ def is_same_image(img1, img2):
                 return False
     return True
 
+def save_array_as_image(array, save_location):
+    """Saves an array as an image at the save_location using pillow"""
+    image = Image.fromarray(array)
+    image.save(save_location)
+    image.close()
+
 def main(config):
+    hdf5_path = os.path.join(config['PATH']['output_dir'],
+                             config['PATH']['hdf5_name'])
     with h5py.File(hdf5_path, mode = 'r') as hdf5_file:
         depth_grp = hdf5_file['depth']
-        depth_image = depth_grp['images'][0, 32, :, :, :]
+
+        depth_image = depth_grp['images'][0, 27]
         buffer_depth = (depth_image / 255.0).astype(np.float32)
         eye_depth = cs.depth_buffer_to_eye(buffer_depth,
                                            hdf5_file.attrs['near'],
@@ -110,10 +121,32 @@ def main(config):
         pixel_disp = cs.real_value_to_pixel(disparity,
                                             hdf5_file.attrs['focal_length'],
                                             hdf5_file.attrs['fov'],
-                                            depth.attrs['shape'][2])
+                                            depth_grp.attrs['shape'][2])
+        #Hardcoded some values for now
+        colour_grp = hdf5_file['colour']
+        colour_image = colour_grp['images'][0, 27]
 
+        #Can later expand like 0000 if needed
+        base_dir = os.path.join(config['PATH']['output_dir'], 'warped')
+        get_diff = (config['DEFAULT']['should_get_diff'] == 'True')
+        for i in range(8):
+            for j in range(8):
+                res = fw_warp_image(colour_image, pixel_disp,
+                                    np.asarray([3, 3]), np.asarray([i, j]))
+                file_name = 'Colour{}{}.png'.format(i, j)
+                save_location = os.path.join(base_dir, file_name)
+                save_array_as_image(res, save_location)
+                if get_diff:
+                    colour = colour_grp['images'][0, i * 8 + j]
+                    diff = (colour - res).astype(np.uint8)
+                    file_name = 'Diff{}{}.png'.format(i, j)
+                    save_location = os.path.join(base_dir, file_name)
+                    save_array_as_image(diff, save_location)
 
 if __name__ == '__main__':
     config = configparser.ConfigParser()
     config.read(os.path.join('config','hdf5.ini'))
+    dir_to_make = os.path.join(config['PATH']['output_dir'], 'warped')
+    if not os.path.exists(dir_to_make):
+        os.makedirs(dir_to_make)
     main(config)
