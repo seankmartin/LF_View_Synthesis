@@ -2,7 +2,7 @@ import h5py
 import torch
 import torch.utils.data as data
 
-class DatasetFromHDf5(data.Dataset):
+class DatasetFromHdf5(data.Dataset):
     def __init__(self, file_path, transform = None):
         """
         Keyword arguments:
