@@ -36,7 +36,7 @@ def main(config):
     shared_metadata_keys = (
         'baseline', 'near', 'far', 'focal_length', 'fov')
 
-    with h5py.File(hdf5_path, mode = 'w') as hdf5_file:
+    with h5py.File(hdf5_path, mode = 'w', libver = 'latest') as hdf5_file:
         for key in shared_metadata_keys:
             hdf5_file.attrs[key] = np.float32(meta_dict[key])
 

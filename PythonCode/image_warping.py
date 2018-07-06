@@ -107,7 +107,7 @@ def save_array_as_image(array, save_location):
 def main(config):
     hdf5_path = os.path.join(config['PATH']['output_dir'],
                              config['PATH']['hdf5_name'])
-    with h5py.File(hdf5_path, mode = 'r') as hdf5_file:
+    with h5py.File(hdf5_path, mode = 'r', libver = 'latest') as hdf5_file:
         depth_grp = hdf5_file['depth']
 
         depth_image = depth_grp['images'][0, 27]
