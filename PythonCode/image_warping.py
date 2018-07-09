@@ -1,3 +1,4 @@
+"""Image warping based on a disparity"""
 import configparser
 import os
 
@@ -10,8 +11,8 @@ import conversions as cs
 def valid_pixel(pixel, img_size):
     """Returns true if the pixel co-ordinate lies inside the image grid"""
     size_x, size_y = img_size
-    valid = ( ((pixel[0] > -1) and (pixel[0] < size_x)) and
-              ((pixel[1] > -1) and (pixel[1] < size_y)) )
+    valid = (((pixel[0] > -1) and (pixel[0] < size_x)) and
+             ((pixel[1] > -1) and (pixel[1] < size_y)))
     return valid
 
 #TODO consider keeping pixels around so don't have to make it multiple times
@@ -32,10 +33,10 @@ def fw_warp_image(ref_view, disparity_map, ref_pos, novel_pos):
     distance = ref_pos - novel_pos
 
     #Initialise an array of zeroes
-    novel_view = np.zeros(ref_view.shape, dtype = np.uint8)
+    novel_view = np.zeros(ref_view.shape, dtype=np.uint8)
 
     #Create an array of pixel positions
-    grid = np.meshgrid(np.arange(size_x), np.arange(size_y), indexing = 'ij')
+    grid = np.meshgrid(np.arange(size_x), np.arange(size_y), indexing='ij')
     stacked = np.stack(grid, 2)
     pixels = stacked.reshape(-1, 2)
 
@@ -47,9 +48,10 @@ def fw_warp_image(ref_view, disparity_map, ref_pos, novel_pos):
     novel_pixels = pixels + result
 
     #Move the pixels from the reference view to the novel view
-    for x, y in zip(novel_pixels, pixels):
-        if valid_pixel(x, ref_view.shape[0:2]):
-            novel_view[x[0], x[1]] = ref_view[y[0], y[1]]
+    for novel_coord, ref_coord in zip(novel_pixels, pixels):
+        if valid_pixel(novel_coord, ref_view.shape[0:2]):
+            novel_view[novel_coord[0], novel_coord[1]] = (
+                ref_view[ref_coord[0], ref_coord[1]])
 
     return novel_view
 
@@ -71,32 +73,13 @@ def slow_fw_warp_image(ref_view, disparity_map, ref_pos, novel_pos):
     size_x, size_y = ref_view.shape[0:2]
     distance = ref_pos - novel_pos
 
-    novel_view = np.zeros(ref_view.shape, dtype = np.uint8)
+    novel_view = np.zeros(ref_view.shape, dtype=np.uint8)
     for x in range(size_x):
         for y in range(size_y):
             res = np.repeat(disparity_map[x, y], 2, -1) * distance
             new_pixel = ((x, y) + res).astype(int)
-            if(valid_pixel(new_pixel, (size_x, size_y))):
+            if valid_pixel(new_pixel, (size_x, size_y)):
                 novel_view[new_pixel[0], new_pixel[1]] = ref_view[x, y]
-
-def is_same_image(img1, img2):
-    """Returns true if img1 has the same values and size as img2, else False"""
-    size_x, size_y = img1.shape[0:2]
-    size_x1, size_y1 = img2.shape[0:2]
-    if(size_x != size_x1 or size_y != size_y1):
-        return False
-
-    #Check all pixel values match up
-    for x in range(size_x):
-        for y in range(size_y):
-            arr1 = novel_view[x, y]
-            arr2 = novel_view[x, y]
-            if(np.all(arr1 != arr2)):
-                print('Images different at: {} {}'.format(x, y))
-                print('First image value is', arr1)
-                print('Second image value is', arr2)
-                return False
-    return True
 
 def save_array_as_image(array, save_location):
     """Saves an array as an image at the save_location using pillow"""
@@ -107,7 +90,7 @@ def save_array_as_image(array, save_location):
 def main(config):
     hdf5_path = os.path.join(config['PATH']['output_dir'],
                              config['PATH']['hdf5_name'])
-    with h5py.File(hdf5_path, mode = 'r', libver = 'latest') as hdf5_file:
+    with h5py.File(hdf5_path, mode='r', libver='latest') as hdf5_file:
         depth_grp = hdf5_file['depth']
 
         depth_image = depth_grp['images'][0, 27]
@@ -144,9 +127,9 @@ def main(config):
                     save_array_as_image(diff, save_location)
 
 if __name__ == '__main__':
-    config = configparser.ConfigParser()
-    config.read(os.path.join('config','hdf5.ini'))
-    dir_to_make = os.path.join(config['PATH']['output_dir'], 'warped')
-    if not os.path.exists(dir_to_make):
-        os.makedirs(dir_to_make)
-    main(config)
+    CONFIG = configparser.ConfigParser()
+    CONFIG.read(os.path.join('config', 'hdf5.ini'))
+    DIRTOMAKE = os.path.join(CONFIG['PATH']['output_dir'], 'warped')
+    if not os.path.exists(DIRTOMAKE):
+        os.makedirs(DIRTOMAKE)
+    main(CONFIG)

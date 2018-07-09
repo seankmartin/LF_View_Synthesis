@@ -1,2 +1,6 @@
 .ipynb_checkpoints/
 *.pyc
+launch.json
+#Ignore the main workspace file, but not individual folder ones
+.vscode/settings.json
+*.ropeproject/

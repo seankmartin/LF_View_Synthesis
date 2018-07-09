@@ -1,3 +1,4 @@
+"""Coverts depth buffer information to pixel disparity"""
 from math import radians, tan
 
 def depth_buffer_to_eye(buffer_depth, near, far):
@@ -15,7 +16,7 @@ def depth_buffer_to_eye(buffer_depth, near, far):
     eye_depth = 2.0 * near * far / (near + far - ndc_depth * (far - near))
     return eye_depth
 
-def depth_to_disparity(depth_value, baseline, focal_length, shift = 0.0):
+def depth_to_disparity(depth_value, baseline, focal_length, shift=0.0):
     """
     Returns a disparity value from a depth value
 
@@ -44,6 +45,7 @@ def real_value_to_pixel(real_value, focal_length, fov, image_pixel_size):
     return real_value * image_pixel_size / image_sensor_size
 
 def example(input_depth):
+    """Returns information on calculations with fixed intrinsics"""
     input_depth = input_depth
     baseline = 0.5
     near = 6
@@ -65,11 +67,11 @@ if __name__ == '__main__':
     while True:
         try:
             print("Please enter q to quit, or another value to try again")
-            s = input('--> ')
-            if s == "q":
+            STR = input('--> ')
+            if STR == "q":
                 break
             else:
-                example(float(s))
+                example(float(STR))
         except ValueError:
             print("No input read, assuming you wanted to exit")
             exit(0)

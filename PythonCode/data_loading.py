@@ -1,6 +1,8 @@
 import h5py
+
 import torch
 import torch.utils.data as data
+
 
 class DatasetFromHdf5(data.Dataset):
     def __init__(self, file_path, transform = None):
@@ -12,8 +14,8 @@ class DatasetFromHdf5(data.Dataset):
         super()
         #Need to close the file on destruction
         self.hf = h5py.File(file_path, mode = 'r', libver = 'latest')
-        self.depth = hf['depth']
-        self.colour = hf['colour']
+        self.depth = self.hf['depth']
+        self.colour = self.hf['colour']
         self.transform = transform
 
     def __getitem__(self, index):

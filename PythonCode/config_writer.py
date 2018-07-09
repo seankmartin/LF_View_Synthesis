@@ -1,4 +1,4 @@
-#A script for easily changing the config file
+"""A script for easily changing the config file"""
 import configparser
 import os
 

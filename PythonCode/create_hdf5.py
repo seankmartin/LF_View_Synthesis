@@ -8,6 +8,7 @@ from PIL import Image
 
 import welford
 
+
 def get_row_col_number(index, spatial_cols):
     """Turns index into (x,y) grid reference with spatial_cols grid columns"""
     row_num = index // spatial_cols
