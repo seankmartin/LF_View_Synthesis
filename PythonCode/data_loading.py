@@ -5,7 +5,7 @@ import torch.utils.data as data
 
 
 class DatasetFromHdf5(data.Dataset):
-    def __init__(self, file_path, transform = None):
+    def __init__(self, file_path, transform=None):
         """
         Keyword arguments:
         file_path -- the location containing the hdf5 file
@@ -13,9 +13,9 @@ class DatasetFromHdf5(data.Dataset):
         """
         super()
         #Need to close the file on destruction
-        self.hf = h5py.File(file_path, mode = 'r', libver = 'latest')
-        self.depth = self.hf['depth']
-        self.colour = self.hf['colour']
+        self.hdf_file = h5py.File(file_path, mode='r', libver='latest')
+        self.depth = self.hdf_file['depth']
+        self.colour = self.hdf_file['colour']
         self.transform = transform
 
     def __getitem__(self, index):
@@ -38,4 +38,5 @@ class DatasetFromHdf5(data.Dataset):
         return self.depth.attrs['shape'][0]
 
     def close_h5(self):
-        self.h5.close()
+        """Close the associated read only hdf5 file"""
+        self.hdf_file.close()
