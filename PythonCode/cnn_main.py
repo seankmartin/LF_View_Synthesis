@@ -92,7 +92,8 @@ def main(args, config):
     for epoch in range(args.start_epoch, args.nEpochs + 1):
         epoch_loss = train(model=model, dset_loaders=data_loader,
                            optimizer=optimizer, lr_scheduler=lr_scheduler,
-                           epoch=epoch, cuda=cuda, clip=args.clip)
+                           criterion=criterion, epoch=epoch, 
+                           cuda=cuda, clip=args.clip)
         # deep copy the model
         if epoch_loss < best_loss:
             best_loss = epoch_loss
@@ -182,35 +183,35 @@ if __name__ == '__main__':
     #For the source of some of these arguments
     THREADS_HELP = " ".join(("Number of threads for data loader",
                              "to use Default: 1"))
-    parser = argparse.ArgumentParser(
+    PARSER = argparse.ArgumentParser(
         description='Process modifiable parameters from command line')
-    parser.add_argument('--base_dir', type=str, default="",
+    PARSER.add_argument('--base_dir', type=str, default="",
                         help='base directory for the data')
-    parser.add_argument("--nEpochs", type=int, default=50,
+    PARSER.add_argument("--nEpochs", type=int, default=50,
                         help="Number of epochs to train for")
-    parser.add_argument("--lr", type=float, default=0.1,
+    PARSER.add_argument("--lr", type=float, default=0.1,
                         help="Learning Rate. Default=0.1")
-    parser.add_argument("--lr_factor", type=float, default=0.1,
+    PARSER.add_argument("--lr_factor", type=float, default=0.1,
                         help="Factor to reduce learning rate by on plateau")
-    parser.add_argument("--checkpoint", default="", type=str,
+    PARSER.add_argument("--checkpoint", default="", type=str,
                         help="checkpoint name (default: none)")
-    parser.add_argument("--start-epoch", default=1, type=int,
+    PARSER.add_argument("--start-epoch", default=1, type=int,
                         help="Manual epoch number (useful on restarts)")
-    parser.add_argument("--clip", type=float, default=0.4,
+    PARSER.add_argument("--clip", type=float, default=0.4,
                         help="Clipping Gradients. Default=0.4")
-    parser.add_argument("--threads", type=int, default=1,
+    PARSER.add_argument("--threads", type=int, default=1,
                         help=THREADS_HELP)
-    parser.add_argument("--momentum", "--m", default=0.9, type=float,
+    PARSER.add_argument("--momentum", "--m", default=0.9, type=float,
                         help="Momentum, Default: 0.9")
-    parser.add_argument("--weight-decay", "--wd",
+    PARSER.add_argument("--weight-decay", "--wd",
                         default=1e-4, type=float,
                         help="Weight decay, Default: 1e-4")
-    parser.add_argument('--pretrained', default='', type=str,
+    PARSER.add_argument('--pretrained', default='', type=str,
                         help='name of pretrained model (default: none)')
-    parser.add_argument('--tag', default=None, type=str,
+    PARSER.add_argument('--tag', default=None, type=str,
                         help='Unique identifier for a model training run')
     #Any unknown argument will go to unparsed
-    ARGS, UNPARSED = parser.parse_known_args()
+    ARGS, UNPARSED = PARSER.parse_known_args()
     if ARGS.tag is None:
         print("Please enter a --tag flag through cmd when running")
         exit(-1)
