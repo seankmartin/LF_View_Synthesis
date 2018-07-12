@@ -52,7 +52,8 @@ def main(args, config):
     model = None
     criterion = nn.MSELoss(size_average=False)
     optimizer = optim.SGD(model.parameters(), lr=args.lr,
-                          momentum=args.momentum, weight_decay=args.weight_decay)
+                          momentum=args.momentum, weight_decay=args.weight_decay,
+			  nesterov=True)
     lr_scheduler = ReduceLROnPlateau(
         optimizer, 'min', factor=args.lr_factor,
         patience=3, threshold=1e-3,
