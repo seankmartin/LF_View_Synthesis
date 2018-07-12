@@ -34,28 +34,43 @@ def random_float():
     """returns a random float between -1 and 1"""
     return (random() - 0.5) * 2
 
-def create_random_lf_cameras(num_to_create, max_distance_from_origin,
-                             interspatial_distance = 1.0,
-                             spatial_rows = 8, spatial_cols = 8):
+def create_random_lf_cameras(num_to_create, max_look_from_origin,
+                             max_look_to_origin,
+                             interspatial_distance=1.0,
+                             spatial_rows=8, spatial_cols=8):
     """Create a list of randomnly positioned lf cameras
 
     Keyword arguments:
     num_to_create -- the number of lf cameras to create
-    max_distance_from_origin -- the furthest from the origin the cameras sit
+    max_look_from_origin -- max distance from the origin of camera look from
+    max_look_to_origin -- max distance from the origin of camera look to    
     interspatial_distance -- distance between cameras in array (default 1.0)
     spatial_rows, spatial_cols -- dimensions of camera array (default 8 x 8)
     """
     lf_cameras = []
-    d = max_distance_from_origin
+    d1 = max_look_from_origin
+    d2 = max_look_to_origin
     look_up = vec3(0, 1, 0)
     for i in range(num_to_create):
-        look_from = vec3(random_float(), random_float(), random_float()) * d
-        look_to = vec3(random_float(), random_float(), random_float()) * d
+        look_from = vec3(random_float(), random_float(), random_float()) * d1
+        look_to = vec3(random_float(), random_float(), random_float()) * d2
         lf_cam = LightFieldCamera(look_from, look_to, look_up,
                                   interspatial_distance,
                                   spatial_rows, spatial_cols)
         lf_cameras.append(lf_cam)
     return lf_cameras
+
+def save_lf(lf, save_main_dir):
+    """Saves a light field in sub dir XXX of save_main_dir"""
+    cam = inviwopy.app.network.EntryExitPoints.camera
+    sub_dir_to_save_to = get_sub_dir_for_saving(save_main_dir)
+    try:
+        lf.view_array(cam, save=True,
+                      save_dir=sub_dir_to_save_to)
+    except ValueError as e:
+        print(e)
+        os.rmdir(sub_dir_to_save_to)
+        lf.view_array(cam)
 
 def main(save_main_dir, pixel_dim):
     #Setup
@@ -75,29 +90,24 @@ def main(save_main_dir, pixel_dim):
 
     #Create a light field camera at the current camera position
     lf_camera_here = LightFieldCamera(cam.lookFrom, cam.lookTo,
-                                      interspatial_distance = 0.5)
+                                      interspatial_distance=0.5)
 
     #Preview the lf camera array
-    #random_lfs = create_random_lf_cameras(4, 8)
-    #for lf in random_lfs:
-        #lf.view_array(cam)
+    #lf_camera_here.view_array(cam, save=False)
 
-    print(lf_camera_here.get_look_right())
-    lf_camera_here.view_array(cam, save = False)
-
-    #Save the images from the light field camera array
-    sub_dir_to_save_to = get_sub_dir_for_saving(save_main_dir)
-    try:
-        lf_camera_here.view_array(cam, save = True,
-                                  save_dir = sub_dir_to_save_to)
-    except ValueError as e:
-        print(e)
-        os.rmdir(sub_dir_to_save_to)
+    #Save a number of random light fields
+    NUM_RANDOM_LF_SAMPLES = 10
+    random_lfs = create_random_lf_cameras(
+                     NUM_RANDOM_LF_SAMPLES, 100, 10,
+                     interspatial_distance=0.5)
+    for lf in random_lfs:
+        save_lf(lf, save_main_dir)
 
 if __name__ == '__main__':
     home = os.path.expanduser('~')
     #home = 'E:'
-    save_main_dir = os.path.join(home, 'lf_volume_sets','test')
+    save_main_dir = os.path.join(home, 'turing', 'overflow-storage', 
+                                 'lf_volume_sets', 'test')
     seed(time())
     pixel_dim = 512
     main(save_main_dir, pixel_dim)
