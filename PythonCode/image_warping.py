@@ -92,12 +92,12 @@ def main(config):
                              config['PATH']['hdf5_name'])
     with h5py.File(hdf5_path, mode='r', libver='latest') as hdf5_file:
         depth_grp = hdf5_file['val']['disparity']
-
-        depth_image = depth_grp['images'][0, 27]
+        SNUM = 3
+        depth_image = depth_grp['images'][SNUM, 27, :, :, 0]
 
         #Hardcoded some values for now
         colour_grp = hdf5_file['val']['colour']
-        colour_image = colour_grp['images'][0, 27]
+        colour_image = colour_grp['images'][SNUM, 27]
 
         #Can later expand like 0000 if needed
         base_dir = os.path.join(config['PATH']['output_dir'], 'warped')
@@ -110,7 +110,7 @@ def main(config):
                 save_location = os.path.join(base_dir, file_name)
                 save_array_as_image(res, save_location)
                 if get_diff:
-                    colour = colour_grp['images'][0, i * 8 + j]
+                    colour = colour_grp['images'][SNUM, i * 8 + j]
                     diff = (colour - res).astype(np.uint8)
                     file_name = 'Diff{}{}.png'.format(i, j)
                     save_location = os.path.join(base_dir, file_name)
