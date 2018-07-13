@@ -50,8 +50,9 @@ def depth_to_pixel_disp(depth, near, far, baseline, focal_length, fov,
     Performs the whole pipeline for converting buffer depth to pixel disparity
     """
     inviwo_depth = depth_buffer_to_eye(depth, near, far)
-    disparity = depth_to_disparity(inviwo_depth, baseline, focal_length)
-    pixel_disparity = real_value_to_pixel(disparity, focal_length, fov, pixels)
+    disparity = depth_to_disparity(inviwo_depth, baseline, focal_length, shift)
+    pixel_disparity = real_value_to_pixel(disparity, focal_length, fov, 
+                                          image_pixel_size)
     return pixel_disparity
 
 def example(input_depth):

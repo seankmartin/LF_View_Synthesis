@@ -91,12 +91,12 @@ def main(config):
     hdf5_path = os.path.join(config['PATH']['output_dir'],
                              config['PATH']['hdf5_name'])
     with h5py.File(hdf5_path, mode='r', libver='latest') as hdf5_file:
-        depth_grp = hdf5_file['val']['depth']
+        depth_grp = hdf5_file['val']['disparity']
 
         depth_image = depth_grp['images'][0, 27]
 
         #Hardcoded some values for now
-        colour_grp = hdf5_file['colour']
+        colour_grp = hdf5_file['val']['colour']
         colour_image = colour_grp['images'][0, 27]
 
         #Can later expand like 0000 if needed
