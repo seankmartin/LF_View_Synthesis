@@ -87,6 +87,11 @@ def save_array_as_image(array, save_location):
     image.save(save_location)
     image.close()
 
+def get_diff_image(im1, im2):
+    diff = np.subtract(im1.astype(float), im2.astype(float))
+    diff = abs(diff).astype(np.uint8)
+    return diff
+
 def main(config):
     hdf5_path = os.path.join(config['PATH']['output_dir'],
                              config['PATH']['hdf5_name'])
@@ -111,7 +116,7 @@ def main(config):
                 save_array_as_image(res, save_location)
                 if get_diff:
                     colour = colour_grp['images'][SNUM, i * 8 + j]
-                    diff = (colour - res).astype(np.uint8)
+                    diff = get_diff_image(colour, res)
                     file_name = 'Diff{}{}.png'.format(i, j)
                     save_location = os.path.join(base_dir, file_name)
                     save_array_as_image(diff, save_location)
