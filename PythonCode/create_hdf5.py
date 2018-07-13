@@ -90,14 +90,14 @@ def main(config):
         hdf5_group.create_dataset('metadata', 
             (depth_image_shape[0], len(shared_metadata_keys), str)
         dim = int(meta_dict['pixels'])
-        depth.create_dataset('images', depth.attrs['shape'], np.uint8,
+        depth.create_dataset('images', depth.attrs['shape'], np.float32,
                             chunks = (1, 1, dim, dim, 1),
                             compression = "lzf",
                             shuffle = True)
         depth.create_dataset('mean', depth_image_shape)
         depth.create_dataset('var', depth_image_shape)
 
-        colour.create_dataset('images', colour.attrs['shape'], np.float32,
+        colour.create_dataset('images', colour.attrs['shape'], np.uint8,
                             chunks = (1, 1, dim, dim, 3),
                             compression = "lzf",
                             shuffle = True)
@@ -122,6 +122,7 @@ def main(config):
                 depth_image = Image.open(depth_loc)
                 depth_image.load()
                 depth_data = np.asarray(depth_image, dtype = np.uint8)
+                depth_data = (depth_data / 255.0).astype(np.float32)
                 depth_data = depth_to_disparity(
                     depth_data, ast.literal_eval(meta), dim)
                 depth['images'][idx, x, :, :, 0] = depth_data

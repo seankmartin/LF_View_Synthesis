@@ -91,20 +91,10 @@ def main(config):
     hdf5_path = os.path.join(config['PATH']['output_dir'],
                              config['PATH']['hdf5_name'])
     with h5py.File(hdf5_path, mode='r', libver='latest') as hdf5_file:
-        depth_grp = hdf5_file['depth']
+        depth_grp = hdf5_file['val']['depth']
 
         depth_image = depth_grp['images'][0, 27]
-        buffer_depth = (depth_image / 255.0).astype(np.float32)
-        eye_depth = cs.depth_buffer_to_eye(buffer_depth,
-                                           hdf5_file.attrs['near'],
-                                           hdf5_file.attrs['far'])
-        disparity = cs.depth_to_disparity(eye_depth,
-                                          hdf5_file.attrs['baseline'],
-                                          hdf5_file.attrs['focal_length'])
-        pixel_disp = cs.real_value_to_pixel(disparity,
-                                            hdf5_file.attrs['focal_length'],
-                                            hdf5_file.attrs['fov'],
-                                            depth_grp.attrs['shape'][2])
+
         #Hardcoded some values for now
         colour_grp = hdf5_file['colour']
         colour_image = colour_grp['images'][0, 27]
@@ -114,7 +104,7 @@ def main(config):
         get_diff = (config['DEFAULT']['should_get_diff'] == 'True')
         for i in range(8):
             for j in range(8):
-                res = fw_warp_image(colour_image, pixel_disp,
+                res = fw_warp_image(colour_image, depth_image,
                                     np.asarray([3, 3]), np.asarray([i, j]))
                 file_name = 'Colour{}{}.png'.format(i, j)
                 save_location = os.path.join(base_dir, file_name)
