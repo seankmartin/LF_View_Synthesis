@@ -89,6 +89,7 @@ vec4 rayTraversal(vec3 entryPoint, vec3 exitPoint, vec2 texCoords, float backgro
     float t = 0.5f * tIncr;
     rayDirection = normalize(rayDirection);
     float tDepth = -1.0;
+    float fDepth = -1.0;
     vec4 color;
     vec4 voxel;
     vec3 samplePos;
@@ -123,15 +124,15 @@ vec4 rayTraversal(vec3 entryPoint, vec3 exitPoint, vec2 texCoords, float backgro
         tIncr = tEnd / samples;
         result = drawIsosurfaces(result, isovalues, voxel, previousVoxel, 
                                  volume, volumeParameters, channel, transferFunction, camera, lighting, 
-                                 samplePos, rayDirection, toCameraDir, t, tIncr, tDepth);
+                                 samplePos, rayDirection, toCameraDir, t, tIncr, fDepth);
 #endif // ISOSURFACE_ENABLED
 
 #if defined(BACKGROUND_AVAILABLE)
-        result = DRAW_BACKGROUND(result, t, tIncr, backgroundColor, bgTDepth, tDepth);
+        result = DRAW_BACKGROUND(result, t, tIncr, backgroundColor, bgTDepth, fDepth);
 #endif // BACKGROUND_AVAILABLE
 
 #if defined(PLANES_ENABLED)
-        result = DRAW_PLANES(result, samplePos, rayDirection, tIncr, positionindicator, t, tDepth);
+        result = DRAW_PLANES(result, samplePos, rayDirection, tIncr, positionindicator, t, fDepth);
 #endif // #if defined(PLANES_ENABLED)
 
 #if defined(INCLUDE_DVR)
@@ -150,7 +151,7 @@ vec4 rayTraversal(vec3 entryPoint, vec3 exitPoint, vec2 texCoords, float backgro
                                        worldSpacePosition, -gradient, toCameraDir);
 
             result = APPLY_COMPOSITING(result, color, samplePos, voxel, gradient, camera,
-                                       raycaster.isoValue, t, tDepth, tIncr);
+                                       raycaster.isoValue, t, fDepth, tIncr);
         }
 #endif // INCLUDE_DVR
 
@@ -165,7 +166,7 @@ vec4 rayTraversal(vec3 entryPoint, vec3 exitPoint, vec2 texCoords, float backgro
             t += tIncr;
         }
         //early depth output
-        if (result.a > DEPTH_THRESHOLD) {
+        if (result.a > DEPTH_THRESHOLD && tDepth == -1.0) {
             tDepth = t;
         }
     }
@@ -181,6 +182,8 @@ vec4 rayTraversal(vec3 entryPoint, vec3 exitPoint, vec2 texCoords, float backgro
                                      texture(exitDepth, texCoords).x);
 
     } else {
+        //Outputting the fDepth instead of 1.0
+        //tDepth = fDepth;
         tDepth = 1.0;
     }
 
