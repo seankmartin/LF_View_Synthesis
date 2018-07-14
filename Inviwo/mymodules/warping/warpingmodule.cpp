@@ -29,17 +29,18 @@
 
 #include <modules/warping/warpingmodule.h>
 #include <warping/processors/depth_to_disparity.h>
+#include <modules/opengl/shader/shadermanager.h>
 
 namespace inviwo {
 
 warpingModule::warpingModule(InviwoApplication* app) : InviwoModule(app, "warping") {
-    registerProcessor<depth_to_disparity>();
     // Add a directory to the search path of the Shadermanager
-    // ShaderManager::getPtr()->addShaderSearchPath(getPath(ModulePath::GLSL));
+    ShaderManager::getPtr()->addShaderSearchPath(getPath(ModulePath::GLSL));
 
     // Register objects that can be shared with the rest of inviwo here:
 
     // Processors
+    registerProcessor<depth_to_disparity>();
     //registerProcessor<warpingProcessor>();
 
     // Properties

@@ -30,16 +30,16 @@
 
 //uniform CameraParameters camera;
 
-float convertScreenToEye(CameraParameters camera, float depthScreen) {
+/*float convertScreenToEye(CameraParameters camera, float depthScreen) {
     float depthNDC = 2.0 * depthScreen - 1.0;
     float depthEye = 2.0 * camera.nearPlane * camera.farPlane /
                      (camera.farPlane + camera.nearPlane - depthNDC * (camera.farPlane - camera.nearPlane));
     return depthEye;
-}
+} */
 
 void main(void) {
     float depth = gl_FragCoord.z;
     //float eye_depth = convertScreenToEye(camera, depth);
 
-    FragData0 = vec4(vec3(depth), 1.0)
+    FragData0 = vec4(vec3(depth), 1.0);
 }

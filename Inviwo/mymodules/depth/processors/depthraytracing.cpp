@@ -45,9 +45,9 @@ namespace inviwo {
 
 const ProcessorInfo DepthRayTracing::processorInfo_{
     "org.inviwo.DepthRayTracing",  // Class identifier
-    "Volume Raycaster",            // Display name
+    "Depth Ray Tracing",            // Display name
     "Volume Rendering",            // Category
-    CodeState::Stable,             // Code state
+    CodeState::Experimental,       // Code state
     "GL, DVR, Raycasting"          // Tags
 };
 

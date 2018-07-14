@@ -29,17 +29,18 @@
 
 #include <modules/depth/depthmodule.h>
 #include <depth/processors/depthraytracing.h>
+#include <modules/opengl/shader/shadermanager.h>
 
 namespace inviwo {
 
 depthModule::depthModule(InviwoApplication* app) : InviwoModule(app, "depth") {
-    registerProcessor<DepthRayTracing>();
     // Add a directory to the search path of the Shadermanager
-    // ShaderManager::getPtr()->addShaderSearchPath(getPath(ModulePath::GLSL));
+    ShaderManager::getPtr()->addShaderSearchPath(getPath(ModulePath::GLSL));
 
     // Register objects that can be shared with the rest of inviwo here:
 
     // Processors
+    registerProcessor<DepthRayTracing>();
     // registerProcessor<depthProcessor>();
 
     // Properties
