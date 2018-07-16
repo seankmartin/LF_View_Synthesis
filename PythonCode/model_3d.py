@@ -5,7 +5,7 @@ class C3D(nn.Module):
     This network acts on y * y * 3 warped images and depth maps
     Output is a grid of residuals to modify the warped images input
     """
-    
+
     def __init__(self, inchannels, outchannels):
         super()
         self.inchannels = inchannels
@@ -31,10 +31,10 @@ class ThreexLayer(nn.Module):
     This Layer represents a 3d convolution followed by a batch norm and activation
     With 3 x 3 x 3 filters on a certain number of input and output channels
     """
-    
+
     def __init__(self, inchannels, outchannels, activation):
         super()
-        self.conv = nn.conv3d(inchannels, outchannels, 
+        self.conv = nn.conv3d(inchannels, outchannels,
                               kernelsize=(3, 3, 3), padding=(1, 1, 1))
         self.bn = nn.BatchNorm3d(outchannels)
         self.activation = activation
@@ -50,10 +50,10 @@ class ThreexLayerNoBN(nn.Module):
     This Layer represents a 3d convolution followed by a batch norm and activation
     With 3 x 3 x 3 filters on a certain number of input and output channels
     """
-    
+
     def __init__(self, inchannels, outchannels, activation):
         super()
-        self.conv = nn.conv3d(inchannels, outchannels, 
+        self.conv = nn.conv3d(inchannels, outchannels,
                               kernelsize=(3, 3, 3), padding=(1, 1, 1))
         self.activation = activation
 

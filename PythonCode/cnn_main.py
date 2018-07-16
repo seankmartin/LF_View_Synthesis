@@ -12,105 +12,86 @@ import time
 import math
 
 import h5py
-import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import DataLoader
 
-from data_loading import DatasetFromHdf5
+from data_loading import TrainFromHdf5, ValFromHdf5
+from model_3d import C3D
 import helpers
 
 def main(args, config):
-    #Preliminary setup
-    cuda = config['Network']['cuda'] == 'True'
-    cuda_device = config['Network']['gpu_id']
-    if cuda:
-        print("=> use gpu id: '{}'".format(cuda_device))
-        os.environ["CUDA_VISIBLE_DEVICES"] = cuda_device
-        if not torch.cuda.is_available():
-            raise Exception("No GPU found or Wrong gpu id")
-        print("cudnn version is", torch.backends.cudnn.version())
+    cuda = check_cuda(config)
 
     #Attempts to otimise - see
     #https://discuss.pytorch.org/t/what-does-torch-backends-cudnn-benchmark-do
     torch.backends.cudnn.benchmark = True
 
-    print("Loading dataset")
-    #TODO There should be a train and val here
-    #this can be done with the h5
-    h5_lf_vis_file_loc = os.path.join(config['PATH']['hdf5_dir'],
-                                      config['PATH']['hdf5_name'])
-    dataset = DatasetFromHdf5(h5_lf_vis_file_loc)
-    data_loader = DataLoader(dataset=dataset, num_workers=args.threads,
-                             batch_size=int(config['NETWORK']['batch_size']),
-                             shuffle=True)
+    file_path = os.path.join(config['PATH']['hdf5_dir'],
+                             config['PATH']['hdf5_name'])
+    with h5py.File(file_path, mode='r', libver='latest', swmr=True) as h5_file:
+        data_loaders = create_dataloaders(h5_file, args, config)
 
-    # Load the appropriate model with gpu support
-    print("Building model")
-    model = None
-    criterion = nn.MSELoss(size_average=False)
-    optimizer = optim.SGD(model.parameters(), lr=args.lr,
-                          momentum=args.momentum, weight_decay=args.weight_decay,
-			  nesterov=True)
-    lr_scheduler = ReduceLROnPlateau(
-        optimizer, 'min', factor=args.lr_factor,
-        patience=3, threshold=1e-3,
-        threshold_mode='rel', verbose=True)
-    if cuda:
-        model = model.cuda()
-        #The below is only needed if loss fn has params
-        #criterion = criterion.cuda()
+        model, criterion, optimizer, lr_scheduler = setup_model(args)
+        if cuda: # GPU support
+            model = model.cuda()
+            #The below is only needed if loss fn has params
+            #criterion = criterion.cuda()
 
-    # optionally resume from a checkpoint
-    if args.checkpoint:
-        resume_location = os.path.join(
-            config['PATH']['checkpoint_dir'],
-            args.checkpoint)
-        if os.path.isfile(resume_location):
-            print("=> loading checkpoint '{}'".format(resume_location))
-            checkpoint = torch.load(resume_location)
-            args.start_epoch = checkpoint["epoch"] + 1
-            model.load_state_dict(checkpoint["model"].state_dict())
-        else:
-            print("=> no checkpoint found at '{}'".format(resume_location))
+        if args.checkpoint: # Resume from a checkpoint
+            load_from_checkpoint(model, args, config)
 
-    # optionally copy weights from a checkpoint
-    if args.pretrained:
-        weights_location = os.path.join(
+        if args.pretrained: # Direct copy weights from another model
+            load_weights(model, args, config)
+
+        # Perform training and testing
+        best_loss = math.inf
+        for epoch in range(args.start_epoch, args.nEpochs + 1):
+            epoch_loss = train(
+                model=model, dset_loaders=data_loaders,
+                optimizer=optimizer, lr_scheduler=lr_scheduler,
+                criterion=criterion, epoch=epoch,
+                cuda=cuda, clip=args.clip)
+
+            if epoch_loss < best_loss:
+                best_loss = epoch_loss
+                best_model = copy.deepcopy(model)
+                best_epoch = epoch
+
+            if epoch % 5 == 0:
+                save_checkpoint(
+                    model, epoch,
+                    config['PATH']['model_dir'],
+                    args.tag + "{}.pth".format(epoch))
+        save_checkpoint(
+            best_model, best_epoch,
             config['PATH']['model_dir'],
-            args.pretrained)
-        if os.path.isfile(weights_location):
-            print("=> loading model '{}'".format(weights_location))
-            weights = torch.load(weights_location)
-            model.load_state_dict(weights['model'].state_dict())
-        else:
-            print("=> no model found at '{}'".format(weights_location))
+            args.tag + "_best_at{}.pth".format(best_epoch))
 
-    # Perform training and testing
-    best_loss = math.inf
-    for epoch in range(args.start_epoch, args.nEpochs + 1):
-        epoch_loss = train(model=model, dset_loaders=data_loader,
-                           optimizer=optimizer, lr_scheduler=lr_scheduler,
-                           criterion=criterion, epoch=epoch, 
-                           cuda=cuda, clip=args.clip)
-        # deep copy the model
-        if epoch_loss < best_loss:
-            best_loss = epoch_loss
-            best_model = copy.deepcopy(model)
-            best_epoch = epoch
-        if epoch % 5 == 0:
-            save_checkpoint(
-                model, epoch,
-                config['PATH']['model_dir'], args.tag + "{}.pth".format(epoch))
-    save_checkpoint(
-        best_model, best_epoch,
+def load_from_checkpoint(model, args, config):
+    resume_location = os.path.join(
+        config['PATH']['checkpoint_dir'],
+        args.checkpoint)
+    if os.path.isfile(resume_location):
+        print("=> loading checkpoint '{}'".format(resume_location))
+        checkpoint = torch.load(resume_location)
+        args.start_epoch = checkpoint["epoch"] + 1
+        model.load_state_dict(checkpoint["model"].state_dict())
+    else:
+        print("=> no checkpoint found at '{}'".format(resume_location))
+
+def load_weights(model, args, config):
+    weights_location = os.path.join(
         config['PATH']['model_dir'],
-        args.tag + "_best_at{}.pth".format(best_epoch))
-
-    # Clean up
-    dataset.close_h5()
+        args.pretrained)
+    if os.path.isfile(weights_location):
+        print("=> loading model '{}'".format(weights_location))
+        weights = torch.load(weights_location)
+        model.load_state_dict(weights['model'].state_dict())
+    else:
+        print("=> no model found at '{}'".format(weights_location))
 
 def train(model, dset_loaders, optimizer, lr_scheduler,
           criterion, epoch, cuda, clip):
@@ -163,9 +144,58 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
         print("Phase {} took {} overall".format(phase, time_elapsed))
 
         if phase == 'val':
-            print('\n', end='')
+            print()
             lr_scheduler.step(epoch_loss)
             return epoch_loss
+
+def check_cuda(config):
+    cuda = config['Network']['cuda'] == 'True'
+    cuda_device = config['Network']['gpu_id']
+    if cuda:
+        print("=> use gpu id: '{}'".format(cuda_device))
+        os.environ["CUDA_VISIBLE_DEVICES"] = cuda_device
+        if not torch.cuda.is_available():
+            raise Exception("No GPU found or Wrong gpu id")
+        print("cudnn version is", torch.backends.cudnn.version())
+    return cuda
+
+def create_dataloaders(hdf_file, args, config):
+    """Creates a train and val dataloader from a h5file and a config file"""
+    print("Loading dataset")
+    train_set = TrainFromHdf5(
+        hdf_file=hdf_file,
+        patch_size=int(config['NETWORK']['patch_size']),
+        num_crops=int(config['NETWORK']['num_crops']),
+        transform=None)
+    val_set = ValFromHdf5(hdf_file=hdf_file, transform=None)
+
+    data_loaders = {}
+    for name, dset in (('train', train_set), ('val', val_set)):
+        data_loaders[name] = DataLoader(
+            dataset=dset, num_workers=args.threads,
+            batch_size=int(config['NETWORK']['batch_size']),
+            shuffle=True)
+
+    return data_loaders
+
+def setup_model(args):
+    """Returns a tuple of the model, criterion, optimizer and lr_scheduler"""
+    print("Building model")
+    model = C3D(inchannels=64, outchannels=64)
+    criterion = nn.MSELoss(size_average=False)
+    optimizer = optim.SGD(
+        model.parameters(),
+        lr=args.lr,
+        momentum=args.momentum,
+        weight_decay=args.weight_decay,
+        nesterov=True)
+    lr_scheduler = ReduceLROnPlateau(
+        optimizer,
+        'min', factor=args.lr_factor,
+        patience=3, threshold=1e-3,
+        threshold_mode='rel', verbose=True)
+
+    return (model, criterion, optimizer, lr_scheduler)
 
 def save_checkpoint(model, epoch, save_dir, name):
     """Saves model params and epoch number at save_dir/name"""
