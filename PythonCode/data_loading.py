@@ -28,17 +28,15 @@ class TrainFromHdf5(data.Dataset):
         In this case a set of crops from an lf sample
         Return type is a dictionary of depth and colour arrays
         """
-        crop_indexes = self.generate_random_crop()
-        sample = {'depth': [], 'colour': []}
-        for start_h, start_v in crop_indexes:
-            end_h = start_h + self.patch_size
-            end_v = start_v + self.patch_size
-            depth = torch.from_numpy(
-                self.depth[index, :, start_h:end_h, start_v:end_v, :]).float()
-            colour = torch.from_numpy(
-                self.colour[index, :, start_h:end_h, start_v:end_v, :]).float()
-            sample['depth'].append(depth)
-            sample['colour'].append(colour)
+        idx = index // self.num_crops
+        start_h, start_v = self.generate_random_crop()
+        end_h = start_h + self.patch_size
+        end_v = start_v + self.patch_size
+        depth = torch.from_numpy(
+            self.depth[idx, :, start_h:end_h, start_v:end_v, :]).float()
+        colour = torch.from_numpy(
+            self.colour[idx, :, start_h:end_h, start_v:end_v, :]).float()
+        sample = {'depth': depth, 'colour': colour}
 
         if self.transform:
             sample = self.transform(sample)
@@ -47,7 +45,7 @@ class TrainFromHdf5(data.Dataset):
 
     def __len__(self):
         """Return the number of samples in the dataset"""
-        return self.depth.attrs['shape'][0]
+        return self.depth.attrs['shape'][0] * self.num_crops
 
     def generate_random_crop(self):
         """Return an array of random crops indexes from given light field"""
@@ -56,7 +54,7 @@ class TrainFromHdf5(data.Dataset):
 
         # An array of indexes to start patch extraction from
         # Array position [0] would contain patch [0] starting location
-        crop_start_indexes = uniform_rand(0, high, (self.num_crops, 2))
+        crop_start_indexes = uniform_rand(0, high)
 
         return crop_start_indexes
 
