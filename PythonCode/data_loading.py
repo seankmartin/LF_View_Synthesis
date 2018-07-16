@@ -15,7 +15,6 @@ class TrainFromHdf5(data.Dataset):
         transform -- an optional transform to apply to the data
         """
         super()
-        #Need to close the file on destruction
         self.group = hdf_file['train']
         self.depth = self.group['depth']
         self.colour = self.group['colour']
@@ -72,23 +71,12 @@ class ValFromHdf5(data.Dataset):
         transform -- an optional transform to apply to the data
         """
         super()
-        #Need to close the file on destruction
-        self.group = hdf_file['vaimport h5py
+        self.group = hdf_file['val']
+        self.depth = self.group['depth']
+        self.colour = self.group['colour']
+        self.transform = transform
 
-
-        self.depth = self.group['import h5py
-
-
-        self.colour = self.group[import h5py
-
-
-        self.transform = transforimport h5py
-
-
-
-    def __getitem__(self, index):import h5py
-
-
+    def __getitem__(self, index):
         """
         Return item at index in 0 to len(self)
         In this case a set of crops from an lf sample
