@@ -121,7 +121,8 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
             warped_images = disparity_based_rendering(
                 disparity.numpy(), targets.numpy(), grid_size[phase])
             # TODO add the disparity maps to the input
-            inputs = torch.from_numpy(warped_images).float()
+            # Unqueeze is only required for single size batches - need to fix
+            inputs = torch.from_numpy(warped_images).float().unsqueeze_(0)
             inputs.requires_grad_()
             targets.requires_grad_(False)
 
@@ -159,25 +160,23 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
             lr_scheduler.step(epoch_loss)
             return epoch_loss
 
+#TODO can later fix to work on batches of size greater than 1
 def disparity_based_rendering(disparities, views, grid_size):
     """Returns a list of warped images using the input views and disparites"""
      # Alternatively, grid_one_way - 1 can be used below
     shape = (grid_size,) + views.shape[2:]
     warped_images = np.empty(
         shape=shape, dtype=np.uint8)
-    print(shape)
     grid_one_way = int(math.sqrt(grid_size))
-    print(grid_one_way)
     for i in range(grid_one_way):
         for j in range(grid_one_way):
             res = image_warping.fw_warp_image(
-                    views[0, grid_size // 2 + (grid_one_way // 2),...],
-                    disparities[0, grid_size // 2 + (grid_one_way // 2),...],
-                    np.asarray([grid_one_way // 2, grid_one_way // 2]),
-                    np.asarray([i, j])
+                views[0, grid_size // 2 + (grid_one_way // 2), ...],
+                disparities[0, grid_size // 2 + (grid_one_way // 2), ...],
+                np.asarray([grid_one_way // 2, grid_one_way // 2]),
+                np.asarray([i, j])
             )
             np.insert(warped_images, i * grid_one_way + j, res, axis=0)
-    print('Resulting warped images - shape {}'.format(warped_images.shape))
     return warped_images
 
 def check_cuda(config):
