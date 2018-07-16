@@ -6,8 +6,6 @@ import h5py
 from PIL import Image
 import numpy as np
 
-import conversions as cs
-
 def valid_pixel(pixel, img_size):
     """Returns true if the pixel co-ordinate lies inside the image grid"""
     size_x, size_y = img_size

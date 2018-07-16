@@ -23,7 +23,6 @@ base_dir:
             DepthX.png
             ColourX.png
 """
-import ast
 import configparser
 import csv
 import os
@@ -48,29 +47,39 @@ def index_num_to_grid_loc(index, spatial_cols):
     image_num_str = str(row_num) + str(col_num)
     return image_num_str
 
-def save_metadata(h5_set, base_dir, shared_metadata_keys):
-    """Saves the metadata located in base_dir to h5_set and returns meta"""
-    meta_dict = get_metadata(base_dir)
+def save_metadata(h5_grp, idx, base_dir, shared_metadata_keys, config):
+    """
+    Saves the metadata located in base_dir to h5_grp, a dataset for each key
+    Returns the shared metadata as a dictionary
+
+    Keyword arguments:
+    h5_grp -- the hdf5 group to save to
+    idx -- the dataset index to save to
+    base_dir -- the directory containing the metadata
+    shared_metadata_keys -- the keys to extract from the metadata for saving
+    config -- config file contained metadata name
+    """
+    meta_dict = get_metadata(base_dir, config)
     shared_dict = {}
     for key in shared_metadata_keys:
-        shared_dict[key] = meta_dict[key]
-        h5_set = np.string_(shared_dict)
+        val = meta_dict[key]
+        shared_dict[key] = float(val)
+        h5_grp[key][idx] = float(val)
     return shared_dict
 
-def get_metadata(base_dir):
+def get_metadata(base_dir, config):
     """Returns a dictionary containing the metadata in base_dir"""
-    metadata_location = os.path.join(base_dir,
-                        config['PATH']['metadata_name'])
+    metadata_location = os.path.join(base_dir, config['PATH']['metadata_name'])
     with open(metadata_location, 'rt') as csvfile:
-        reader = csv.reader(csvfile, delimiter = ';', quoting=csv.QUOTE_NONE)
+        reader = csv.reader(csvfile, delimiter=';', quoting=csv.QUOTE_NONE)
         meta_dict = dict(reader)
         return meta_dict
 
 def depth_to_disparity(depth_data, metadata, image_pixel_size):
     m = metadata
     return conversions.depth_to_pixel_disp(
-        depth_data, float(m['near']), float(m['far']), float(m['baseline']), 
-        float(m['focal_length']), float(m['fov']), image_pixel_size)
+        depth_data, m['near'], m['far'], m['baseline'], 
+        m['focal_length'], m['fov'], image_pixel_size)
 
 def main(config):
     hdf5_path = os.path.join(config['PATH']['output_dir'],
@@ -78,20 +87,26 @@ def main(config):
     main_dir = config['PATH']['image_dir']
     shared_metadata_keys = ('baseline', 'near', 'far', 'focal_length', 'fov')
 
-    with h5py.File(hdf5_path, mode = 'w', libver = 'latest') as hdf5_file:
+    with h5py.File(hdf5_path, mode='w', libver='latest') as hdf5_file:
         hdf5_file.swmr_mode = True
         for set_type in ('train', 'val'):
             base_dir = os.path.join(main_dir, set_type)
-            meta_dict = get_metadata(base_dir)
+            meta_dict = get_metadata(base_dir, config)
             sub_dirs = [os.path.join(base_dir, el)
-                            for el in sorted(os.listdir(base_dir))
-                            if os.path.isdir(os.path.join(base_dir, el))]
+                        for el in sorted(os.listdir(base_dir))
+                        if os.path.isdir(os.path.join(base_dir, el))]
             hdf5_group = hdf5_file.create_group(set_type)
+            num_samples = len(sub_dirs)
 
+            #Handle the metadata
+            meta_group = hdf5_group.create_group('metadata')
+
+            for key in shared_metadata_keys:
+                meta_group.create_dataset(key, (num_samples,), np.float32)
             #Handle the depth group attributes
             depth = hdf5_group.create_group('disparity')
             # (num_images, grid_size, pixel_width, pixel_height, num_channels)
-            depth.attrs['shape'] = [len(sub_dirs),
+            depth.attrs['shape'] = [num_samples,
                                     int(meta_dict['grid_rows']) *
                                     int(meta_dict['grid_cols']),
                                     int(meta_dict['pixels']),
@@ -104,30 +119,28 @@ def main(config):
             temp = depth.attrs['shape']
             temp[4] = 3
             colour.attrs['shape'] = temp
-            depth_image_shape = [len(sub_dirs),
-                                int(meta_dict['pixels']),
-                                int(meta_dict['pixels']),
-                                1]
+            depth_image_shape = [num_samples,
+                                 int(meta_dict['pixels']),
+                                 int(meta_dict['pixels']),
+                                 1]
             temp = np.copy(depth_image_shape)
             temp[3] = 3
             colour_image_shape = temp
 
             #Save the images:
-            hdf5_group.create_dataset('metadata', 
-                (depth_image_shape[0], len(shared_metadata_keys)), 'S10')
             dim = int(meta_dict['pixels'])
             depth.create_dataset('images', depth.attrs['shape'], np.float32,
-                                chunks = (1, 1, dim, dim, 1),
-                                compression = "lzf",
-                                shuffle = True)
+                                 chunks = (1, 1, dim, dim, 1),
+                                 compression = "lzf",
+                                 shuffle = True)
             depth.create_dataset('mean', depth_image_shape)
             depth.create_dataset('var', depth_image_shape)
 
             colour.create_dataset('images', colour.attrs['shape'], np.uint8,
-                                chunks = (1, 1, dim, dim, 3),
-                                compression = "lzf",
-                                shuffle = True)
-            colour.create_dataset('mean',colour_image_shape)
+                                  chunks = (1, 1, dim, dim, 3),
+                                  compression = "lzf",
+                                  shuffle = True)
+            colour.create_dataset('mean', colour_image_shape)
             colour.create_dataset('var', colour_image_shape)
 
             cols = int(meta_dict['grid_cols'])
@@ -138,8 +151,8 @@ def main(config):
                 colour_mean = np.zeros(colour_image_shape[1:], np.float32)
                 depth_accumulator = (0, depth_mean, 0)
                 colour_accumulator = (0, colour_mean, 0)
-                meta = save_metadata(hdf5_group['metadata'][idx, ...], loc, 
-                            shared_metadata_keys)
+                meta = save_metadata(
+                    meta_group, idx, loc, shared_metadata_keys, config)
 
                 for x in range(size):
                     image_num = index_num_to_grid_loc(x, cols)
@@ -162,19 +175,19 @@ def main(config):
                     colour_data = np.asarray(colour_image, dtype = np.uint8)
                     colour['images'][idx, x, :, :, :] = colour_data[:, :, :3]
                     colour_accumulator = (
-                        welford.update(colour_accumulator, 
+                        welford.update(colour_accumulator,
                                        colour_data[:, :, :3]))
 
                 (depth['mean'][idx, :, :, 0],
-                depth['var'][idx, :, :, 0], _) = (
-                    welford.finalize(depth_accumulator))
+                 depth['var'][idx, :, :, 0], _) = (
+                     welford.finalize(depth_accumulator))
                 (colour['mean'][idx, :, :, :],
-                colour['var'][idx, :, :, :], _) = (
-                    welford.finalize(colour_accumulator))
+                 colour['var'][idx, :, :, :], _) = (
+                     welford.finalize(colour_accumulator))
 
     print("Finished writing to", hdf5_path)
 
 if __name__ == '__main__':
-    config = configparser.ConfigParser()
-    config.read(os.path.join('config','hdf5.ini'))
-    main(config)
+    CONFIG = configparser.ConfigParser()
+    CONFIG.read(os.path.join('config', 'hdf5.ini'))
+    main(CONFIG)
