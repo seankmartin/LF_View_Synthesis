@@ -44,6 +44,17 @@ def real_value_to_pixel(real_value, focal_length, fov, image_pixel_size):
     image_sensor_size = 2 * focal_length * tan(radians(fov / 2.0))
     return real_value * image_pixel_size / image_sensor_size
 
+def depth_to_pixel_disp(depth, near, far, baseline, focal_length, fov, 
+                        image_pixel_size, shift=0.0):
+    """
+    Performs the whole pipeline for converting buffer depth to pixel disparity
+    """
+    inviwo_depth = depth_buffer_to_eye(depth, near, far)
+    disparity = depth_to_disparity(inviwo_depth, baseline, focal_length, shift)
+    pixel_disparity = real_value_to_pixel(disparity, focal_length, fov, 
+                                          image_pixel_size)
+    return pixel_disparity
+
 def example(input_depth):
     """Returns information on calculations with fixed intrinsics"""
     input_depth = input_depth

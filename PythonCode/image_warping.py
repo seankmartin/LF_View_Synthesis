@@ -6,8 +6,6 @@ import h5py
 from PIL import Image
 import numpy as np
 
-import conversions as cs
-
 def valid_pixel(pixel, img_size):
     """Returns true if the pixel co-ordinate lies inside the image grid"""
     size_x, size_y = img_size
@@ -87,41 +85,36 @@ def save_array_as_image(array, save_location):
     image.save(save_location)
     image.close()
 
+def get_diff_image(im1, im2):
+    diff = np.subtract(im1.astype(float), im2.astype(float))
+    diff = abs(diff).astype(np.uint8)
+    return diff
+
 def main(config):
     hdf5_path = os.path.join(config['PATH']['output_dir'],
                              config['PATH']['hdf5_name'])
     with h5py.File(hdf5_path, mode='r', libver='latest') as hdf5_file:
-        depth_grp = hdf5_file['depth']
+        depth_grp = hdf5_file['val']['disparity']
+        SNUM = 3
+        depth_image = depth_grp['images'][SNUM, 27, :, :, 0]
 
-        depth_image = depth_grp['images'][0, 27]
-        buffer_depth = (depth_image / 255.0).astype(np.float32)
-        eye_depth = cs.depth_buffer_to_eye(buffer_depth,
-                                           hdf5_file.attrs['near'],
-                                           hdf5_file.attrs['far'])
-        disparity = cs.depth_to_disparity(eye_depth,
-                                          hdf5_file.attrs['baseline'],
-                                          hdf5_file.attrs['focal_length'])
-        pixel_disp = cs.real_value_to_pixel(disparity,
-                                            hdf5_file.attrs['focal_length'],
-                                            hdf5_file.attrs['fov'],
-                                            depth_grp.attrs['shape'][2])
         #Hardcoded some values for now
-        colour_grp = hdf5_file['colour']
-        colour_image = colour_grp['images'][0, 27]
+        colour_grp = hdf5_file['val']['colour']
+        colour_image = colour_grp['images'][SNUM, 27]
 
         #Can later expand like 0000 if needed
         base_dir = os.path.join(config['PATH']['output_dir'], 'warped')
         get_diff = (config['DEFAULT']['should_get_diff'] == 'True')
         for i in range(8):
             for j in range(8):
-                res = fw_warp_image(colour_image, pixel_disp,
+                res = fw_warp_image(colour_image, depth_image,
                                     np.asarray([3, 3]), np.asarray([i, j]))
                 file_name = 'Colour{}{}.png'.format(i, j)
                 save_location = os.path.join(base_dir, file_name)
                 save_array_as_image(res, save_location)
                 if get_diff:
-                    colour = colour_grp['images'][0, i * 8 + j]
-                    diff = (colour - res).astype(np.uint8)
+                    colour = colour_grp['images'][SNUM, i * 8 + j]
+                    diff = get_diff_image(colour, res)
                     file_name = 'Diff{}{}.png'.format(i, j)
                     save_location = os.path.join(base_dir, file_name)
                     save_array_as_image(diff, save_location)
