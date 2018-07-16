@@ -12,6 +12,7 @@ import time
 import math
 
 import h5py
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -19,6 +20,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import DataLoader
 
 from data_loading import TrainFromHdf5, ValFromHdf5
+import image_warping
 from model_3d import C3D
 import helpers
 
@@ -32,6 +34,8 @@ def main(args, config):
     file_path = os.path.join(config['PATH']['hdf5_dir'],
                              config['PATH']['hdf5_name'])
     with h5py.File(file_path, mode='r', libver='latest', swmr=True) as h5_file:
+        grid_size = {'train': h5_file['train']['colour'].attrs['shape'][1],
+                     'val': h5_file['val']['colour'].attrs['shape'][1]}
         data_loaders = create_dataloaders(h5_file, args, config)
 
         model, criterion, optimizer, lr_scheduler = setup_model(args)
@@ -48,12 +52,12 @@ def main(args, config):
 
         # Perform training and testing
         best_loss = math.inf
-        for epoch in range(args.start_epoch, args.nEpochs + 1):
+        for epoch in range(args.start_epoch, args.nEpochs):
             epoch_loss = train(
                 model=model, dset_loaders=data_loaders,
                 optimizer=optimizer, lr_scheduler=lr_scheduler,
                 criterion=criterion, epoch=epoch,
-                cuda=cuda, clip=args.clip)
+                cuda=cuda, clip=args.clip, grid_size=grid_size)
 
             if epoch_loss < best_loss:
                 best_loss = epoch_loss
@@ -65,6 +69,8 @@ def main(args, config):
                     model, epoch,
                     config['PATH']['model_dir'],
                     args.tag + "{}.pth".format(epoch))
+
+        # Save the best model
         save_checkpoint(
             best_model, best_epoch,
             config['PATH']['model_dir'],
@@ -94,7 +100,7 @@ def load_weights(model, args, config):
         print("=> no model found at '{}'".format(weights_location))
 
 def train(model, dset_loaders, optimizer, lr_scheduler,
-          criterion, epoch, cuda, clip):
+          criterion, epoch, cuda, clip, grid_size):
     """
     Trains model using data_loader with the given
     optimizer, lr_scheduler, criterion and epoch
@@ -110,7 +116,12 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
 
         running_loss = 0.0
         for iteration, batch in enumerate(dset_loaders[phase]):
-            inputs, targets = batch
+            targets = batch['colour']
+            disparity = batch['depth']
+            warped_images = disparity_based_rendering(
+                disparity.numpy(), targets.numpy(), grid_size[phase])
+            # TODO add the disparity maps to the input
+            inputs = torch.from_numpy(warped_images).float()
             inputs.requires_grad_()
             targets.requires_grad_(False)
 
@@ -148,15 +159,36 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
             lr_scheduler.step(epoch_loss)
             return epoch_loss
 
+def disparity_based_rendering(disparities, views, grid_size):
+    """Returns a list of warped images using the input views and disparites"""
+     # Alternatively, grid_one_way - 1 can be used below
+    shape = (grid_size,) + views.shape[2:]
+    warped_images = np.empty(
+        shape=shape, dtype=np.uint8)
+    print(shape)
+    grid_one_way = int(math.sqrt(grid_size))
+    print(grid_one_way)
+    for i in range(grid_one_way):
+        for j in range(grid_one_way):
+            res = image_warping.fw_warp_image(
+                    views[0, grid_size // 2 + (grid_one_way // 2),...],
+                    disparities[0, grid_size // 2 + (grid_one_way // 2),...],
+                    np.asarray([grid_one_way // 2, grid_one_way // 2]),
+                    np.asarray([i, j])
+            )
+            np.insert(warped_images, i * grid_one_way + j, res, axis=0)
+    print('Resulting warped images - shape {}'.format(warped_images.shape))
+    return warped_images
+
 def check_cuda(config):
-    cuda = config['Network']['cuda'] == 'True'
-    cuda_device = config['Network']['gpu_id']
+    cuda = config['NETWORK']['cuda'] == 'True'
+    cuda_device = config['NETWORK']['gpu_id']
     if cuda:
-        print("=> use gpu id: '{}'".format(cuda_device))
+        print("=> using gpu id: '{}'".format(cuda_device))
         os.environ["CUDA_VISIBLE_DEVICES"] = cuda_device
         if not torch.cuda.is_available():
             raise Exception("No GPU found or Wrong gpu id")
-        print("cudnn version is", torch.backends.cudnn.version())
+        print("=> cudnn version is", torch.backends.cudnn.version())
     return cuda
 
 def create_dataloaders(hdf_file, args, config):
@@ -213,21 +245,19 @@ if __name__ == '__main__':
     #See https://github.com/twtygqyy/pytorch-vdsr/blob/master/main_vdsr.py
     #For the source of some of these arguments
     THREADS_HELP = " ".join(("Number of threads for data loader",
-                             "to use Default: 1"))
+                             "to use. Default: 1"))
     PARSER = argparse.ArgumentParser(
         description='Process modifiable parameters from command line')
-    PARSER.add_argument('--base_dir', type=str, default="",
-                        help='base directory for the data')
     PARSER.add_argument("--nEpochs", type=int, default=50,
                         help="Number of epochs to train for")
     PARSER.add_argument("--lr", type=float, default=0.1,
                         help="Learning Rate. Default=0.1")
     PARSER.add_argument("--lr_factor", type=float, default=0.1,
-                        help="Factor to reduce learning rate by on plateau")
+                        help="Factor to reduce learning rate by. Default=0.1")
     PARSER.add_argument("--checkpoint", default="", type=str,
                         help="checkpoint name (default: none)")
-    PARSER.add_argument("--start-epoch", default=1, type=int,
-                        help="Manual epoch number (useful on restarts)")
+    PARSER.add_argument("--start-epoch", default=0, type=int,
+                        help="Manual epoch number, useful restarts. Default=0")
     PARSER.add_argument("--clip", type=float, default=0.4,
                         help="Clipping Gradients. Default=0.4")
     PARSER.add_argument("--threads", type=int, default=1,
@@ -240,7 +270,7 @@ if __name__ == '__main__':
     PARSER.add_argument('--pretrained', default='', type=str,
                         help='name of pretrained model (default: none)')
     PARSER.add_argument('--tag', default=None, type=str,
-                        help='Unique identifier for a model training run')
+                        help='Unique identifier for a model. REQUIRED')
     #Any unknown argument will go to unparsed
     ARGS, UNPARSED = PARSER.parse_known_args()
     if ARGS.tag is None:
@@ -255,4 +285,5 @@ if __name__ == '__main__':
     helpers.print_config(CONFIG)
     print('CL arguments')
     print(ARGS)
+    print()
     main(ARGS, CONFIG)

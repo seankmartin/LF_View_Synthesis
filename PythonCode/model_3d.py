@@ -7,7 +7,7 @@ class C3D(nn.Module):
     """
 
     def __init__(self, inchannels, outchannels):
-        super()
+        super(type(self), self).__init__()
         self.inchannels = inchannels
         self.outchannels = outchannels
         mid = 128
@@ -33,9 +33,9 @@ class ThreexLayer(nn.Module):
     """
 
     def __init__(self, inchannels, outchannels, activation):
-        super()
-        self.conv = nn.conv3d(inchannels, outchannels,
-                              kernelsize=(3, 3, 3), padding=(1, 1, 1))
+        super(type(self), self).__init__()
+        self.conv = nn.Conv3d(inchannels, outchannels,
+                              kernel_size=(3, 3, 3), padding=(1, 1, 1))
         self.bn = nn.BatchNorm3d(outchannels)
         self.activation = activation
 
@@ -52,9 +52,9 @@ class ThreexLayerNoBN(nn.Module):
     """
 
     def __init__(self, inchannels, outchannels, activation):
-        super()
-        self.conv = nn.conv3d(inchannels, outchannels,
-                              kernelsize=(3, 3, 3), padding=(1, 1, 1))
+        super(type(self), self).__init__()
+        self.conv = nn.Conv3d(inchannels, outchannels,
+                              kernel_size=(3, 3, 3), padding=(1, 1, 1))
         self.activation = activation
 
     def forward(self, x):

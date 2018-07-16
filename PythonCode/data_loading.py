@@ -1,4 +1,4 @@
-import numpy.random.uniform as uniform_rand
+import numpy as np
 import torch
 import torch.utils.data as data
 
@@ -16,8 +16,8 @@ class TrainFromHdf5(data.Dataset):
         """
         super()
         self.group = hdf_file['train']
-        self.depth = self.group['depth']
-        self.colour = self.group['colour']
+        self.depth = self.group['disparity']['images']
+        self.colour = self.group['colour']['images']
         self.transform = transform
         self.patch_size = patch_size
         self.num_crops = num_crops
@@ -45,16 +45,16 @@ class TrainFromHdf5(data.Dataset):
 
     def __len__(self):
         """Return the number of samples in the dataset"""
-        return self.depth.attrs['shape'][0] * self.num_crops
+        return self.group['colour'].attrs['shape'][0] * self.num_crops
 
     def generate_random_crop(self):
         """Return an array of random crops indexes from given light field"""
-        pixel_end = self.depth.attrs['shape'][2]
+        pixel_end = self.group['disparity'].attrs['shape'][2]
         high = pixel_end - self.patch_size
 
         # An array of indexes to start patch extraction from
         # Array position [0] would contain patch [0] starting location
-        crop_start_indexes = uniform_rand(0, high)
+        crop_start_indexes = np.random.random_integers(0, high, 2)
 
         return crop_start_indexes
 
@@ -70,8 +70,8 @@ class ValFromHdf5(data.Dataset):
         """
         super()
         self.group = hdf_file['val']
-        self.depth = self.group['depth']
-        self.colour = self.group['colour']
+        self.depth = self.group['disparity']['images']
+        self.colour = self.group['colour']['images']
         self.transform = transform
 
     def __getitem__(self, index):
@@ -91,4 +91,4 @@ class ValFromHdf5(data.Dataset):
 
     def __len__(self):
         """Return the number of samples in the dataset"""
-        return self.depth.attrs['shape'][0]
+        return self.group['colour'].attrs['shape'][0]
