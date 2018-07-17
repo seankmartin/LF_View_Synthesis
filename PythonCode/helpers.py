@@ -34,12 +34,11 @@ def prompt_user(message, failed=False):
         input_str = input(message + " (Y/N)").casefold()
         if input_str == 'y':
             return True
-        elif input_str == 'n':
+        if input_str == 'n':
             return False
-        else:
-            print("Please enter the character y or n (case insensitive)")
-            return prompt_user(message)
-    except EOFError:
+        print("Please enter the character y or n (case insensitive)")
+        return prompt_user(message)
+    except ValueError:
         if failed:
             print("Read no input twice, assuming problem, crashing")
             exit(-1)
