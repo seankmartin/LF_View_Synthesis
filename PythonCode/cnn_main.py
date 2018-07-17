@@ -64,7 +64,7 @@ def main(args, config):
                 best_model = copy.deepcopy(model)
                 best_epoch = epoch
 
-            if epoch % 5 == 0:
+            if epoch % 5 == 0 and epoch != 0:
                 save_checkpoint(
                     model, epoch,
                     config['PATH']['model_dir'],
