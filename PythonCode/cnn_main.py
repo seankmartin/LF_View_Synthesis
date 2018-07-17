@@ -143,12 +143,12 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                 optimizer.step()
 
             # statistics
-            running_loss += loss.data[0]
+            running_loss += loss.item()
 
             if iteration%100 == 0:
                 print("===> Epoch[{}]({}/{}): Loss: {:.10f}".format(
                     epoch, iteration, len(dset_loaders[phase]),
-                    loss.data[0]))
+                    loss.item()))
 
         epoch_loss = running_loss / len(dset_loaders[phase])
         print("Phase {} overall loss {:.4f}".format(phase, epoch_loss))
