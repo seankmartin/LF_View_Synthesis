@@ -36,7 +36,8 @@ class TrainFromHdf5(data.Dataset):
             self.depth[idx, :, start_h:end_h, start_v:end_v, :]).float()
         colour = torch.from_numpy(
             self.colour[idx, :, start_h:end_h, start_v:end_v, :]).float()
-        sample = {'depth': depth, 'colour': colour}
+        grid_size = self.group['colour'].attrs['shape'][1]
+        sample = {'depth': depth, 'colour': colour, 'grid_size': grid_size}
 
         if self.transform:
             sample = self.transform(sample)
@@ -82,7 +83,8 @@ class ValFromHdf5(data.Dataset):
         """
         depth = torch.from_numpy(self.depth[index, ...]).float()
         colour = torch.from_numpy(self.colour[index, ...]).float()
-        sample = {'depth': depth, 'colour': colour}
+        grid_size = self.group['colour'].attrs['shape'][1]
+        sample = {'depth': depth, 'colour': colour, 'grid_size': grid_size}
 
         if self.transform:
             sample = self.transform(sample)

@@ -26,3 +26,22 @@ def is_same_image(img1, img2):
                 print('Second image value is', arr2)
                 return False
         return True
+
+
+def prompt_user(message, failed=False):
+    """prompts a user with a Y/N message"""
+    try:
+        input_str = input(message + " (Y/N)").casefold()
+        if input_str == 'y':
+            return True
+        elif input_str == 'n':
+            return False
+        else:
+            print("Please enter the character y or n (case insensitive)")
+            return prompt_user(message)
+    except EOFError:
+        if failed:
+            print("Read no input twice, assuming problem, crashing")
+            exit(-1)
+        print("Read no input, please enter y or n (case insensitive)")
+        return prompt_user(message, failed=True)
