@@ -42,7 +42,7 @@ def transform_to_warped(sample):
 
 def normalise_lf(sample):
     """Coverts an lf in the range 0 to maximum into -1 1"""
-    maximum = 255
+    maximum = 255.0
     lf = sample['colour']
     ((lf.div_(maximum)).mul_(2.0)).add_(-1.0)
     return sample
