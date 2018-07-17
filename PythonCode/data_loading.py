@@ -2,6 +2,9 @@ import numpy as np
 import torch
 import torch.utils.data as data
 
+import data_transform
+from torch.utils.data import DataLoader
+
 class TrainFromHdf5(data.Dataset):
     """
     Creates a training set from a hdf5 file
@@ -94,3 +97,25 @@ class ValFromHdf5(data.Dataset):
     def __len__(self):
         """Return the number of samples in the dataset"""
         return self.group['colour'].attrs['shape'][0]
+
+def create_dataloaders(hdf_file, args, config):
+    """Creates a train and val dataloader from a h5file and a config file"""
+    print("Loading dataset")
+    train_set = TrainFromHdf5(
+        hdf_file=hdf_file,
+        patch_size=int(config['NETWORK']['patch_size']),
+        num_crops=int(config['NETWORK']['num_crops']),
+        transform=data_transform.transform_to_warped)
+    val_set = ValFromHdf5(
+        hdf_file=hdf_file,
+        transform=data_transform.transform_to_warped)
+
+    batch_size = {'train': int(config['NETWORK']['batch_size']), 'val': 1}
+    data_loaders = {}
+    for name, dset in (('train', train_set), ('val', val_set)):
+        data_loaders[name] = DataLoader(
+            dataset=dset, num_workers=args.threads,
+            batch_size=batch_size[name],
+            shuffle=True)
+
+    return data_loaders

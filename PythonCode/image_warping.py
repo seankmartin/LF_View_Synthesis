@@ -14,7 +14,7 @@ def valid_pixel(pixel, img_size):
     return valid
 
 #TODO consider keeping pixels around so don't have to make it multiple times
-def fw_warp_image(ref_view, disparity_map, ref_pos, novel_pos):
+def fw_warp_image(ref_view, disparity_map, ref_pos, novel_pos, dtype=np.uint8):
     """
     Returns a forward warped novel from an input image and disparity_map
     For each pixel position in the reference view, shift it by the disparity,
@@ -31,7 +31,7 @@ def fw_warp_image(ref_view, disparity_map, ref_pos, novel_pos):
     distance = ref_pos - novel_pos
 
     #Initialise an array of zeroes
-    novel_view = np.zeros(ref_view.shape, dtype=np.uint8)
+    novel_view = np.zeros(ref_view.shape, dtype=dtype)
 
     #Create an array of pixel positions
     grid = np.meshgrid(np.arange(size_x), np.arange(size_y), indexing='ij')

@@ -17,6 +17,7 @@ import torch.nn as nn
 
 import cnn_utils
 from full_model import setup_model
+from data_loading import create_dataloaders
 import helpers
 
 CONTINUE_MESSAGE = "==> Would you like to continue training?"
@@ -32,7 +33,7 @@ def main(args, config):
     file_path = os.path.join(config['PATH']['hdf5_dir'],
                              config['PATH']['hdf5_name'])
     with h5py.File(file_path, mode='r', libver='latest', swmr=True) as h5_file:
-        data_loaders = cnn_utils.create_dataloaders(h5_file, args, config)
+        data_loaders = create_dataloaders(h5_file, args, config)
 
         model, criterion, optimizer, lr_scheduler = setup_model(args)
         if cuda: # GPU support

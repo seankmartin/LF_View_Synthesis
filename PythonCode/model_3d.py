@@ -20,11 +20,11 @@ class C3D(nn.Module):
         self.final = ThreexLayerNoBN(mid, outchannels, constrained_activ)
 
     def forward(self, x):
-        x = self.first(x)
-        x = self.layer1(x)
-        x = self.layer2(x)
-        x = self.final(x)
-        return x
+        res = self.first(x)
+        res = self.layer1(res)
+        res = self.layer2(res)
+        res = self.final(res)
+        return x + res
 
 class ThreexLayer(nn.Module):
     """
