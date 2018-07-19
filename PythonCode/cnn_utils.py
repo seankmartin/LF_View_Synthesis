@@ -48,3 +48,14 @@ def load_weights(model, args, config):
         model.load_state_dict(weights['model'].state_dict())
     else:
         print("=> no model found at '{}'".format(weights_location))
+
+def print_mem_usage():
+    """Prints torch gpu memeory usage"""
+    print("Using {} / {} tensor memory".format(
+        torch.cuda.memory_allocated(),
+        torch.cuda.max_memory_allocated()
+    ))
+    print("Using {} / {} cached memory".format(
+        torch.cuda.memory_cached(),
+        torch.cuda.max_memory_cached()
+    ))

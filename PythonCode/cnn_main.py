@@ -21,7 +21,7 @@ from data_loading import create_dataloaders
 import helpers
 
 CONTINUE_MESSAGE = "==> Would you like to continue training?"
-SAVE_MESSAGE = "==> Would you like to save the model?" 
+SAVE_MESSAGE = "==> Would you like to save the model?"
 
 def main(args, config):
     cuda = cnn_utils.check_cuda(config)
@@ -67,12 +67,12 @@ def main(args, config):
                     model, epoch,
                     config['PATH']['model_dir'],
                     args.tag + "{}.pth".format(epoch))
-            
+
             if args.prompt:
                 if not helpers.prompt_user(CONTINUE_MESSAGE):
                     print("Ending training")
                     break
-        
+
         if args.prompt:
             if not helpers.prompt_user(SAVE_MESSAGE):
                 print("Not saving the model")
@@ -126,6 +126,9 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
 
             # statistics
             running_loss += loss.item()
+
+            if iteration == 0 and cuda:
+                cnn_utils.print_mem_usage()
 
             if iteration%100 == 0:
                 print("===> Epoch[{}]({}/{}): Loss: {:.10f}".format(
