@@ -14,6 +14,8 @@ import time
 import h5py
 import torch
 import torch.nn as nn
+import torchvision.utils as vutils
+from tensorboardX import SummaryWriter
 
 import cnn_utils
 from full_model import setup_model
@@ -22,6 +24,7 @@ import helpers
 
 CONTINUE_MESSAGE = "==> Would you like to continue training?"
 SAVE_MESSAGE = "==> Would you like to save the model?"
+WRITER = SummaryWriter()
 
 def main(args, config):
     cuda = cnn_utils.check_cuda(config)
@@ -83,6 +86,9 @@ def main(args, config):
             best_model, best_epoch,
             config['PATH']['model_dir'],
             args.tag + "_best_at{}.pth".format(best_epoch))
+        
+    WRITER.export_scalars_to_json("./all_scalars.json")
+    WRITER.close()
 
 def train(model, dset_loaders, optimizer, lr_scheduler,
           criterion, epoch, cuda, clip):
@@ -134,8 +140,15 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                 print("===> Epoch[{}]({}/{}): Loss: {:.10f}".format(
                     epoch, iteration, len(dset_loaders[phase]),
                     loss.item()))
+                output_grid = vutils.make_grid(
+                    outputs[0, ...], nrow=8, range=(-1, 1), normalize=True)
+                target_grid = vutils.make_grid(
+                    targets[0, ...],  nrow=8, range=(-1, 1), normalize=True)
+                WRITER.add_image(phase + '/output', output_grid, epoch)
+                WRITER.add_image(phase + '/target', target_grid, epoch)
 
         epoch_loss = running_loss / len(dset_loaders[phase])
+        WRITER.add_scalar(phase + '/loss', epoch_loss, epoch)
         print("Phase {} average overall loss {:.4f}".format(phase, epoch_loss))
         time_elapsed = time.time() - since
         print("Phase {} took {:.0f}s overall".format(phase, time_elapsed))
