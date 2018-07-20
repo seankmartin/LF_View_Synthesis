@@ -1,9 +1,5 @@
-"""
-The main file to run the View synthesis CNN
-Many Neural Network pipeline considerations are based on
-https://github.com/twtygqyy/pytorch-vdsr
-And the pytorch example files
-"""
+""" The main file to run the View synthesis CNN Many Neural Network pipeline considerations are based on
+https://github.com/twtygqyy/pytorch-vdsr And the pytorch example files """
 import argparse
 import configparser
 import copy
@@ -24,13 +20,11 @@ import helpers
 
 CONTINUE_MESSAGE = "==> Would you like to continue training?"
 SAVE_MESSAGE = "==> Would you like to save the model?"
-WRITER = SummaryWriter()
 
-def main(args, config):
+def main(args, config, writer):
     cuda = cnn_utils.check_cuda(config)
 
-    #Attempts to otimise - see
-    #https://discuss.pytorch.org/t/what-does-torch-backends-cudnn-benchmark-do
+    #Attempts to otimise - see https://discuss.pytorch.org/t/what-does-torch-backends-cudnn-benchmark-do
     torch.backends.cudnn.benchmark = True
 
     file_path = os.path.join(config['PATH']['hdf5_dir'],
@@ -41,8 +35,7 @@ def main(args, config):
         model, criterion, optimizer, lr_scheduler = setup_model(args)
         if cuda: # GPU support
             model = model.cuda()
-            #The below is only needed if loss fn has params
-            #criterion = criterion.cuda()
+            #The below is only needed if loss fn has params criterion = criterion.cuda()
 
         if args.checkpoint: # Resume from a checkpoint
             cnn_utils.load_from_checkpoint(model, args, config)
@@ -59,7 +52,7 @@ def main(args, config):
                 model=model, dset_loaders=data_loaders,
                 optimizer=optimizer, lr_scheduler=lr_scheduler,
                 criterion=criterion, epoch=epoch,
-                cuda=cuda, clip=args.clip)
+                cuda=cuda, clip=args.clip, writer=writer)
 
             if epoch_loss < best_loss:
                 best_loss = epoch_loss
@@ -87,12 +80,12 @@ def main(args, config):
             best_model, best_epoch,
             config['PATH']['model_dir'],
             args.tag + "_best_at{}.pth".format(best_epoch))
-        
-    WRITER.export_scalars_to_json("./all_scalars.json")
-    WRITER.close()
+
+    writer.export_scalars_to_json("./all_scalars.json")
+    writer.close()
 
 def train(model, dset_loaders, optimizer, lr_scheduler,
-          criterion, epoch, cuda, clip):
+          criterion, epoch, cuda, clip, writer):
     """
     Trains model using data_loader with the given
     optimizer, lr_scheduler, criterion and epoch
@@ -102,9 +95,9 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
     for phase in ['train', 'val']:
         since = time.time()
         if phase == 'train':
-            model.train()  # Set model to training mode
+            model.train() # Set model to training mode
         else:
-            model.eval()  # Set model to evaluate mode
+            model.eval() # Set model to evaluate mode
 
         running_loss = 0.0
         for iteration, batch in enumerate(dset_loaders[phase]):
@@ -141,15 +134,17 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                 print("===> Epoch[{}]({}/{}): Loss: {:.10f}".format(
                     epoch, iteration, len(dset_loaders[phase]),
                     loss.item()))
+                out_imgs = outputs[0, ...].transpose(1, 3)
+                truth_imgs = targets[0, ...].transpose(1, 3)
                 output_grid = vutils.make_grid(
-                    outputs[0, ...], nrow=8, range=(-1, 1), normalize=True)
+                    out_imgs, nrow=8, range=(-1, 1), normalize=True)
                 target_grid = vutils.make_grid(
-                    targets[0, ...],  nrow=8, range=(-1, 1), normalize=True)
-                WRITER.add_image(phase + '/output', output_grid, epoch)
-                WRITER.add_image(phase + '/target', target_grid, epoch)
+                    truth_imgs, nrow=8, range=(-1, 1), normalize=True)
+                writer.add_image(phase + '/output', output_grid, epoch)
+                writer.add_image(phase + '/target', target_grid, epoch)
 
         epoch_loss = running_loss / len(dset_loaders[phase])
-        WRITER.add_scalar(phase + '/loss', epoch_loss, epoch)
+        writer.add_scalar(phase + '/loss', epoch_loss, epoch)
         print("Phase {} average overall loss {:.4f}".format(phase, epoch_loss))
         time_elapsed = time.time() - since
         print("Phase {} took {:.0f}s overall".format(phase, time_elapsed))
@@ -160,9 +155,8 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
             return epoch_loss
 
 if __name__ == '__main__':
-    #Command line modifiable parameters
-    #See https://github.com/twtygqyy/pytorch-vdsr/blob/master/main_vdsr.py
-    #For the source of some of these arguments
+    #Command line modifiable parameters See https://github.com/twtygqyy/pytorch-vdsr/blob/master/main_vdsr.py For the source of some 
+    #of these arguments
     THREADS_HELP = " ".join(("Number of threads for data loader",
                              "to use. Default: 1"))
     PARSER = argparse.ArgumentParser(
@@ -201,10 +195,15 @@ if __name__ == '__main__':
     #Config file modifiable parameters
     CONFIG = configparser.ConfigParser()
     CONFIG.read(os.path.join('config', 'main.ini'))
+    from datetime import datetime
+    TBOARD_LOC = os.path.join(
+        CONFIG['PATH']['tboard'],
+        datetime.now().strftime('%b%d_%H-%M-%S'))
+    WRITER = SummaryWriter(log_dir=TBOARD_LOC)
 
     print('Program started with the following options')
     helpers.print_config(CONFIG)
     print('Command Line arguments')
     print(ARGS)
     print()
-    main(ARGS, CONFIG)
+    main(ARGS, CONFIG, WRITER)
