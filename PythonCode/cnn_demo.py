@@ -3,9 +3,11 @@ import argparse
 import configparser
 import os
 import time
+import pathlib
 
 import torch
 import h5py
+import numpy as np
 from PIL import Image
 
 import cnn_utils
@@ -26,9 +28,11 @@ def main(args, config):
         GPU_ID = int(config['NETWORK']['gpu_id'])
         model = torch.load(
             model_loc, 
-            map_location=lambda storage, loc: storage.cuda(GPU_ID))
+            map_location=lambda storage, loc: storage.cuda(GPU_ID))['model']
     else:
-        model = torch.load(model_loc)
+        model = torch.load(model_loc)['model']
+
+    model.eval()
     
     # TODO if GT is available, can get diff images
     start_time = time.time()
@@ -49,7 +53,7 @@ def main(args, config):
                 depth_images,
                 colour_images,
                 depth_images.shape[0])
-            im_input = torch.from_numpy(warped).float()
+            im_input = torch.from_numpy(warped).float().unsqueeze_(0)
 
             if cuda:
                 im_input = im_input.cuda()
@@ -82,11 +86,21 @@ def main(args, config):
     base_dir = os.path.join(
         config['PATH']['output_dir'],
         'warped')
+    if not os.path.isdir(base_dir):
+        pathlib.Path(base_dir).mkdir(parents=True, exist_ok=True)
+    cpu_output = denormalise_lf(output).cpu().detach().numpy().astype(np.uint8)
     for i in range(grid_size):
         file_name = 'Colour{}.png'.format(i)
         save_location = os.path.join(base_dir, file_name)
+        print(cpu_output[0, i, ...].shape)
         image_warping.save_array_as_image(
-            output[i].numpy(), save_location)
+            cpu_output[0, i, ...], save_location)
+
+def denormalise_lf(lf):
+    """Coverts an lf in the range 0 to maximum into -1 1"""
+    maximum = 255.0
+    lf.add_(1.0).div_(2.0).mul_(maximum)
+    return lf
 
 if __name__ == '__main__':
     MODEL_HELP_STR = ' '.join((
