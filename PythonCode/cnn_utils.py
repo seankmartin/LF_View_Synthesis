@@ -17,6 +17,10 @@ def check_cuda(config):
 
 def save_checkpoint(model, epoch, save_dir, name):
     """Saves model params and epoch number at save_dir/name"""
+    if (model is None) or (epoch is None):
+        print("No model or epoch given for saving")
+        return -1
+        
     model_out_path = os.path.join(save_dir, name)
     state = {"epoch": epoch, "model": model}
     if not os.path.exists(save_dir):

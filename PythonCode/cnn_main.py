@@ -53,6 +53,7 @@ def main(args, config):
         # Perform training and testing
         print("Beginning training loop")
         best_loss = math.inf
+        best_model, best_epoch = None, None
         for epoch in range(args.start_epoch, args.nEpochs):
             epoch_loss = train(
                 model=model, dset_loaders=data_loaders,
