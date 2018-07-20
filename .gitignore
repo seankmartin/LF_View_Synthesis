@@ -5,3 +5,4 @@ launch.json
 .vscode/settings.json
 *.ropeproject/
 PythonCode/runs/
+*/out/
