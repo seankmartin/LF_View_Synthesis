@@ -1,5 +1,7 @@
-""" The main file to run the View synthesis CNN Many Neural Network pipeline considerations are based on
-https://github.com/twtygqyy/pytorch-vdsr And the pytorch example files """
+""" The main file to run the View synthesis CNN
+Many Neural Network pipeline considerations are based on
+https://github.com/twtygqyy/pytorch-vdsr 
+And the pytorch example files """
 import argparse
 import configparser
 import copy
@@ -24,7 +26,8 @@ SAVE_MESSAGE = "==> Would you like to save the model?"
 def main(args, config, writer):
     cuda = cnn_utils.check_cuda(config)
 
-    #Attempts to otimise - see https://discuss.pytorch.org/t/what-does-torch-backends-cudnn-benchmark-do
+    #Attempts to otimise - see 
+    #https://discuss.pytorch.org/t/what-does-torch-backends-cudnn-benchmark-do
     torch.backends.cudnn.benchmark = True
 
     file_path = os.path.join(config['PATH']['hdf5_dir'],
@@ -35,7 +38,8 @@ def main(args, config, writer):
         model, criterion, optimizer, lr_scheduler = setup_model(args)
         if cuda: # GPU support
             model = model.cuda()
-            #The below is only needed if loss fn has params criterion = criterion.cuda()
+            #The below is only needed if loss fn has params 
+            #criterion = criterion.cuda()
 
         if args.checkpoint: # Resume from a checkpoint
             cnn_utils.load_from_checkpoint(model, args, config)
@@ -155,8 +159,9 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
             return epoch_loss
 
 if __name__ == '__main__':
-    #Command line modifiable parameters See https://github.com/twtygqyy/pytorch-vdsr/blob/master/main_vdsr.py For the source of some 
-    #of these arguments
+    #Command line modifiable parameters 
+    #See https://github.com/twtygqyy/pytorch-vdsr/blob/master/main_vdsr.py 
+    #For the source of some of these arguments
     THREADS_HELP = " ".join(("Number of threads for data loader",
                              "to use. Default: 1"))
     PARSER = argparse.ArgumentParser(
