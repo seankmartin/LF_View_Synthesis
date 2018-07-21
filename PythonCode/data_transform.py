@@ -46,3 +46,9 @@ def normalise_lf(sample):
     lf = sample['colour']
     ((lf.div_(maximum)).mul_(2.0)).add_(-1.0)
     return sample
+
+def upper_left_patch(sample):
+    width = sample['colour'].shape[2]
+    sample['colour'] = sample['colour'][:, 0:width//2, 0:width//2, :]
+    sample['depth'] = sample['depth'][:, 0:width//2, 0:width//2, :]
+    return sample

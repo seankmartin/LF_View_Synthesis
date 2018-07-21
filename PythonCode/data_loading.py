@@ -88,6 +88,9 @@ class ValFromHdf5(data.Dataset):
         colour = torch.from_numpy(self.colour[index, ...]).float()
         grid_size = self.group['colour'].attrs['shape'][1]
         sample = {'depth': depth, 'colour': colour, 'grid_size': grid_size}
+        
+        # Running out of GPU memory on validation
+        sample = data_transform.upper_left_patch(sample)
 
         if self.transform:
             sample = self.transform(sample)
