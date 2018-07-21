@@ -5,7 +5,6 @@ class C3D(nn.Module):
     This network acts on y * y * 3 warped images and depth maps
     Output is a grid of residuals to modify the warped images input
     """
-
     def __init__(self, inchannels, outchannels):
         super(type(self), self).__init__()
         self.inchannels = inchannels
@@ -19,13 +18,22 @@ class C3D(nn.Module):
         constrained_activ = nn.Tanh()
         self.final = ThreexLayerNoBN(mid, outchannels, constrained_activ)
 
+        self.weights_init()
+
     def forward(self, x):
         residual = x
         out = self.first(x)
         out = self.layer1(out)
         out = self.layer2(out)
         out = self.final(out)
+        print(residual)
         return out + residual
+
+    def weights_init(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv3d):
+                print(m)
+                nn.init.xavier_normal_(m.weight.data)
 
 class ThreexLayer(nn.Module):
     """
