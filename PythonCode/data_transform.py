@@ -24,7 +24,6 @@ def disparity_based_rendering(disparities, views, grid_size, dtype=np.float32):
                 dtype=dtype
             )
             np.insert(warped_images, i * grid_one_way + j, res, axis=0)
-    print(warped_images)
     return warped_images
 
 def transform_to_warped(sample):
@@ -33,17 +32,13 @@ def transform_to_warped(sample):
     Output a dictionary of inputs -warped and targets - reference
     """
     disparity = sample['depth']
-    print('disparity has type', disparity.dtype)
     targets = sample['colour']
-    print('colour has type', disparity.dtype)
     sample = normalise_lf(sample)
     targets = sample['colour']
-    print('After normalising, colour has type', targets.dtype)
     grid_size = sample['grid_size']
     warped_images = disparity_based_rendering(
         disparity.numpy(), targets.numpy(), grid_size)
     inputs = torch.from_numpy(warped_images)
-    print('inputs have type', inputs.dtype)
     return {'inputs': inputs, 'targets': targets}
 
 def normalise_lf(sample):
