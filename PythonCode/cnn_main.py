@@ -138,12 +138,16 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                 print("===> Epoch[{}]({}/{}): Loss: {:.10f}".format(
                     epoch, iteration, len(dset_loaders[phase]),
                     loss.item()))
+                inputs = inputs[0, ...].transpose(1, 3)
                 out_imgs = outputs[0, ...].transpose(1, 3)
                 truth_imgs = targets[0, ...].transpose(1, 3)
+                input_grid = vutils.make_grid(
+                    out_imgs, nrow=8, range=(-1, 1), normalize=True)
                 output_grid = vutils.make_grid(
                     out_imgs, nrow=8, range=(-1, 1), normalize=True)
                 target_grid = vutils.make_grid(
                     truth_imgs, nrow=8, range=(-1, 1), normalize=True)
+                writer.add_image(phase + '/input', input_grid, epoch)
                 writer.add_image(phase + '/output', output_grid, epoch)
                 writer.add_image(phase + '/target', target_grid, epoch)
 

@@ -26,13 +26,13 @@ class C3D(nn.Module):
         out = self.layer1(out)
         out = self.layer2(out)
         out = self.final(out)
-        print(residual)
+        #print(residual)
         return out + residual
 
     def weights_init(self):
         for m in self.modules():
             if isinstance(m, nn.Conv3d):
-                print(m)
+                print("Initialising ", m, " with Xavier initialisation")
                 nn.init.xavier_normal_(m.weight.data)
 
 class ThreexLayer(nn.Module):

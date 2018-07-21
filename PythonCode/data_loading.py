@@ -35,10 +35,14 @@ class TrainFromHdf5(data.Dataset):
         start_h, start_v = self.generate_random_crop()
         end_h = start_h + self.patch_size
         end_v = start_v + self.patch_size
-        depth = torch.from_numpy(
-            self.depth[idx, :, start_h:end_h, start_v:end_v, :]).float()
-        colour = torch.from_numpy(
-            self.colour[idx, :, start_h:end_h, start_v:end_v, :]).float()
+        depth = torch.tensor(
+            self.depth[idx, :, start_h:end_h, start_v:end_v, :],
+            dtype=torch.float32
+        )
+        colour = torch.tensor(
+            self.colour[idx, :, start_h:end_h, start_v:end_v, :],
+            dtype=torch.float32
+        )
         grid_size = self.group['colour'].attrs['shape'][1]
         sample = {'depth': depth, 'colour': colour, 'grid_size': grid_size}
 
@@ -84,8 +88,8 @@ class ValFromHdf5(data.Dataset):
         In this case a set of crops from an lf sample
         Return type is a dictionary of depth and colour arrays
         """
-        depth = torch.from_numpy(self.depth[index, ...]).float()
-        colour = torch.from_numpy(self.colour[index, ...]).float()
+        depth = torch.tensor(self.depth[index, ...], dtype=torch.float32)
+        colour = torch.tensor(self.colour[index, ...], dtype=torch.float32)
         grid_size = self.group['colour'].attrs['shape'][1]
         sample = {'depth': depth, 'colour': colour, 'grid_size': grid_size}
         
