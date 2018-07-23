@@ -4,5 +4,6 @@ launch.json
 #Ignore the main workspace file, but not individual folder ones
 .vscode/settings.json
 *.ropeproject/
-*/logs/
+*logs/
 */out/
+*all_scalars.json

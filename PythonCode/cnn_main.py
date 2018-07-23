@@ -135,25 +135,28 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                 cnn_utils.print_mem_usage()
 
             if iteration%100 == 0:
-                print("===> Epoch[{}]({}/{}): Loss: {:.10f}".format(
+                print("===> Epoch[{}]({}/{}): Loss: {:.5f}".format(
                     epoch, iteration, len(dset_loaders[phase]),
                     loss.item()))
                 input_imgs = inputs[0, ...].transpose(1, 3)
                 out_imgs = outputs[0, ...].transpose(1, 3)
                 truth_imgs = targets[0, ...].transpose(1, 3)
                 input_grid = vutils.make_grid(
-                    input_imgs, nrow=8, range=(-1, 1), normalize=True)
+                    input_imgs, nrow=8, range=(-1, 1), normalize=True, 
+                    pad_value=1.0)
                 output_grid = vutils.make_grid(
-                    out_imgs, nrow=8, range=(-1, 1), normalize=True)
+                    out_imgs, nrow=8, range=(-1, 1), normalize=True,
+                    pad_value=1.0)
                 target_grid = vutils.make_grid(
-                    truth_imgs, nrow=8, range=(-1, 1), normalize=True)
+                    truth_imgs, nrow=8, range=(-1, 1), normalize=True,
+                    pad_value=1.0)
                 writer.add_image(phase + '/input', input_grid, epoch)
                 writer.add_image(phase + '/output', output_grid, epoch)
                 writer.add_image(phase + '/target', target_grid, epoch)
 
         epoch_loss = running_loss / len(dset_loaders[phase])
         writer.add_scalar(phase + '/loss', epoch_loss, epoch)
-        print("Phase {} average overall loss {:.4f}".format(phase, epoch_loss))
+        print("Phase {} average overall loss {:.5f}".format(phase, epoch_loss))
         time_elapsed = time.time() - since
         print("Phase {} took {:.0f}s overall".format(phase, time_elapsed))
 

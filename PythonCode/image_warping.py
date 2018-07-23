@@ -13,8 +13,9 @@ def valid_pixel(pixel, img_size):
              ((pixel[1] > -1) and (pixel[1] < size_y)))
     return valid
 
-#TODO consider keeping pixels around so don't have to make it multiple times
-def fw_warp_image(ref_view, disparity_map, ref_pos, novel_pos, dtype=np.uint8):
+def fw_warp_image(
+    ref_view, disparity_map, ref_pos, novel_pos, 
+    dtype=np.uint8, blank=0):
     """
     Returns a forward warped novel from an input image and disparity_map
     For each pixel position in the reference view, shift it by the disparity,
@@ -30,8 +31,8 @@ def fw_warp_image(ref_view, disparity_map, ref_pos, novel_pos, dtype=np.uint8):
     size_x, size_y = ref_view.shape[0:2]
     distance = ref_pos - novel_pos
 
-    #Initialise an array of zeroes
-    novel_view = np.zeros(ref_view.shape, dtype=dtype)
+    #Initialise an array of blanks
+    novel_view = np.full(ref_view.shape, blank, dtype=dtype)
 
     #Create an array of pixel positions
     grid = np.meshgrid(np.arange(size_x), np.arange(size_y), indexing='ij')
@@ -44,7 +45,7 @@ def fw_warp_image(ref_view, disparity_map, ref_pos, novel_pos, dtype=np.uint8):
     #Round to the nearest integer value
     result = (repeated * distance).astype(int)
     novel_pixels = pixels + result
-
+    
     #Move the pixels from the reference view to the novel view
     for novel_coord, ref_coord in zip(novel_pixels, pixels):
         if valid_pixel(novel_coord, ref_view.shape[0:2]):
@@ -59,7 +60,7 @@ def slow_fw_warp_image(ref_view, disparity_map, ref_pos, novel_pos):
     For each pixel position in the reference view, shift it by the disparity,
     and assign the value in the reference at that new pixel position to the
     novel view.
-    Has a very large for loop, performance should be compared with
+    Has a very large for loop, performance is much slower than
     fw_warp_image
 
     Keyword arguments:
