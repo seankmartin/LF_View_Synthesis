@@ -17,6 +17,9 @@ A CNN is used to account for inevitable errors in the depth map and non-Lamberti
     - Running Cmake GUI and ticking these custom modules for build.
     - Adding -D flags from Cmake on command line for these modules.
 3. Generate files and build Inviwo.
+    - For convience, a build script is provided in Inviwo/inviwo_build.sh in this repository
+    - Place it in the parent directory of the inviwo source code cloned from github
+    - Note that the number of cores must be changed in the script, by default it is 8
 4. Verify modules correctly installed by opening Inviwo/depth_heuristics.inv in this repository in your built version of Inviwo. 
 
 ### Once Inviwo is installed, open up a terminal or command prompt and follow these steps
