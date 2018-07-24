@@ -113,7 +113,9 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
             # forward
             if iteration == 0:
                 print("Loaded batch in {:.0f}s".format(time.time() - since))
-            outputs = model(inputs)
+            residuals = model(inputs)
+            outputs = inputs + residuals
+
             loss = criterion(outputs, targets)
             optimizer.zero_grad()
 
@@ -135,11 +137,15 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                     epoch, iteration, len(dset_loaders[phase]),
                     loss.item()))
                 input_imgs = inputs[0, ...].transpose(1, 3)
+                residual_imgs = targets[0, ...].transpose(1, 3)
                 out_imgs = outputs[0, ...].transpose(1, 3)
                 truth_imgs = targets[0, ...].transpose(1, 3)
                 input_grid = vutils.make_grid(
                     input_imgs, nrow=8, range=(-1, 1), normalize=True,
                     pad_value=1.0)
+                residual_grid = vutils.make_grid(
+                    residual_imgs, nrow=8, range=(-1, 1), normalize=True,
+                    pad_value=1.0)    
                 output_grid = vutils.make_grid(
                     out_imgs, nrow=8, range=(-1, 1), normalize=True,
                     pad_value=1.0)
@@ -147,6 +153,7 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                     truth_imgs, nrow=8, range=(-1, 1), normalize=True,
                     pad_value=1.0)
                 writer.add_image(phase + '/input', input_grid, epoch)
+                writer.add_image(phase + '/residual', residual_grid, epoch)
                 writer.add_image(phase + '/output', output_grid, epoch)
                 writer.add_image(phase + '/target', target_grid, epoch)
 
