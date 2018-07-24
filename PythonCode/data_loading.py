@@ -23,7 +23,7 @@ class TrainFromHdf5(data.Dataset):
         super()
         self.file_path = file_path
         with h5py.File(
-            file_path, mode='r', libver='latest', swmr=True) as h5_file:
+                file_path, mode='r', libver='latest', swmr=True) as h5_file:
             self.num_samples = h5_file['train/colour'].attrs['shape'][0]
             self.grid_size = h5_file['train/colour'].attrs['shape'][1]
         self.depth = '/train/disparity/images'
@@ -40,7 +40,8 @@ class TrainFromHdf5(data.Dataset):
         Return type is a dictionary of depth and colour arrays
         """
         with h5py.File(
-            self.file_path, mode='r', libver='latest', swmr=True) as h5_file:
+                self.file_path, mode='r',
+                libver='latest', swmr=True) as h5_file:
             idx = index // self.num_crops
             depth = torch.tensor(
                 h5_file[self.depth][idx], dtype=torch.float32)
@@ -48,7 +49,7 @@ class TrainFromHdf5(data.Dataset):
                 h5_file[self.colour][idx], dtype=torch.float32)
             grid_size = self.grid_size
             sample = {'depth': depth, 'colour': colour, 'grid_size': grid_size}
-            
+
             sample = data_transform.get_random_crop(sample, self.patch_size)
 
             if self.transform:
@@ -73,7 +74,7 @@ class ValFromHdf5(data.Dataset):
         super()
         self.file_path = file_path
         with h5py.File(
-            file_path, mode='r', libver='latest', swmr=True) as h5_file:
+                file_path, mode='r', libver='latest', swmr=True) as h5_file:
             self.num_samples = h5_file['val/colour'].attrs['shape'][0]
             self.grid_size = h5_file['val/colour'].attrs['shape'][1]
         self.depth = '/val/disparity/images'
@@ -87,14 +88,15 @@ class ValFromHdf5(data.Dataset):
         Return type is a dictionary of depth and colour arrays
         """
         with h5py.File(
-            self.file_path, mode='r', libver='latest', swmr=True) as h5_file:
+                self.file_path, mode='r',
+                libver='latest', swmr=True) as h5_file:
             depth = torch.tensor(
                 h5_file[self.depth][index], dtype=torch.float32)
             colour = torch.tensor(
                 h5_file[self.colour][index], dtype=torch.float32)
             grid_size = self.grid_size
             sample = {'depth': depth, 'colour': colour, 'grid_size': grid_size}
-        
+
         # Running out of GPU memory on validation
         sample = data_transform.upper_left_patch(sample)
 

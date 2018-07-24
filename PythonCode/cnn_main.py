@@ -1,6 +1,6 @@
 """ The main file to run the View synthesis CNN
 Many Neural Network pipeline considerations are based on
-https://github.com/twtygqyy/pytorch-vdsr 
+https://github.com/twtygqyy/pytorch-vdsr
 And the pytorch example files """
 import argparse
 import configparser
@@ -25,7 +25,7 @@ SAVE_MESSAGE = "==> Would you like to save the model?"
 def main(args, config, writer):
     cuda = cnn_utils.check_cuda(config)
 
-    #Attempts to otimise - see 
+    #Attempts to otimise - see
     #https://discuss.pytorch.org/t/what-does-torch-backends-cudnn-benchmark-do
     torch.backends.cudnn.benchmark = True
 
@@ -34,7 +34,7 @@ def main(args, config, writer):
     model, criterion, optimizer, lr_scheduler = setup_model(args)
     if cuda: # GPU support
         model = model.cuda()
-        #The below is only needed if loss fn has params 
+        #The below is only needed if loss fn has params
         #criterion = criterion.cuda()
 
     if args.checkpoint: # Resume from a checkpoint
@@ -138,7 +138,7 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                 out_imgs = outputs[0, ...].transpose(1, 3)
                 truth_imgs = targets[0, ...].transpose(1, 3)
                 input_grid = vutils.make_grid(
-                    input_imgs, nrow=8, range=(-1, 1), normalize=True, 
+                    input_imgs, nrow=8, range=(-1, 1), normalize=True,
                     pad_value=1.0)
                 output_grid = vutils.make_grid(
                     out_imgs, nrow=8, range=(-1, 1), normalize=True,
@@ -162,8 +162,8 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
             return epoch_loss
 
 if __name__ == '__main__':
-    #Command line modifiable parameters 
-    #See https://github.com/twtygqyy/pytorch-vdsr/blob/master/main_vdsr.py 
+    #Command line modifiable parameters
+    #See https://github.com/twtygqyy/pytorch-vdsr/blob/master/main_vdsr.py
     #For the source of some of these arguments
     THREADS_HELP = " ".join(("Number of threads for data loader",
                              "to use. Default: 1"))
