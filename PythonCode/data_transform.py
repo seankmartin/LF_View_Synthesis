@@ -8,8 +8,8 @@ import torch
 import image_warping
 
 def disparity_based_rendering(
-    disparities, views, grid_size, 
-    dtype=np.float32, blank=-1.0):
+        disparities, views, grid_size,
+        dtype=np.float32, blank=-1.0):
     """Returns a list of warped images using the input views and disparites"""
      # Alternatively, grid_one_way - 1 can be used below
     shape = (grid_size,) + views.shape[-3:]

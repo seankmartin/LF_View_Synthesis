@@ -1,6 +1,7 @@
 import random
+import os
 
-import numpy as np
+import h5py
 import torch
 import torch.utils.data as data
 
@@ -39,7 +40,7 @@ class TrainFromHdf5(data.Dataset):
         Return type is a dictionary of depth and colour arrays
         """
         with h5py.File(
-            file_path, mode='r', libver='latest', swmr=True) as h5_file:
+            self.file_path, mode='r', libver='latest', swmr=True) as h5_file:
             idx = index // self.num_crops
             depth = torch.tensor(
                 h5_file[self.depth][idx], dtype=torch.float32)
@@ -86,13 +87,13 @@ class ValFromHdf5(data.Dataset):
         Return type is a dictionary of depth and colour arrays
         """
         with h5py.File(
-            file_path, mode='r', libver='latest', swmr=True) as h5_file:
-        depth = torch.tensor(
-            h5_file[self.depth][index], dtype=torch.float32)
-        colour = torch.tensor(
-            h5_file[self.colour][index], dtype=torch.float32)
-        grid_size = self.grid_size
-        sample = {'depth': depth, 'colour': colour, 'grid_size': grid_size}
+            self.file_path, mode='r', libver='latest', swmr=True) as h5_file:
+            depth = torch.tensor(
+                h5_file[self.depth][index], dtype=torch.float32)
+            colour = torch.tensor(
+                h5_file[self.colour][index], dtype=torch.float32)
+            grid_size = self.grid_size
+            sample = {'depth': depth, 'colour': colour, 'grid_size': grid_size}
         
         # Running out of GPU memory on validation
         sample = data_transform.upper_left_patch(sample)

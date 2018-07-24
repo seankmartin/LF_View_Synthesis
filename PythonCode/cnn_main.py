@@ -9,7 +9,6 @@ import math
 import os
 import time
 
-import h5py
 import torch
 import torch.nn as nn
 import torchvision.utils as vutils
