@@ -44,6 +44,10 @@ def main(args, config, writer):
     if args.pretrained: # Direct copy weights from another model
         cnn_utils.load_weights(model, args, config)
 
+    # (grid_size, size, size, channels)
+    dummy_input = torch.rand(4, 64, 128, 128, 3).requires_grad_()
+    writer.add_graph(model, (dummy_input, ))
+
     # Perform training and testing
     print("Beginning training loop")
     best_loss = math.inf
@@ -151,7 +155,7 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                     pad_value=1.0)
                 residual_grid = vutils.make_grid(
                     residual_imgs, nrow=8, range=(-1, 1), normalize=True,
-                    pad_value=1.0)    
+                    pad_value=1.0)   
                 output_grid = vutils.make_grid(
                     out_imgs, nrow=8, range=(-1, 1), normalize=True,
                     pad_value=1.0)
@@ -172,14 +176,15 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
         if phase == 'val':
             print()
             lr_scheduler.step(epoch_loss)
+            for idx, param_group in enumerate(optimizer.param_groups):
+                writer.add_scaler(
+                    'learning_rate' + str(idx), param_group['lr'], epoch)
             return epoch_loss
 
 if __name__ == '__main__':
     #Command line modifiable parameters
     #See https://github.com/twtygqyy/pytorch-vdsr/blob/master/main_vdsr.py
     #For the source of some of these arguments
-    THREADS_HELP = " ".join(("Number of threads for data loader",
-                             "to use. Default: 1"))
     PARSER = argparse.ArgumentParser(
         description='Process modifiable parameters from command line')
     PARSER.add_argument("--nEpochs", type=int, default=50,
@@ -194,8 +199,6 @@ if __name__ == '__main__':
                         help="Manual epoch number, useful restarts. Default=0")
     PARSER.add_argument("--clip", type=float, default=0.4,
                         help="Clipping Gradients. Default=0.4")
-    PARSER.add_argument("--threads", type=int, default=1,
-                        help=THREADS_HELP)
     PARSER.add_argument("--momentum", "--m", default=0.9, type=float,
                         help="Momentum, Default: 0.9")
     PARSER.add_argument("--weight-decay", "--wd",
