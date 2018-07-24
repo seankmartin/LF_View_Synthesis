@@ -125,9 +125,10 @@ def create_dataloaders(args, config):
 
     batch_size = {'train': int(config['NETWORK']['batch_size']), 'val': 1}
     data_loaders = {}
+    threads = int(config['NETWORK']['num_workers'])
     for name, dset in (('train', train_set), ('val', val_set)):
         data_loaders[name] = DataLoader(
-            dataset=dset, num_workers=args.threads,
+            dataset=dset, num_workers=threads,
             batch_size=batch_size[name],
             shuffle=True)
 
