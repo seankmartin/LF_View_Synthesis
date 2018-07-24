@@ -25,7 +25,6 @@ class C3D(nn.Module):
         out = self.layer1(out)
         out = self.layer2(out)
         out = self.final(out)
-        #print(residual)
         return out
 
     def weights_init(self):

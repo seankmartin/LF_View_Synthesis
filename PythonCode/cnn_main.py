@@ -44,10 +44,6 @@ def main(args, config, writer):
     if args.pretrained: # Direct copy weights from another model
         cnn_utils.load_weights(model, args, config)
 
-    # (grid_size, size, size, channels)
-    dummy_input = torch.rand(4, 64, 128, 128, 3).requires_grad_()
-    writer.add_graph(model, (dummy_input, ))
-
     # Perform training and testing
     print("Beginning training loop")
     best_loss = math.inf
@@ -75,18 +71,20 @@ def main(args, config, writer):
                 print("Ending training")
                 break
 
+    save = True
     if args.prompt:
         if not helpers.prompt_user(SAVE_MESSAGE):
             print("Not saving the model")
-            exit(0)
+            save = False
 
     # Save the best model
-    cnn_utils.save_checkpoint(
-        best_model, best_epoch,
-        config['PATH']['model_dir'],
-        args.tag + "_best_at{}.pth".format(best_epoch))
+    if save:
+        cnn_utils.save_checkpoint(
+            best_model, best_epoch,
+            config['PATH']['model_dir'],
+            args.tag + "_best_at{}.pth".format(best_epoch))
 
-    parent_dir = os.chdir('..')
+    parent_dir = os.path.abspath(os.pardir)
     scalar_dir = os.path.join(parent_dir, "logs", args.tag)
     if not os.path.isdir(scalar_dir):
         pathlib.Path(scalar_dir).mkdir(parents=True, exist_ok=True)
@@ -147,7 +145,7 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                     epoch, iteration, len(dset_loaders[phase]),
                     loss.item()))
                 input_imgs = inputs[0, ...].transpose(1, 3)
-                residual_imgs = targets[0, ...].transpose(1, 3)
+                residual_imgs = residuals[0, ...].transpose(1, 3)
                 out_imgs = outputs[0, ...].transpose(1, 3)
                 truth_imgs = targets[0, ...].transpose(1, 3)
                 input_grid = vutils.make_grid(
@@ -177,7 +175,7 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
             print()
             lr_scheduler.step(epoch_loss)
             for idx, param_group in enumerate(optimizer.param_groups):
-                writer.add_scaler(
+                writer.add_scalar(
                     'learning_rate' + str(idx), param_group['lr'], epoch)
             return epoch_loss
 
@@ -216,13 +214,17 @@ if __name__ == '__main__':
         print("Please enter a --tag flag through cmd when running")
         exit(-1)
 
+    if len(UNPARSED) is not 0:
+        print("Unrecognised command line argument passed")
+        print(UNPARSED)
+        exit(-1)
     #Config file modifiable parameters
     CONFIG = configparser.ConfigParser()
     CONFIG.read(os.path.join('config', 'main.ini'))
     from datetime import datetime
     TBOARD_LOC = os.path.join(
         CONFIG['PATH']['tboard'],
-        datetime.now().strftime('%b%d_%H-%M-%S'))
+        ARGS.tag + "_" + datetime.now().strftime('%b%d_%H-%M-%S'))
     WRITER = SummaryWriter(log_dir=TBOARD_LOC)
 
     print('Program started with the following options')
