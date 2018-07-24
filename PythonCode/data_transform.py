@@ -66,12 +66,6 @@ def get_random_crop(sample, patch_size):
     start_v = random.randint(0, high)
     end_h = start_h + patch_size
     end_v = start_v + patch_size
-    sample['depth'] = torch.tensor(
-        sample['depth'][:, start_h:end_h, start_v:end_v, :],
-        dtype=torch.float32
-    )
-    sample['colour'] = torch.tensor(
-        sample['colour'][:, start_h:end_h, start_v:end_v, :],
-        dtype=torch.float32
-    )
+    sample['depth'] = sample['depth'][:, start_h:end_h, start_v:end_v, :]
+    sample['colour'] = sample['colour'][:, start_h:end_h, start_v:end_v, :]
     return sample

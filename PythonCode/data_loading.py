@@ -11,7 +11,7 @@ class TrainFromHdf5(data.Dataset):
     """
     Creates a training set from a hdf5 file
     """
-    def __init__(self, hdf_file, patch_size, num_crops, transform=None):
+    def __init__(self, file_path, patch_size, num_crops, transform=None):
         """
         Keyword arguments:
         hdf_file -- the location containing the hdf5 file
@@ -20,9 +20,13 @@ class TrainFromHdf5(data.Dataset):
         transform -- an optional transform to apply to the data
         """
         super()
-        self.group = hdf_file['train']
-        self.depth = self.group['disparity']['images']
-        self.colour = self.group['colour']['images']
+        self.file_path = file_path
+        with h5py.File(
+            file_path, mode='r', libver='latest', swmr=True) as h5_file:
+            self.num_samples = h5_file['train/colour'].attrs['shape'][0]
+            self.grid_size = h5_file['train/colour'].attrs['shape'][1]
+        self.depth = '/train/disparity/images'
+        self.colour = '/train/colour/images'
         self.transform = transform
         self.patch_size = patch_size
         self.num_crops = num_crops
@@ -34,37 +38,45 @@ class TrainFromHdf5(data.Dataset):
         In this case a set of crops from an lf sample
         Return type is a dictionary of depth and colour arrays
         """
-        idx = index // self.num_crops
-        depth = self.depth[idx]
-        colour = self.colour[idx]
-        grid_size = self.group['colour'].attrs['shape'][1]
-        sample = {'depth': depth, 'colour': colour, 'grid_size': grid_size}
-        
-        sample = data_transform.get_random_crop(sample, self.patch_size)
+        with h5py.File(
+            file_path, mode='r', libver='latest', swmr=True) as h5_file:
+            idx = index // self.num_crops
+            depth = torch.tensor(
+                h5_file[self.depth][idx], dtype=torch.float32)
+            colour = torch.tensor(
+                h5_file[self.colour][idx], dtype=torch.float32)
+            grid_size = self.grid_size
+            sample = {'depth': depth, 'colour': colour, 'grid_size': grid_size}
+            
+            sample = data_transform.get_random_crop(sample, self.patch_size)
 
-        if self.transform:
-            sample = self.transform(sample)
+            if self.transform:
+                sample = self.transform(sample)
 
-        return sample
+            return sample
 
     def __len__(self):
         """Return the number of samples in the dataset"""
-        return self.group['colour'].attrs['shape'][0] * self.num_crops
+        return self.num_samples * self.num_crops
 
 class ValFromHdf5(data.Dataset):
     """
     Creates a validation set from a hdf5 file
     """
-    def __init__(self, hdf_file, transform=None):
+    def __init__(self, file_path, transform=None):
         """
         Keyword arguments:
         hdf_file -- the location containing the hdf5 file
         transform -- an optional transform to apply to the data
         """
         super()
-        self.group = hdf_file['val']
-        self.depth = self.group['disparity']['images']
-        self.colour = self.group['colour']['images']
+        self.file_path = file_path
+        with h5py.File(
+            file_path, mode='r', libver='latest', swmr=True) as h5_file:
+            self.num_samples = h5_file['val/colour'].attrs['shape'][0]
+            self.grid_size = h5_file['val/colour'].attrs['shape'][1]
+        self.depth = '/val/disparity/images'
+        self.colour = '/val/colour/images'
         self.transform = transform
 
     def __getitem__(self, index):
@@ -73,9 +85,13 @@ class ValFromHdf5(data.Dataset):
         In this case a set of crops from an lf sample
         Return type is a dictionary of depth and colour arrays
         """
-        depth = torch.tensor(self.depth[index, ...], dtype=torch.float32)
-        colour = torch.tensor(self.colour[index, ...], dtype=torch.float32)
-        grid_size = self.group['colour'].attrs['shape'][1]
+        with h5py.File(
+            file_path, mode='r', libver='latest', swmr=True) as h5_file:
+        depth = torch.tensor(
+            h5_file[self.depth][index], dtype=torch.float32)
+        colour = torch.tensor(
+            h5_file[self.colour][index], dtype=torch.float32)
+        grid_size = self.grid_size
         sample = {'depth': depth, 'colour': colour, 'grid_size': grid_size}
         
         # Running out of GPU memory on validation
@@ -88,18 +104,20 @@ class ValFromHdf5(data.Dataset):
 
     def __len__(self):
         """Return the number of samples in the dataset"""
-        return self.group['colour'].attrs['shape'][0]
+        return self.num_samples
 
-def create_dataloaders(hdf_file, args, config):
+def create_dataloaders(args, config):
     """Creates a train and val dataloader from a h5file and a config file"""
     print("Loading dataset")
+    file_path = os.path.join(config['PATH']['hdf5_dir'],
+                             config['PATH']['hdf5_name'])
     train_set = TrainFromHdf5(
-        hdf_file=hdf_file,
+        file_path=file_path,
         patch_size=int(config['NETWORK']['patch_size']),
         num_crops=int(config['NETWORK']['num_crops']),
         transform=data_transform.transform_to_warped)
     val_set = ValFromHdf5(
-        hdf_file=hdf_file,
+        file_path=file_path,
         transform=data_transform.transform_to_warped)
 
     batch_size = {'train': int(config['NETWORK']['batch_size']), 'val': 1}

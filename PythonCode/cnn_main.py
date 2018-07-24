@@ -30,60 +30,57 @@ def main(args, config, writer):
     #https://discuss.pytorch.org/t/what-does-torch-backends-cudnn-benchmark-do
     torch.backends.cudnn.benchmark = True
 
-    file_path = os.path.join(config['PATH']['hdf5_dir'],
-                             config['PATH']['hdf5_name'])
-    with h5py.File(file_path, mode='r', libver='latest', swmr=True) as h5_file:
-        data_loaders = create_dataloaders(h5_file, args, config)
+    data_loaders = create_dataloaders(args, config)
 
-        model, criterion, optimizer, lr_scheduler = setup_model(args)
-        if cuda: # GPU support
-            model = model.cuda()
-            #The below is only needed if loss fn has params 
-            #criterion = criterion.cuda()
+    model, criterion, optimizer, lr_scheduler = setup_model(args)
+    if cuda: # GPU support
+        model = model.cuda()
+        #The below is only needed if loss fn has params 
+        #criterion = criterion.cuda()
 
-        if args.checkpoint: # Resume from a checkpoint
-            cnn_utils.load_from_checkpoint(model, args, config)
+    if args.checkpoint: # Resume from a checkpoint
+        cnn_utils.load_from_checkpoint(model, args, config)
 
-        if args.pretrained: # Direct copy weights from another model
-            cnn_utils.load_weights(model, args, config)
+    if args.pretrained: # Direct copy weights from another model
+        cnn_utils.load_weights(model, args, config)
 
-        # Perform training and testing
-        print("Beginning training loop")
-        best_loss = math.inf
-        best_model, best_epoch = None, None
-        for epoch in range(args.start_epoch, args.nEpochs):
-            epoch_loss = train(
-                model=model, dset_loaders=data_loaders,
-                optimizer=optimizer, lr_scheduler=lr_scheduler,
-                criterion=criterion, epoch=epoch,
-                cuda=cuda, clip=args.clip, writer=writer)
+    # Perform training and testing
+    print("Beginning training loop")
+    best_loss = math.inf
+    best_model, best_epoch = None, None
+    for epoch in range(args.start_epoch, args.nEpochs):
+        epoch_loss = train(
+            model=model, dset_loaders=data_loaders,
+            optimizer=optimizer, lr_scheduler=lr_scheduler,
+            criterion=criterion, epoch=epoch,
+            cuda=cuda, clip=args.clip, writer=writer)
 
-            if epoch_loss < best_loss:
-                best_loss = epoch_loss
-                best_model = copy.deepcopy(model)
-                best_epoch = epoch
+        if epoch_loss < best_loss:
+            best_loss = epoch_loss
+            best_model = copy.deepcopy(model)
+            best_epoch = epoch
 
-            if epoch % 5 == 0 and epoch != 0:
-                cnn_utils.save_checkpoint(
-                    model, epoch,
-                    config['PATH']['model_dir'],
-                    args.tag + "{}.pth".format(epoch))
-
-            if args.prompt:
-                if not helpers.prompt_user(CONTINUE_MESSAGE):
-                    print("Ending training")
-                    break
+        if epoch % 5 == 0 and epoch != 0:
+            cnn_utils.save_checkpoint(
+                model, epoch,
+                config['PATH']['model_dir'],
+                args.tag + "{}.pth".format(epoch))
 
         if args.prompt:
-            if not helpers.prompt_user(SAVE_MESSAGE):
-                print("Not saving the model")
-                exit(0)
+            if not helpers.prompt_user(CONTINUE_MESSAGE):
+                print("Ending training")
+                break
 
-        # Save the best model
-        cnn_utils.save_checkpoint(
-            best_model, best_epoch,
-            config['PATH']['model_dir'],
-            args.tag + "_best_at{}.pth".format(best_epoch))
+    if args.prompt:
+        if not helpers.prompt_user(SAVE_MESSAGE):
+            print("Not saving the model")
+            exit(0)
+
+    # Save the best model
+    cnn_utils.save_checkpoint(
+        best_model, best_epoch,
+        config['PATH']['model_dir'],
+        args.tag + "_best_at{}.pth".format(best_epoch))
 
     writer.export_scalars_to_json("./all_scalars.json")
     writer.close()
