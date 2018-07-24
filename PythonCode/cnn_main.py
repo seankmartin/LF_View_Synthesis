@@ -8,6 +8,7 @@ import copy
 import math
 import os
 import time
+import pathlib
 
 import torch
 import torch.nn as nn
@@ -81,7 +82,12 @@ def main(args, config, writer):
         config['PATH']['model_dir'],
         args.tag + "_best_at{}.pth".format(best_epoch))
 
-    writer.export_scalars_to_json("./all_scalars.json")
+    parent_dir = os.chdir('..')
+    scalar_dir = os.path.join(parent_dir, "logs", args.tag)
+    if not os.path.isdir(scalar_dir):
+        pathlib.Path(scalar_dir).mkdir(parents=True, exist_ok=True)
+    writer.export_scalars_to_json(
+        os.path.join(scalar_dir, "all_scalars.json"))
     writer.close()
 
 def train(model, dset_loaders, optimizer, lr_scheduler,

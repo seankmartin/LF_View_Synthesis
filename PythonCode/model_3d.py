@@ -21,13 +21,12 @@ class C3D(nn.Module):
         self.weights_init()
 
     def forward(self, x):
-        residual = x
         out = self.first(x)
         out = self.layer1(out)
         out = self.layer2(out)
         out = self.final(out)
         #print(residual)
-        return out + residual
+        return out
 
     def weights_init(self):
         for m in self.modules():
