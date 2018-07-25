@@ -117,6 +117,7 @@ class LightFieldCamera:
                     canvas.snapshot(file_path)
             else:
                 print('Viewing position ({}, {})'.format(row_num, col_num))
+                #Smooths the viewing process
                 sleep(0.1)
 
         canvas = inviwopy.app.network.canvases[0]
@@ -125,10 +126,9 @@ class LightFieldCamera:
             metadata_filename = os.path.join(full_save_dir, 'metadata.csv')
             with open(metadata_filename, 'w') as f:
                 self.print_metadata(cam, pixel_dim, f)
-        else:
-            self.print_metadata(cam, pixel_dim)
 
         # Reset the camera to original position
+        print()
         cam.lookFrom = prev_cam_look_from
         cam.lookTo = prev_cam_look_to
 
