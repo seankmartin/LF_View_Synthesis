@@ -69,7 +69,8 @@ def main(save_main_dir, pixel_dim):
     #Save a number of random light fields
     NUM_RANDOM_LF_SAMPLES = 10
     random_lfs = create_random_lf_cameras(
-                     NUM_RANDOM_LF_SAMPLES, 100, 10,
+                     NUM_RANDOM_LF_SAMPLES, 
+                     (200, 35), 1,
                      interspatial_distance=0.5)
     for lf in random_lfs:
         save_lf(lf, save_main_dir)
