@@ -105,6 +105,8 @@ protected:
     ImageOutport outport_;
 
     BoolProperty useTwoDepths_;
+    FloatProperty firstDepthThreshold_;
+    FloatProperty secondDepthThreshold_;
     OptionPropertyInt channel_;
     RaycastingProperty raycasting_;
     IsoTFProperty isotfComposite_;

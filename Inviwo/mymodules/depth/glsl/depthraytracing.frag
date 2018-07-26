@@ -70,10 +70,12 @@ uniform IsovalueParameters isovalues;
 
 uniform int channel;
 uniform bool useTwoDepths;
+// threshold for depth returning
+uniform float firstDepthThreshold;
+// threshold for depth returning if DEPTH_THRESHOLD is not reached
+uniform float secondDepthThreshold;
 
 #define ERT_THRESHOLD 0.99  // threshold for early ray termination
-#define DEPTH_THRESHOLD 0.80 // threshold for depth returning
-#define LOW_THRESHOLD 0.30 // threshold for depth returning if DEPTH_THRESHOLD is not reached
 
 #if (!defined(INCLUDE_DVR) && !defined(INCLUDE_ISOSURFACES))
 #  define INCLUDE_DVR
@@ -172,10 +174,10 @@ vec4 rayTraversal(vec3 entryPoint, vec3 exitPoint, vec2 texCoords, float backgro
             t += tIncr;
         }
         //early depth output
-        if (result.a > DEPTH_THRESHOLD && tDepth == -1.0) {
+        if (result.a > firstDepthThreshold && tDepth == -1.0) {
             tDepth = t;
         }
-        else if (useTwoDepths && result.a > LOW_THRESHOLD && mDepth == -1.0) {
+        else if (useTwoDepths && result.a > secondDepthThreshold && mDepth == -1.0) {
             mDepth = t;
         }
     }
