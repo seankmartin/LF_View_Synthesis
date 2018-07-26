@@ -1,5 +1,6 @@
 import random
 import os
+from pathlib import Path
 
 import h5py
 import torch
@@ -114,6 +115,10 @@ def create_dataloaders(args, config):
     print("Loading dataset")
     file_path = os.path.join(config['PATH']['hdf5_dir'],
                              config['PATH']['hdf5_name'])
+    if not Path(file_path).is_file():
+        print(file_path, " is not a valid location")
+        print("Please enter a valid location of a h5 file through main.ini")
+        exit(-1)
     train_set = TrainFromHdf5(
         file_path=file_path,
         patch_size=int(config['NETWORK']['patch_size']),
