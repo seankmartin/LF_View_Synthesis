@@ -135,8 +135,8 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
             # backward + optimize only if in training phase
             if phase == 'train':
                 loss.backward()
-                #nn.utils.clip_grad_norm_(
-                #    model.parameters(), clip)
+                nn.utils.clip_grad_norm_(
+                    model.parameters(), clip)
                 optimizer.step()
 
             # statistics
