@@ -59,6 +59,7 @@ DepthRayTracing::DepthRayTracing()
     , exitPort_("exit")
     , backgroundPort_("bg")
     , outport_("outport")
+    , useTwoDepths_("useTwoDepths", "Use Two Depths", true)
     , channel_("channel", "Render Channel")
     , raycasting_("raycaster", "Raycasting")
     , isotfComposite_("isotfComposite", "TF & Isovalues", &volumePort_,
@@ -114,6 +115,7 @@ DepthRayTracing::DepthRayTracing()
         }
     });
 
+    addProperty(useTwoDepths_);
     addProperty(channel_);
     addProperty(raycasting_);
     addProperty(isotfComposite_);
@@ -170,7 +172,7 @@ void DepthRayTracing::process() {
         utilgl::bindAndSetUniforms(shader_, units, backgroundPort_, ImageType::ColorDepthPicking);
     }
     utilgl::setUniforms(shader_, outport_, camera_, lighting_, raycasting_, positionIndicator_,
-                        channel_, isotfComposite_);
+                        channel_, useTwoDepths_, isotfComposite_);
 
     utilgl::singleDrawImagePlaneRect();
 

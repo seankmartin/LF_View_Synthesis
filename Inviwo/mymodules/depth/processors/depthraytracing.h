@@ -43,6 +43,7 @@
 #include <inviwo/core/properties/compositeproperty.h>
 #include <inviwo/core/properties/eventproperty.h>
 #include <inviwo/core/properties/volumeindicatorproperty.h>
+#include <inviwo/core/properties/boolproperty.h>
 #include <inviwo/core/ports/imageport.h>
 #include <inviwo/core/ports/volumeport.h>
 #include <modules/opengl/shader/shader.h>
@@ -103,6 +104,7 @@ protected:
     ImageInport backgroundPort_;
     ImageOutport outport_;
 
+    BoolProperty useTwoDepths_;
     OptionPropertyInt channel_;
     RaycastingProperty raycasting_;
     IsoTFProperty isotfComposite_;

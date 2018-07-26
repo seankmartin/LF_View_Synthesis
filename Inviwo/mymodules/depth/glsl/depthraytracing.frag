@@ -69,11 +69,11 @@ uniform RaycastingParameters raycaster;
 uniform IsovalueParameters isovalues;
 
 uniform int channel;
+uniform bool useTwoDepths;
 
 #define ERT_THRESHOLD 0.99  // threshold for early ray termination
 #define DEPTH_THRESHOLD 0.80 // threshold for depth returning
 #define LOW_THRESHOLD 0.30 // threshold for depth returning if DEPTH_THRESHOLD is not reached
-#define USE_LOW true // Should the low depth be used 
 
 #if (!defined(INCLUDE_DVR) && !defined(INCLUDE_ISOSURFACES))
 #  define INCLUDE_DVR
@@ -175,7 +175,7 @@ vec4 rayTraversal(vec3 entryPoint, vec3 exitPoint, vec2 texCoords, float backgro
         if (result.a > DEPTH_THRESHOLD && tDepth == -1.0) {
             tDepth = t;
         }
-        else if (USE_LOW && result.a > LOW_THRESHOLD && mDepth == -1.0) {
+        else if (useTwoDepths && result.a > LOW_THRESHOLD && mDepth == -1.0) {
             mDepth = t;
         }
     }
@@ -190,7 +190,7 @@ vec4 rayTraversal(vec3 entryPoint, vec3 exitPoint, vec2 texCoords, float backgro
         tDepth = calculateDepthValue(camera, tDepth / tEnd, texture(entryDepth, texCoords).x,
                                      texture(exitDepth, texCoords).x);
 
-    } else if (mDepth != -1.0 && USE_LOW) {
+    } else if (mDepth != -1.0 && useTwoDepths) {
         //Outputting the mDepth instead of 1.0
         tDepth = calculateDepthValue(camera, mDepth / tEnd, texture(entryDepth, texCoords).x,
                                     texture(exitDepth, texCoords).x);
