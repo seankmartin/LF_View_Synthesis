@@ -60,6 +60,10 @@ def main(args, config, writer):
             best_model = copy.deepcopy(model)
             best_epoch = epoch
 
+        layer_weights = model.state_dict()['first.conv.weight']
+        writer.add_histogram(
+            "Layer 0 weight", layer_weights, epoch, 'auto')
+
         if epoch % 5 == 0 and epoch != 0:
             cnn_utils.save_checkpoint(
                 model, epoch,
@@ -131,8 +135,8 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
             # backward + optimize only if in training phase
             if phase == 'train':
                 loss.backward()
-                nn.utils.clip_grad_norm_(
-                    model.parameters(), clip)
+                #nn.utils.clip_grad_norm_(
+                #    model.parameters(), clip)
                 optimizer.step()
 
             # statistics
@@ -177,7 +181,7 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
             lr_scheduler.step(epoch_loss)
             for idx, param_group in enumerate(optimizer.param_groups):
                 writer.add_scalar(
-                    'learning_rate' + str(idx), param_group['lr'], epoch)
+                    'learning_rate', param_group['lr'], epoch)
             return epoch_loss
 
 if __name__ == '__main__':
