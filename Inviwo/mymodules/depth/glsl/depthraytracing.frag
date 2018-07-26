@@ -190,7 +190,7 @@ vec4 rayTraversal(vec3 entryPoint, vec3 exitPoint, vec2 texCoords, float backgro
         tDepth = calculateDepthValue(camera, tDepth / tEnd, texture(entryDepth, texCoords).x,
                                      texture(exitDepth, texCoords).x);
 
-    } else if (mDepth != 1.0 && USE_LOW) {
+    } else if (mDepth != -1.0 && USE_LOW) {
         //Outputting the mDepth instead of 1.0
         tDepth = calculateDepthValue(camera, mDepth / tEnd, texture(entryDepth, texCoords).x,
                                     texture(exitDepth, texCoords).x);
