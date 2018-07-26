@@ -55,11 +55,13 @@ def load_weights(model, args, config):
 
 def print_mem_usage():
     """Prints torch gpu memeory usage"""
-    print("Using {} / {} tensor memory".format(
+    print("Using {} / {} tensor memory {}%% of max".format(
         torch.cuda.memory_allocated(),
-        torch.cuda.max_memory_allocated()
+        torch.cuda.max_memory_allocated(),
+        (torch.cuda.memory_allocated() / torch.cuda.max_memory_allocated())
     ))
-    print("Using {} / {} cached memory".format(
+    print("Using {} / {} cached memory {}%% of max".format(
         torch.cuda.memory_cached(),
-        torch.cuda.max_memory_cached()
+        torch.cuda.max_memory_cached(),
+        (torch.cuda.memory_cached() / torch.cuda.max_memory_cached())
     ))

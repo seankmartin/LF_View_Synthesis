@@ -120,7 +120,8 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
 
             # forward
             if iteration == 0:
-                print("Loaded batch in {:.0f}s".format(time.time() - since))
+                print("Loaded " + phase + " batch in {:.0f}s".format(
+                    time.time() - since))
             residuals = model(inputs)
             outputs = inputs + residuals
 
