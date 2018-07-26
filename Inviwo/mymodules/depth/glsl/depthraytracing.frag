@@ -72,6 +72,8 @@ uniform int channel;
 
 #define ERT_THRESHOLD 0.99  // threshold for early ray termination
 #define DEPTH_THRESHOLD 0.80 // threshold for depth returning
+#define LOW_THRESHOLD 0.30 // threshold for depth returning if DEPTH_THRESHOLD is not reached
+#define USE_LOW true // Should the low depth be used 
 
 #if (!defined(INCLUDE_DVR) && !defined(INCLUDE_ISOSURFACES))
 #  define INCLUDE_DVR
@@ -88,8 +90,12 @@ vec4 rayTraversal(vec3 entryPoint, vec3 exitPoint, vec2 texCoords, float backgro
     tIncr = tEnd / samples;
     float t = 0.5f * tIncr;
     rayDirection = normalize(rayDirection);
+    //tDepth is the depth accumulated after the DEPTH_THRESHOLD
     float tDepth = -1.0;
+    //fDepth is the depth of the first non transparent voxel
     float fDepth = -1.0;
+    //mDepth is the depth at the lower threshold
+    float mDepth = -1.0;
     vec4 color;
     vec4 voxel;
     vec3 samplePos;
@@ -169,6 +175,9 @@ vec4 rayTraversal(vec3 entryPoint, vec3 exitPoint, vec2 texCoords, float backgro
         if (result.a > DEPTH_THRESHOLD && tDepth == -1.0) {
             tDepth = t;
         }
+        else if (USE_LOW && result.a > LOW_THRESHOLD && mDepth == -1.0) {
+            mDepth = t;
+        }
     }
 
     // composite background if lying beyond the last volume sample, which is located at tEnd - tIncr*0.5
@@ -181,10 +190,15 @@ vec4 rayTraversal(vec3 entryPoint, vec3 exitPoint, vec2 texCoords, float backgro
         tDepth = calculateDepthValue(camera, tDepth / tEnd, texture(entryDepth, texCoords).x,
                                      texture(exitDepth, texCoords).x);
 
+    } else if (mDepth != 1.0 && USE_LOW) {
+        //Outputting the mDepth instead of 1.0
+        tDepth = calculateDepthValue(camera, mDepth / tEnd, texture(entryDepth, texCoords).x,
+                                    texture(exitDepth, texCoords).x);
     } else {
-        //Outputting the fDepth instead of 1.0
-        //tDepth = fDepth;
         tDepth = 1.0;
+        // Alternatively
+        // tDepth = calculateDepthValue(camera, fDepth / tEnd, texture(entryDepth, texCoords).x,
+        //                              texture(exitDepth, texCoords).x);
     }
 
     gl_FragDepth = min(backgroundDepth, tDepth);
