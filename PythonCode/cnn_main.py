@@ -25,7 +25,7 @@ SAVE_MESSAGE = "==> Would you like to save the model?"
 
 def main(args, config, writer):
     best_loss = math.inf
-    best_epoch = None
+    best_model, best_epoch = None, None
     cuda = cnn_utils.check_cuda(config)
 
     #Attempts to otimise - see
@@ -64,10 +64,14 @@ def main(args, config, writer):
         if epoch_loss < best_loss:
             best_loss = epoch_loss
             best_epoch = epoch
+            best_model = copy.deepcopy(model)
 
         layer_weights = model.state_dict()['first.conv.weight']
         writer.add_histogram(
-            "Layer 0 weight", layer_weights, epoch, 'auto')
+            "First layer weight", layer_weights, epoch, 'auto')
+        layer_weights = model.state_dict()['final.conv.weight']
+        writer.add_histogram(
+            "Last layer weight", layer_weights, epoch, 'auto')
 
         if epoch % 5 == 0 and epoch != 0:
             cnn_utils.save_checkpoint(
@@ -90,12 +94,25 @@ def main(args, config, writer):
             print("Not saving the model")
             save = False
 
+    # Test the average model
+    end_epoch = args.start_epoch + args.nEpochs - 1
+    print("Testing average model")
+    avg_loss = test_average(avg_model, data_loaders, criterion, cuda, 
+                            writer, end_epoch)
+    print("Average loss is {:.5f} times the best loss".format(
+            avg_loss / best_loss ))
+
     # Save the average model
     if save:
         cnn_utils.save_checkpoint(
-            avg_model, epoch, optimizer, best_loss,
+            avg_model, end_epoch, optimizer, avg_loss,
             config['PATH']['model_dir'],
-            args.tag + "_avg_at{}.pth".format(epoch))
+            args.tag + "_avg_at{}.pth".format(end_epoch))
+        cnn_utils.save_checkpoint(
+            best_model, best_epoch, optimizer, best_loss,
+            config['PATH']['model_dir'],
+            args.tag + "_best_at{}.pth".format(best_epoch)
+        )
 
     parent_dir = os.path.abspath(os.pardir)
     scalar_dir = os.path.join(parent_dir, "logs", args.tag)
@@ -192,6 +209,67 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                 writer.add_scalar(
                     'learning_rate', param_group['lr'], epoch)
             return epoch_loss
+
+def test_average(avg_model, dset_loaders, criterion, cuda, writer, epoch):
+    since = time.time()
+    avg_model.eval()
+    phase = 'val'
+    avg = 'average'
+    running_loss = 0.0
+    for iteration, batch in enumerate(dset_loaders[phase]):
+        targets = batch['targets']
+        inputs = batch['inputs']
+        inputs.requires_grad_(False)
+        targets.requires_grad_(False)
+
+        if cuda:
+            inputs = inputs.cuda()
+            targets = targets.cuda()
+
+        # forward
+        if iteration == 0:
+            print("Loaded " + phase + " batch in {:.0f}s".format(
+                time.time() - since))
+        residuals = avg_model(inputs)
+        outputs = inputs + residuals
+
+        loss = criterion(outputs, targets)
+
+        # statistics
+        running_loss += loss.item()
+
+        if iteration%100 == 0:
+            print("===> Epoch[{}]({}/{}): Loss: {:.5f}".format(
+                epoch, iteration, len(dset_loaders[phase]),
+                loss.item()))
+            input_imgs = inputs[0, ...].transpose(1, 3)
+            residual_imgs = residuals[0, ...].transpose(1, 3)
+            out_imgs = outputs[0, ...].transpose(1, 3)
+            truth_imgs = targets[0, ...].transpose(1, 3)
+            input_grid = vutils.make_grid(
+                input_imgs, nrow=8, range=(-1, 1), normalize=True,
+                pad_value=1.0)
+            residual_grid = vutils.make_grid(
+                residual_imgs, nrow=8, range=(-1, 1), normalize=True,
+                pad_value=1.0)   
+            output_grid = vutils.make_grid(
+                out_imgs, nrow=8, range=(-1, 1), normalize=True,
+                pad_value=1.0)
+            target_grid = vutils.make_grid(
+                truth_imgs, nrow=8, range=(-1, 1), normalize=True,
+                pad_value=1.0)
+            writer.add_image(avg + '/input', input_grid, epoch)
+            writer.add_image(avg + '/residual', residual_grid, epoch)
+            writer.add_image(avg + '/output', output_grid, epoch)
+            writer.add_image(avg + '/target', target_grid, epoch)
+
+    epoch_loss = running_loss / len(dset_loaders[phase])
+    writer.add_scalar(avg + '/loss', epoch_loss, epoch)
+    print("Phase {} average overall loss {:.5f}".format(phase, epoch_loss))
+    time_elapsed = time.time() - since
+    print("Phase {} took {:.0f}s overall".format(phase, time_elapsed))
+
+    return epoch_loss
 
 if __name__ == '__main__':
     #Command line modifiable parameters
