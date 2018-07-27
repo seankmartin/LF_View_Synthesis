@@ -69,3 +69,9 @@ def get_random_crop(sample, patch_size):
     sample['depth'] = sample['depth'][:, start_h:end_h, start_v:end_v, :]
     sample['colour'] = sample['colour'][:, start_h:end_h, start_v:end_v, :]
     return sample
+
+def denormalise_lf(lf):
+    """Coverts an lf in the range 0 to maximum into -1 1"""
+    maximum = 255.0
+    lf.add_(1.0).div_(2.0).mul_(maximum)
+    return lf
