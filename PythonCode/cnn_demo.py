@@ -14,6 +14,7 @@ import cnn_utils
 import conversions
 import helpers
 import data_transform
+from data_transform import denormalise_lf
 import image_warping
 
 def get_sub_dir_for_saving(base_dir):
@@ -59,16 +60,21 @@ def main(args, config):
         with h5py.File(file_path, mode='r', libver='latest') as hdf5_file:
             depth_grp = hdf5_file['val']['disparity']
             SNUM = 3
-            depth_images = depth_grp['images'][SNUM, ...]
+            depth_images = torch.tensor(
+                depth_grp['images'][SNUM, ...],
+                dtype=torch.float32)
 
             colour_grp = hdf5_file['val']['colour']
-            colour_images = colour_grp['images'][SNUM, ...]
+            colour_images = torch.tensor(
+                colour_grp['images'][SNUM, ...],
+                dtype=torch.float32)
 
-            warped = data_transform.disparity_based_rendering(
-                depth_images,
-                colour_images,
-                depth_images.shape[0])
-            im_input = torch.from_numpy(warped).float().unsqueeze_(0)
+            sample = {'depth': depth_images, 
+                      'colour': colour_images,
+                      'grid_size': depth_images.shape[0]}
+
+            warped = data_transform.transform_to_warped(sample)
+            im_input = warped['inputs'].unsqueeze_(0)
 
             if cuda:
                 im_input = im_input.cuda()
@@ -99,20 +105,30 @@ def main(args, config):
     time_taken = time.time() - start_time
     print("Time taken was {:.0f}s".format(time_taken))
     grid_size = 64
+
+    print("Saving output to", save_dir)
+    append_str = ""
+    if args.no_cnn:
+        append_str = "_cnn"
     cpu_output = denormalise_lf(output).cpu().detach().numpy().astype(np.uint8)
     for i in range(grid_size):
-        file_name = 'Colour{}.png'.format(i)
+        file_name = 'Colour{}{}.png'.format(i, append_str)
         save_location = os.path.join(save_dir, file_name)
         if i == 0:
             print("Saving images of size ", cpu_output[0, i, ...].shape)
         image_warping.save_array_as_image(
             cpu_output[0, i, ...], save_location)
 
-def denormalise_lf(lf):
-    """Coverts an lf in the range 0 to maximum into -1 1"""
-    maximum = 255.0
-    lf.add_(1.0).div_(2.0).mul_(maximum)
-    return lf
+    if args.no_cnn:        
+        cpu_input = (
+            denormalise_lf(im_input).cpu().detach().numpy().astype(np.uint8))
+        for i in range(grid_size):
+            file_name = 'Colour{}_nocnn.png'.format(i)
+            save_location = os.path.join(save_dir, file_name)
+            if i == 0:
+                print("Saving images of size ", cpu_input[0, i, ...].shape)
+            image_warping.save_array_as_image(
+                cpu_input[0, i, ...], save_location)
 
 if __name__ == '__main__':
     MODEL_HELP_STR = ' '.join((
@@ -128,6 +144,8 @@ if __name__ == '__main__':
                         help=MODEL_HELP_STR)
     PARSER.add_argument('--no_hdf5', action='store_true',
                         help=HDF_HELP_STR)
+    PARSER.add_argument('--no_cnn', action='store_true',
+                        help="output the images with and without the cnn")
     #Any unknown argument will go to unparsed
     ARGS, UNPARSED = PARSER.parse_known_args()
 
