@@ -45,7 +45,7 @@ def transform_to_warped(sample):
     warped_images = disparity_based_rendering(
         disparity.numpy(), targets.numpy(), grid_size,
         dtype=np.float32, blank=-1.0)
-    print("Finished warping in {:.2f}", time.time() - start)
+    print("Finished warping in {:.2f}".format( time.time() - start))
 
     inputs = torch.from_numpy(warped_images)
     return {'inputs': inputs, 'targets': targets}
