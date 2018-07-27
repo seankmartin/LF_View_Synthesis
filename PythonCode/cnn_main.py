@@ -49,7 +49,7 @@ def main(args, config, writer):
 
     # Perform training and testing
     print("Beginning training loop")
-    for epoch in range(args.start_epoch, args.nEpochs):
+    for epoch in range(args.start_epoch, args.start_epoch + args.nEpochs):
         epoch_loss = train(
             model=model, dset_loaders=data_loaders,
             optimizer=optimizer, lr_scheduler=lr_scheduler,
@@ -58,7 +58,6 @@ def main(args, config, writer):
 
         if epoch == args.start_epoch:
             avg_model = copy.deepcopy(model)
-            print(avg_model.state_dict())
         else:
             cnn_utils.merge_weights(avg_model, model, 0.6)
 
