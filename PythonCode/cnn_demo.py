@@ -16,24 +16,41 @@ import helpers
 import data_transform
 import image_warping
 
+def get_sub_dir_for_saving(base_dir):
+    """
+    Returns the number of sub directories of base_dir, n, in format
+    base_dir + path_separator + n
+    Where n is padded on the left by zeroes to be of length four
+
+    Example: base_dir is /home/sean/test with two sub directories
+    Output: /home/sean/test/0002
+    """
+    num_sub_dirs = sum(os.path.isdir(os.path.join(base_dir, el))
+                   for el in os.listdir(base_dir))
+
+    sub_dir_to_save_to_name = str(num_sub_dirs)
+    sub_dir_to_save_to_name = sub_dir_to_save_to_name.zfill(4)
+
+    sub_dir_to_save_to = os.path.join(base_dir, sub_dir_to_save_to_name)
+    os.mkdir(sub_dir_to_save_to)
+
+    return sub_dir_to_save_to
+
 def main(args, config):
     cuda = cnn_utils.check_cuda(config)
 
-    #Load tensors to GPU with specified ID
-    model_loc = os.path.join(
-        config['PATH']['model_dir'],
-        args.model
-    )
+    model = cnn_utils.load_model_and_weights(args, config)
     if cuda:
-        GPU_ID = int(config['NETWORK']['gpu_id'])
-        model = torch.load(
-            model_loc, 
-            map_location=lambda storage, loc: storage.cuda(GPU_ID))['model']
-    else:
-        model = torch.load(model_loc)['model']
+        model = model.cuda()
 
     model.eval()
     
+    # Create output directory
+    base_dir = os.path.join(config['PATH']['output_dir'], 'warped')
+    if not os.path.isdir(base_dir):
+        pathlib.Path(base_dir).mkdir(parents=True, exist_ok=True)
+    save_dir = get_sub_dir_for_saving(base_dir)
+
     # TODO if GT is available, can get diff images
     start_time = time.time()
     if not args.no_hdf5:
@@ -47,8 +64,6 @@ def main(args, config):
             colour_grp = hdf5_file['val']['colour']
             colour_images = colour_grp['images'][SNUM, ...]
 
-            base_dir = os.path.join(config['PATH']['output_dir'], 'warped')
-
             warped = data_transform.disparity_based_rendering(
                 depth_images,
                 colour_images,
@@ -59,6 +74,7 @@ def main(args, config):
                 im_input = im_input.cuda()
 
             output = model(im_input)
+            output += im_input
 
     else:
         #Expect folder to have format, depth0.png, colour0.png ...
@@ -83,16 +99,12 @@ def main(args, config):
     time_taken = time.time() - start_time
     print("Time taken was {:.0f}s".format(time_taken))
     grid_size = 64
-    base_dir = os.path.join(
-        config['PATH']['output_dir'],
-        'warped')
-    if not os.path.isdir(base_dir):
-        pathlib.Path(base_dir).mkdir(parents=True, exist_ok=True)
     cpu_output = denormalise_lf(output).cpu().detach().numpy().astype(np.uint8)
     for i in range(grid_size):
         file_name = 'Colour{}.png'.format(i)
-        save_location = os.path.join(base_dir, file_name)
-        print(cpu_output[0, i, ...].shape)
+        save_location = os.path.join(save_dir, file_name)
+        if i == 0:
+            print("Saving images of size ", cpu_output[0, i, ...].shape)
         image_warping.save_array_as_image(
             cpu_output[0, i, ...], save_location)
 
@@ -112,12 +124,17 @@ if __name__ == '__main__':
         'Otherwise image_dir is used'))
     PARSER = argparse.ArgumentParser(
         description='Process modifiable parameters from command line')
-    PARSER.add_argument('--model', default=None, type=str,
+    PARSER.add_argument('--pretrained', default="best_model.pth", type=str,
                         help=MODEL_HELP_STR)
     PARSER.add_argument('--no_hdf5', action='store_true',
                         help=HDF_HELP_STR)
     #Any unknown argument will go to unparsed
     ARGS, UNPARSED = PARSER.parse_known_args()
+
+    if len(UNPARSED) is not 0:
+        print("Unrecognised command line argument passed")
+        print(UNPARSED)
+        exit(-1)
 
     #Config file modifiable parameters
     CONFIG = configparser.ConfigParser()

@@ -24,6 +24,8 @@ CONTINUE_MESSAGE = "==> Would you like to continue training?"
 SAVE_MESSAGE = "==> Would you like to save the model?"
 
 def main(args, config, writer):
+    best_loss = math.inf
+    best_epoch = None
     cuda = cnn_utils.check_cuda(config)
 
     #Attempts to otimise - see
@@ -39,25 +41,29 @@ def main(args, config, writer):
         #criterion = criterion.cuda()
 
     if args.checkpoint: # Resume from a checkpoint
-        cnn_utils.load_from_checkpoint(model, args, config)
+        best_loss = cnn_utils.load_from_checkpoint(
+                        model, optimizer, args, config)
 
     if args.pretrained: # Direct copy weights from another model
         cnn_utils.load_weights(model, args, config)
 
     # Perform training and testing
     print("Beginning training loop")
-    best_loss = math.inf
-    best_model, best_epoch = None, None
     for epoch in range(args.start_epoch, args.nEpochs):
         epoch_loss = train(
             model=model, dset_loaders=data_loaders,
             optimizer=optimizer, lr_scheduler=lr_scheduler,
             criterion=criterion, epoch=epoch,
-            cuda=cuda, clip=args.clip, writer=writer)
+            cuda=cuda, clip=args.clip, writer=writer)    
+
+        if epoch == args.start_epoch:
+            avg_model = copy.deepcopy(model)
+            print(avg_model.state_dict())
+        else:
+            cnn_utils.merge_weights(avg_model, model, 0.6)
 
         if epoch_loss < best_loss:
             best_loss = epoch_loss
-            best_model = copy.deepcopy(model)
             best_epoch = epoch
 
         layer_weights = model.state_dict()['first.conv.weight']
@@ -66,8 +72,8 @@ def main(args, config, writer):
 
         if epoch % 5 == 0 and epoch != 0:
             cnn_utils.save_checkpoint(
-                model, epoch,
-                config['PATH']['model_dir'],
+                model, epoch, optimizer, best_loss,
+                config['PATH']['checkpoint_dir'],
                 args.tag + "{}.pth".format(epoch))
 
         if args.prompt:
@@ -75,18 +81,22 @@ def main(args, config, writer):
                 print("Ending training")
                 break
 
+    print("Best loss was {:.5f} at epoch {}".format(
+        best_loss, best_epoch
+    ))
+
     save = True
     if args.prompt:
         if not helpers.prompt_user(SAVE_MESSAGE):
             print("Not saving the model")
             save = False
 
-    # Save the best model
+    # Save the average model
     if save:
         cnn_utils.save_checkpoint(
-            best_model, best_epoch,
+            avg_model, epoch, optimizer, best_loss,
             config['PATH']['model_dir'],
-            args.tag + "_best_at{}.pth".format(best_epoch))
+            args.tag + "_avg_at{}.pth".format(epoch))
 
     parent_dir = os.path.abspath(os.pardir)
     scalar_dir = os.path.join(parent_dir, "logs", args.tag)
@@ -190,7 +200,7 @@ if __name__ == '__main__':
     #For the source of some of these arguments
     PARSER = argparse.ArgumentParser(
         description='Process modifiable parameters from command line')
-    PARSER.add_argument("--nEpochs", type=int, default=50,
+    PARSER.add_argument("--nEpochs", "--n", type=int, default=50,
                         help="Number of epochs to train for")
     PARSER.add_argument("--lr", type=float, default=0.1,
                         help="Learning Rate. Default=0.1")
