@@ -6,6 +6,7 @@ import math
 
 from lf_camera import LightFieldCamera
 from random_lf import create_random_lf_cameras
+from random_clip import random_subset, restore_volume
 
 import inviwopy
 import ivw.utils as inviwo_utils
@@ -34,12 +35,15 @@ def main(save_main_dir, pixel_dim):
 
     #Save a number of random light fields
     NUM_RANDOM_LF_SAMPLES = 2
+    CLIP_TYPE = "Z"
     random_lfs = create_random_lf_cameras(
                      NUM_RANDOM_LF_SAMPLES, 
                     (200, 35), 1,
                      interspatial_distance=0.5)
+    random_subset(network, CLIP_TYPE)
     for lf in random_lfs:
         lf.view_array(cam, save=False)
+    restore_volume(network, CLIP_TYPE)
 
 if __name__ == '__main__':
     home = os.path.expanduser('~')
