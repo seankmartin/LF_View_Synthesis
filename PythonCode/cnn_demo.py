@@ -74,15 +74,13 @@ def main(args, config):
                       'colour': colour_images,
                       'grid_size': depth_images.shape[0]}
 
-            warped = data_transform.transform_to_warped(sample)
+            warped = data_transform.center_normalise(sample)
             im_input = warped['inputs'].unsqueeze_(0)
 
             if cuda:
                 im_input = im_input.cuda()
 
             output = model(im_input)
-            output += im_input
-            output = torch.clamp(output, 0.0, 1.0)
 
     else:
         #Expect folder to have format, depth0.png, colour0.png ...
@@ -109,13 +107,6 @@ def main(args, config):
     grid_size = 64
 
     print("Saving output to", save_dir)
-    append_str = ""
-    if args.no_cnn:
-        cnn_dir = os.path.join(save_dir, "no_cnn")
-        save_dir = os.path.join(save_dir, "cnn")
-        os.mkdir(save_dir)
-        os.mkdir(cnn_dir)
-
     cpu_output = denormalise_lf(output).cpu().detach().numpy().astype(np.uint8)
     grid_len = int(math.sqrt(grid_size))
     for i in range(grid_size):
@@ -127,19 +118,6 @@ def main(args, config):
             print("Saving images of size ", cpu_output[0, i, ...].shape)
         image_warping.save_array_as_image(
             cpu_output[0, i, ...], save_location)
-
-    if args.no_cnn:        
-        cpu_input = (
-            denormalise_lf(im_input).cpu().detach().numpy().astype(np.uint8))
-        for i in range(grid_size):
-            row, col = i // grid_len, i % grid_len
-
-            file_name = 'Colour{}{}.png'.format(row, col)
-            save_location = os.path.join(cnn_dir, file_name)
-            if i == 0:
-                print("Saving images of size ", cpu_input[0, i, ...].shape)
-            image_warping.save_array_as_image(
-                cpu_input[0, i, ...], save_location)
 
 if __name__ == '__main__':
     MODEL_HELP_STR = ' '.join((
@@ -155,8 +133,6 @@ if __name__ == '__main__':
                         help=MODEL_HELP_STR)
     PARSER.add_argument('--no_hdf5', action='store_true',
                         help=HDF_HELP_STR)
-    PARSER.add_argument('--no_cnn', action='store_true',
-                        help="output the images with and without the cnn")
     #Any unknown argument will go to unparsed
     ARGS, UNPARSED = PARSER.parse_known_args()
 
