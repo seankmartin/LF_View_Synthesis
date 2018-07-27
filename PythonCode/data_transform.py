@@ -4,6 +4,7 @@ import random
 
 import numpy as np
 import torch
+import matplotlib.cm as cm
 
 import image_warping
 
@@ -82,3 +83,26 @@ def denormalise_lf(lf):
     maximum = 255.0
     lf.mul_(maximum)
     return lf
+
+def disparity_to_rgb(sample):
+    depth = sample['depth']
+    min = float(depth.min())
+    max = float(depth.max())
+    depth.add_(-min).div_(max - min + 1e-5)
+    scale = cm.ScalarMappable(None, cmap="plasma")
+    coloured = scale.to_rgba(depth[:, :, 0], norm=False)
+    sample['depth'] = torch.tensor(coloured[:, :, :3], dtype=torch.float32) 
+    return sample
+
+def center_normalise(sample):
+    grid_size = sample['grid_size']
+    grid_one_way = int(math.sqrt(grid_size))
+    sample_index = grid_size // 2 + (grid_one_way // 2)
+    sample['depth'] = sample['depth'][sample_index]
+    sample = normalise_sample(sample)
+    sample = disparity_to_rgb(sample)
+    shape = (2,) + sample['depth'].shape
+    inputs = torch.tensor(shape, dtype=torch.float32)
+    inputs[0] = sample['colour'][sample_index]
+    inputs[1] = sample['depth']
+    return {'inputs': inputs, 'targets': sample['colour']}
