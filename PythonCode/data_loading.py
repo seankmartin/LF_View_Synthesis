@@ -40,6 +40,7 @@ class TrainFromHdf5(data.Dataset):
         In this case a set of crops from an lf sample
         Return type is a dictionary of depth and colour arrays
         """
+        print("Getting item {} started".format(index))
         with h5py.File(
                 self.file_path, mode='r',
                 libver='latest', swmr=True) as h5_file:
@@ -56,6 +57,7 @@ class TrainFromHdf5(data.Dataset):
             if self.transform:
                 sample = self.transform(sample)
 
+            print("Getting item {} finished".format(index))
             return sample
 
     def __len__(self):
@@ -88,6 +90,7 @@ class ValFromHdf5(data.Dataset):
         In this case a set of crops from an lf sample
         Return type is a dictionary of depth and colour arrays
         """
+        print("Getting item {} started".format(index))
         with h5py.File(
                 self.file_path, mode='r',
                 libver='latest', swmr=True) as h5_file:
@@ -104,6 +107,7 @@ class ValFromHdf5(data.Dataset):
         if self.transform:
             sample = self.transform(sample)
 
+        print("Getting item {} finished".format(index))
         return sample
 
     def __len__(self):

@@ -1,6 +1,7 @@
 """Contains data transforms which can be passed to the data loader"""
 import math
 import random
+import time
 
 import numpy as np
 import torch
@@ -39,9 +40,12 @@ def transform_to_warped(sample):
     disparity = sample['depth']
     targets = sample['colour']
     grid_size = sample['grid_size']
+    print("Starting warping")
+    start = time.time()
     warped_images = disparity_based_rendering(
         disparity.numpy(), targets.numpy(), grid_size,
         dtype=np.float32, blank=-1.0)
+    print("Finished warping in {:.2f}", time.time() - start)
 
     inputs = torch.from_numpy(warped_images)
     return {'inputs': inputs, 'targets': targets}
@@ -51,6 +55,7 @@ def normalise_sample(sample):
     maximum = 255.0
     lf = sample['colour']
     ((lf.div_(maximum)).mul_(2.0)).add_(-1.0)
+    print("Normalisation successful")
     return sample
 
 def upper_left_patch(sample):
@@ -60,6 +65,7 @@ def upper_left_patch(sample):
     return sample
 
 def get_random_crop(sample, patch_size):
+    print("Starting a random crop")
     pixel_end = sample['colour'].shape[1]
     high = pixel_end - 1 - patch_size
     start_h = random.randint(0, high)
@@ -68,6 +74,7 @@ def get_random_crop(sample, patch_size):
     end_v = start_v + patch_size
     sample['depth'] = sample['depth'][:, start_h:end_h, start_v:end_v, :]
     sample['colour'] = sample['colour'][:, start_h:end_h, start_v:end_v, :]
+    print("Random crop successful")
     return sample
 
 def denormalise_lf(lf):

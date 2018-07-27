@@ -33,8 +33,11 @@ def main(args, config, writer):
     torch.backends.cudnn.benchmark = True
 
     data_loaders = create_dataloaders(args, config)
+    print("Successfully loaded the data")
 
     model, criterion, optimizer, lr_scheduler = setup_model(args)
+    print("Successfully loaded the model")
+    
     if cuda: # GPU support
         model = model.cuda()
         #The below is only needed if loss fn has params
@@ -152,18 +155,29 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
             if iteration == 0:
                 print("Loaded " + phase + " batch in {:.0f}s".format(
                     time.time() - since))
+
+            print("Starting model at iteration {}".format(iteration))
+            start = time.time()
             residuals = model(inputs)
+            print("Successfully ran model in {:.2f} at iter {}".format(
+                time.time() - start, iteration
+            ))
             outputs = inputs + residuals
 
             loss = criterion(outputs, targets)
             optimizer.zero_grad()
 
             # backward + optimize only if in training phase
+            print("Starting the backward pass")
+            start = time.time()
             if phase == 'train':
                 loss.backward()
                 nn.utils.clip_grad_norm_(
                     model.parameters(), clip)
                 optimizer.step()
+            print("Finished the backward pass in {:.2f}".format(
+                time.time() - start
+            ))
 
             # statistics
             running_loss += loss.item()
@@ -175,6 +189,7 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                 print("===> Epoch[{}]({}/{}): Loss: {:.5f}".format(
                     epoch, iteration, len(dset_loaders[phase]),
                     loss.item()))
+                print("Creating image grid")
                 input_imgs = inputs[0, ...].transpose(1, 3)
                 residual_imgs = residuals[0, ...].transpose(1, 3)
                 out_imgs = outputs[0, ...].transpose(1, 3)
@@ -195,6 +210,7 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                 writer.add_image(phase + '/residual', residual_grid, epoch)
                 writer.add_image(phase + '/output', output_grid, epoch)
                 writer.add_image(phase + '/target', target_grid, epoch)
+                print("Image grid completed")
 
         epoch_loss = running_loss / len(dset_loaders[phase])
         writer.add_scalar(phase + '/loss', epoch_loss, epoch)
