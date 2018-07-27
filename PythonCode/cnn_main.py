@@ -37,7 +37,7 @@ def main(args, config, writer):
 
     model, criterion, optimizer, lr_scheduler = setup_model(args)
     print("Successfully loaded the model")
-    
+
     if cuda: # GPU support
         model = model.cuda()
         #The below is only needed if loss fn has params
@@ -158,11 +158,10 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
 
             print("Starting model at iteration {}".format(iteration))
             start = time.time()
-            residuals = model(inputs)
+            outputs = model(inputs)
             print("Successfully ran model in {:.2f} at iter {}".format(
                 time.time() - start, iteration
             ))
-            outputs = inputs + residuals
 
             loss = criterion(outputs, targets)
             optimizer.zero_grad()
@@ -191,15 +190,11 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                     loss.item()))
                 print("Creating image grid")
                 input_imgs = inputs[0, ...].transpose(1, 3)
-                residual_imgs = residuals[0, ...].transpose(1, 3)
                 out_imgs = outputs[0, ...].transpose(1, 3)
                 truth_imgs = targets[0, ...].transpose(1, 3)
                 input_grid = vutils.make_grid(
                     input_imgs, nrow=8, range=(-1, 1), normalize=True,
                     pad_value=1.0)
-                residual_grid = vutils.make_grid(
-                    residual_imgs, nrow=8, range=(-1, 1), normalize=True,
-                    pad_value=1.0)   
                 output_grid = vutils.make_grid(
                     out_imgs, nrow=8, range=(-1, 1), normalize=True,
                     pad_value=1.0)
@@ -207,7 +202,6 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                     truth_imgs, nrow=8, range=(-1, 1), normalize=True,
                     pad_value=1.0)
                 writer.add_image(phase + '/input', input_grid, epoch)
-                writer.add_image(phase + '/residual', residual_grid, epoch)
                 writer.add_image(phase + '/output', output_grid, epoch)
                 writer.add_image(phase + '/target', target_grid, epoch)
                 print("Image grid completed")
@@ -246,8 +240,7 @@ def test_average(avg_model, dset_loaders, criterion, cuda, writer, epoch):
         if iteration == 0:
             print("Loaded " + phase + " batch in {:.0f}s".format(
                 time.time() - since))
-        residuals = avg_model(inputs)
-        outputs = inputs + residuals
+        outputs = avg_model(inputs)
 
         loss = criterion(outputs, targets)
 
@@ -259,15 +252,12 @@ def test_average(avg_model, dset_loaders, criterion, cuda, writer, epoch):
                 epoch, iteration, len(dset_loaders[phase]),
                 loss.item()))
             input_imgs = inputs[0, ...].transpose(1, 3)
-            residual_imgs = residuals[0, ...].transpose(1, 3)
             out_imgs = outputs[0, ...].transpose(1, 3)
             truth_imgs = targets[0, ...].transpose(1, 3)
             input_grid = vutils.make_grid(
                 input_imgs, nrow=8, range=(-1, 1), normalize=True,
                 pad_value=1.0)
-            residual_grid = vutils.make_grid(
-                residual_imgs, nrow=8, range=(-1, 1), normalize=True,
-                pad_value=1.0)   
+   
             output_grid = vutils.make_grid(
                 out_imgs, nrow=8, range=(-1, 1), normalize=True,
                 pad_value=1.0)
@@ -275,7 +265,6 @@ def test_average(avg_model, dset_loaders, criterion, cuda, writer, epoch):
                 truth_imgs, nrow=8, range=(-1, 1), normalize=True,
                 pad_value=1.0)
             writer.add_image(avg + '/input', input_grid, epoch)
-            writer.add_image(avg + '/residual', residual_grid, epoch)
             writer.add_image(avg + '/output', output_grid, epoch)
             writer.add_image(avg + '/target', target_grid, epoch)
 

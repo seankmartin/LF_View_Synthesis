@@ -13,7 +13,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 def setup_model(args):
     """Returns a tuple of the model, criterion, optimizer and lr_scheduler"""
     print("Building model")
-    model = C3D(inchannels=64, outchannels=64)
+    model = C3D(inchannels=2, outchannels=64)
     criterion = nn.MSELoss(size_average=True)
     optimizer = optim.SGD(
         model.parameters(),
