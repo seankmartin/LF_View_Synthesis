@@ -102,7 +102,7 @@ def center_normalise(sample):
     sample = normalise_sample(sample)
     sample = disparity_to_rgb(sample)
     shape = (2,) + sample['depth'].shape
-    inputs = torch.tensor(shape, dtype=torch.float32)
+    inputs = torch.zeros(shape, dtype=torch.float32)
     inputs[0] = sample['colour'][sample_index]
     inputs[1] = sample['depth']
     return {'inputs': inputs, 'targets': sample['colour']}
