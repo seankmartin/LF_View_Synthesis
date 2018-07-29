@@ -1,5 +1,5 @@
 from inviwopy.glm import ivec2
-from random import randint
+from random import randint, random
 
 def random_subset(network, type):
     """type is expected to be "X", "Y" or "Z" """
@@ -71,3 +71,12 @@ def random_clip_lf(network, lf):
     random_clip(network, max_type)
 
     return max_val, max_type
+
+def random_plane_clip(network, lf):
+    mesh_clip = network.MeshClipping
+    cam = network.EntryExitPoints.camera
+    cam.setLook(lf.look_from, lf.look_to, lf.look_up)
+    mesh_clip.alignPlaneNormalToCameraNormal.press()
+    mesh_clip.getPropertyByIdentifier("movePointAlongNormal").value = True
+    rand_clip = random() / 1.4
+    mesh_clip.getPropertyByIdentifier("pointPlaneMove").value = rand_clip

@@ -7,6 +7,7 @@ import math
 from lf_camera import LightFieldCamera
 from random_lf import create_random_lf_cameras
 from random_clip import random_clip_lf, restore_clip
+from random_clip import random_plane_clip
 
 import inviwopy
 import ivw.utils as inviwo_utils
@@ -44,7 +45,7 @@ def save_lf(lf, save_main_dir):
         os.rmdir(sub_dir_to_save_to)
         lf.view_array(cam)
 
-def main(save_main_dir, pixel_dim, clip, num_random):
+def main(save_main_dir, pixel_dim, clip, num_random, plane):
     #Setup
     app = inviwopy.app
     network = app.network
@@ -68,6 +69,8 @@ def main(save_main_dir, pixel_dim, clip, num_random):
     for lf in random_lfs:
         if clip:
             _, clip_type = random_clip_lf(network, lf)
+        elif plane:
+            random_plane_clip(network, lf)
         save_lf(lf, save_main_dir)
         if clip:
             restore_clip(network, clip_type)
@@ -78,4 +81,7 @@ if __name__ == '__main__':
                                  'lf_volume_sets', 'test')
     seed(time())
     PIXEL_DIM = 512
-    main(save_main_dir, PIXEL_DIM)
+    CLIP = False
+    PLANE = True
+    NUM_RANDOM_LF_SAMPLES = 2
+    main(save_main_dir, PIXEL_DIM, CLIP, NUM_RANDOM_LF_SAMPLES, PLANE)

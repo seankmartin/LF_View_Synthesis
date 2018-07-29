@@ -7,12 +7,13 @@ import math
 from lf_camera import LightFieldCamera
 from random_lf import create_random_lf_cameras
 from random_clip import random_clip_lf, restore_clip
+from random_clip import random_plane_clip
 
 import inviwopy
 import ivw.utils as inviwo_utils
 from inviwopy.glm import vec3, ivec2
 
-def main(pixel_dim, clip, num_random):
+def main(pixel_dim, clip, num_random, plane):
     #Setup
     app = inviwopy.app
     network = app.network
@@ -32,6 +33,8 @@ def main(pixel_dim, clip, num_random):
     for lf in random_lfs:
         if clip:
             _, clip_type = random_clip_lf(network, lf)
+        elif plane:
+            random_plane_clip(network, lf)
         lf.view_array(cam, save=False)
         if clip:
             restore_clip(network, clip_type)
@@ -39,7 +42,8 @@ def main(pixel_dim, clip, num_random):
 if __name__ == '__main__':
     seed(time())
     PIXEL_DIM = 512
-    CLIP = True
-    NUM_RANDOM_LF_SAMPLES = 10
+    CLIP = False
+    PLANE = True
+    NUM_RANDOM_LF_SAMPLES = 2
     
-    main(PIXEL_DIM, CLIP, NUM_RANDOM_LF_SAMPLES)
+    main(PIXEL_DIM, CLIP, NUM_RANDOM_LF_SAMPLES, PLANE)
