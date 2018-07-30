@@ -87,6 +87,7 @@ def denormalise_lf(lf):
 def normalise_img(img):
     """Converts images in range 0 1 to -1 1"""
     img.mul_(2.0).add_(-1.0)
+    return img
 
 def disparity_to_rgb(sample):
     depth = sample['depth']
