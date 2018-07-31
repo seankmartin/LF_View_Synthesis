@@ -156,12 +156,9 @@ def main(config):
 
                 for x in range(size):
                     image_num = index_num_to_grid_loc(x, cols)
-                    depth_name = 'Depth' + image_num + '.png'
+                    depth_name = 'Depth' + image_num + '.npy'
                     depth_loc = os.path.join(loc, depth_name)
-                    depth_image = Image.open(depth_loc)
-                    depth_image.load()
-                    depth_data = np.asarray(depth_image, dtype = np.uint8)
-                    depth_data = (depth_data / 255.0).astype(np.float32)
+                    depth_data = np.load(depth_loc, fix_imports=False)
                     depth_data = depth_to_disparity(
                         depth_data, meta, dim)
                     depth['images'][idx, x, :, :, 0] = depth_data
