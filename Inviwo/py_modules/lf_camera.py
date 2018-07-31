@@ -6,6 +6,8 @@ import inviwopy
 from inviwopy.glm import vec3, normalize
 import ivw.utils as inviwo_utils
 
+import numpy as np
+
 class LightFieldCamera:
     def __init__(self, look_from, look_to, look_up = vec3(0, 1, 0),
                  interspatial_distance = 1.0,
@@ -55,7 +57,7 @@ class LightFieldCamera:
         print(cam_to_string(camera), end = '\n', file = file)
         print("pixels;{}".format(pixel_size), file = file)
 
-    def view_array(self, cam, save = False, save_dir = os.path.expanduser('~')):
+    def view_array(self, cam, save=False, save_dir=os.path.expanduser('~')):
         """Move the inviwo camera through the array for the current workspace.
 
         Keyword arguments:
@@ -111,10 +113,22 @@ class LightFieldCamera:
                                   + str(row_num)
                                   + str(col_num)
                                   + '.png')
-                    full_save_dir = os.path.abspath(save_dir)
-                    file_path = os.path.join(full_save_dir, file_name)
-                    print('Saving to: ' + file_path)
-                    canvas.snapshot(file_path)
+                    if 'Depth' in file_name:
+                        str_list = list(file_name)
+                        str_list[-4:] = list('.npy')
+                        file_name = ''.join(str_list)
+                        full_save_dir = os.path.abspath(save_dir)
+                        file_path = os.path.join(full_save_dir, file_name)
+                        print('Saving to: ' + file_path)
+                        np.save(
+                            file_path,
+                            np.flipud(np.transpose(canvas.image.depth.data)),
+                            fix_imports=False)
+                    else:
+                        full_save_dir = os.path.abspath(save_dir)
+                        file_path = os.path.join(full_save_dir, file_name)
+                        print('Saving to: ' + file_path)
+                        canvas.snapshot(file_path)
             else:
                 print('Viewing position ({}, {})'.format(row_num, col_num))
                 #Smooths the viewing process

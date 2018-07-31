@@ -3,6 +3,7 @@ import os
 from time import sleep, time
 import pathlib
 import math
+from shutil import copyfile
 
 from lf_camera import LightFieldCamera
 from random_lf import create_random_lf_cameras
@@ -62,7 +63,7 @@ def main(save_main_dir, pixel_dim, clip, num_random, plane):
 
     #Save a number of random light fields
     random_lfs = create_random_lf_cameras(
-                     num_random
+                     num_random,
                      (180, 35), 1,
                      interspatial_distance=0.5)
 
@@ -77,11 +78,19 @@ def main(save_main_dir, pixel_dim, clip, num_random, plane):
 
 if __name__ == '__main__':
     home = os.path.expanduser('~')
-    save_main_dir = os.path.join(home, 'turing', 'overflow-storage', 
-                                 'lf_volume_sets', 'test')
     seed(time())
     PIXEL_DIM = 512
     CLIP = False
     PLANE = True
     NUM_RANDOM_LF_SAMPLES = 2
-    main(save_main_dir, PIXEL_DIM, CLIP, NUM_RANDOM_LF_SAMPLES, PLANE)
+    for name in 'train', 'val':
+        save_main_dir = os.path.join(home, 'turing', 'overflow-storage', 
+                                 'numpy_set', name)
+        main(save_main_dir, PIXEL_DIM, CLIP, NUM_RANDOM_LF_SAMPLES, PLANE)
+        meta_loc = os.path.join(save_main_dir, "metadata.csv")
+        if not os.path.isfile(meta_loc):
+            old_meta_loc = os.path.join(
+                save_main_dir,
+                '0000',
+                'metadata.csv')
+            copyfile(old_meta_loc, meta_loc)
