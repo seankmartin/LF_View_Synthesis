@@ -110,3 +110,23 @@ def merge_weights(avg_model, new_model, interpolation_factor = 0.5):
     model_dict = avg_model.state_dict()
     model_dict.update(dict_params2)
     avg_model.load_state_dict(model_dict)
+
+def log_all_layer_weights(model, writer, epoch):
+    log_layer_weights(
+        model, writer, epoch,
+        'first', 'First layer weight')
+    log_layer_weights(
+        model, writer, epoch,
+        'layer1', 'Second layer weight')
+    log_layer_weights(
+        model, writer, epoch,
+        'layer2', 'Third layer weight')
+    log_layer_weights(
+        model, writer, epoch,
+        'final', 'Last layer weight')
+
+def log_layer_weights(model, writer, epoch, name, out_string):
+    name = name + '.conv.weight'
+    layer_weights = model.state_dict()[name]
+    writer.add_histogram(
+        out_string, layer_weights, epoch, 'auto')

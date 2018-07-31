@@ -54,7 +54,7 @@ def main(args, config, writer):
             model=model, dset_loaders=data_loaders,
             optimizer=optimizer, lr_scheduler=lr_scheduler,
             criterion=criterion, epoch=epoch,
-            cuda=cuda, clip=args.clip, writer=writer)    
+            cuda=cuda, clip=args.clip, writer=writer)
 
         if epoch == args.start_epoch:
             avg_model = copy.deepcopy(model)
@@ -66,12 +66,7 @@ def main(args, config, writer):
             best_epoch = epoch
             best_model = copy.deepcopy(model)
 
-        layer_weights = model.state_dict()['first.conv.weight']
-        writer.add_histogram(
-            "First layer weight", layer_weights, epoch, 'auto')
-        layer_weights = model.state_dict()['final.conv.weight']
-        writer.add_histogram(
-            "Last layer weight", layer_weights, epoch, 'auto')
+        cnn_utils.log_all_layer_weights(model, writer, epoch)
 
         if epoch % 5 == 0 and epoch != 0:
             cnn_utils.save_checkpoint(
@@ -97,7 +92,7 @@ def main(args, config, writer):
     # Test the average model
     end_epoch = args.start_epoch + args.nEpochs - 1
     print("Testing average model")
-    avg_loss = test_average(avg_model, data_loaders, criterion, cuda, 
+    avg_loss = test_average(avg_model, data_loaders, criterion, cuda,
                             writer, end_epoch)
     print("Average loss is {:.5f} times the best loss".format(
             avg_loss / best_loss ))
@@ -168,13 +163,15 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
             # statistics
             running_loss += loss.item()
 
-            if iteration == 0 and cuda:
+            if iteration % 100 == 0 and cuda:
                 cnn_utils.print_mem_usage()
 
-            if iteration%100 == 0:
+            if iteration % 100 == 0:
                 print("===> Epoch[{}]({}/{}): Loss: {:.5f}".format(
                     epoch, iteration, len(dset_loaders[phase]),
                     loss.item()))
+
+            if iteration == len(dset_loaders[phase]) - 1:
                 input_imgs = inputs[0, ...].transpose(1, 3)
                 residual_imgs = residuals[0, ...].transpose(1, 3)
                 out_imgs = outputs[0, ...].transpose(1, 3)
@@ -184,7 +181,7 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                     pad_value=1.0)
                 residual_grid = vutils.make_grid(
                     residual_imgs, nrow=8, range=(-1, 1), normalize=True,
-                    pad_value=1.0)   
+                    pad_value=1.0)
                 output_grid = vutils.make_grid(
                     out_imgs, nrow=8, range=(-1, 1), normalize=True,
                     pad_value=1.0)
@@ -238,10 +235,12 @@ def test_average(avg_model, dset_loaders, criterion, cuda, writer, epoch):
         # statistics
         running_loss += loss.item()
 
-        if iteration%100 == 0:
+        if iteration % 100 == 0:
             print("===> Epoch[{}]({}/{}): Loss: {:.5f}".format(
                 epoch, iteration, len(dset_loaders[phase]),
                 loss.item()))
+
+        if iteration == len(dset_loaders[phase]) - 1:
             input_imgs = inputs[0, ...].transpose(1, 3)
             residual_imgs = residuals[0, ...].transpose(1, 3)
             out_imgs = outputs[0, ...].transpose(1, 3)
@@ -251,7 +250,7 @@ def test_average(avg_model, dset_loaders, criterion, cuda, writer, epoch):
                 pad_value=1.0)
             residual_grid = vutils.make_grid(
                 residual_imgs, nrow=8, range=(-1, 1), normalize=True,
-                pad_value=1.0)   
+                pad_value=1.0)
             output_grid = vutils.make_grid(
                 out_imgs, nrow=8, range=(-1, 1), normalize=True,
                 pad_value=1.0)
