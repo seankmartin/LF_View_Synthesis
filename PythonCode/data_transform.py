@@ -70,6 +70,11 @@ def get_random_crop(sample, patch_size):
     sample['colour'] = sample['colour'][:, start_h:end_h, start_v:end_v, :]
     return sample
 
+def random_gamma(sample):
+    gamma = random.uniform(0.4, 1.0)
+    sample['colour'] = torch.pow(sample['colour'], gamma)
+    return sample
+
 def denormalise_lf(lf):
     """Coverts an lf in the range 0 1 to 0 to maximum"""
     maximum = 255.0

@@ -52,6 +52,7 @@ class TrainFromHdf5(data.Dataset):
             sample = {'depth': depth, 'colour': colour, 'grid_size': grid_size}
 
             sample = data_transform.get_random_crop(sample, self.patch_size)
+            sample = data_transform.random_gamma(sample)
 
             if self.transform:
                 sample = self.transform(sample)
