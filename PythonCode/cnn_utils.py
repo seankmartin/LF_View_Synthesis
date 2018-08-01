@@ -91,26 +91,6 @@ def print_mem_usage():
          torch.cuda.max_memory_cached()) * 100
     ))
 
-def merge_weights(avg_model, new_model, interpolation_factor = 0.5):
-    """Merges the weights of model1 and model2"""
-    beta = interpolation_factor    
-    params1 = avg_model.named_parameters()
-    params2 = new_model.named_parameters()
-
-    dict_params2 = dict(params2)
-
-    for name1, param1 in params1:
-        if name1 in dict_params2:
-            if "weight" not in name1:
-                continue
-            else:
-                dict_params2[name1].data.copy_(
-                    (1-beta)*param1.data + (beta)*dict_params2[name1].data)
-
-    model_dict = avg_model.state_dict()
-    model_dict.update(dict_params2)
-    avg_model.load_state_dict(model_dict)
-
 def log_all_layer_weights(model, writer, epoch):
     log_layer_weights(
         model, writer, epoch,
