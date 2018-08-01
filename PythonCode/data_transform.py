@@ -41,16 +41,16 @@ def transform_to_warped(sample):
     grid_size = sample['grid_size']
     warped_images = disparity_based_rendering(
         disparity.numpy(), targets.numpy(), grid_size,
-        dtype=np.float32, blank=-1.0)
+        dtype=np.float32, blank=0.0)
 
     inputs = torch.from_numpy(warped_images)
     return {'inputs': inputs, 'targets': targets}
 
 def normalise_sample(sample):
-    """Coverts an lf in the range 0 to maximum into -1 1"""
+    """Coverts an lf in the range 0 to maximum into 0 1"""
     maximum = 255.0
     lf = sample['colour']
-    ((lf.div_(maximum)).mul_(2.0)).add_(-1.0)
+    lf.div_(maximum)
     return sample
 
 def upper_left_patch(sample):
@@ -71,7 +71,7 @@ def get_random_crop(sample, patch_size):
     return sample
 
 def denormalise_lf(lf):
-    """Coverts an lf in the range 0 to maximum into -1 1"""
+    """Coverts an lf in the range 0 1 to 0 to maximum"""
     maximum = 255.0
-    lf.add_(1.0).div_(2.0).mul_(maximum)
+    lf.mul_(maximum)
     return lf

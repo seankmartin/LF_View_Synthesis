@@ -132,6 +132,7 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                     time.time() - since))
             residuals = model(inputs)
             outputs = inputs + residuals
+            outputs = torch.clamp(outputs, 0.0, 1.0)
 
             loss = criterion(outputs, targets)
             optimizer.zero_grad()
@@ -160,16 +161,16 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                 out_imgs = cnn_utils.transform_lf_to_torch(outputs[0])
                 truth_imgs = cnn_utils.transform_lf_to_torch(targets[0])
                 input_grid = vutils.make_grid(
-                    input_imgs, nrow=8, range=(-1, 1), normalize=True,
+                    input_imgs, nrow=8, range=(0, 1), normalize=True,
                     pad_value=1.0)
                 residual_grid = vutils.make_grid(
                     residual_imgs, nrow=8, range=(-1, 1), normalize=True,
                     pad_value=1.0)
                 output_grid = vutils.make_grid(
-                    out_imgs, nrow=8, range=(-1, 1), normalize=True,
+                    out_imgs, nrow=8, range=(0, 1), normalize=True,
                     pad_value=1.0)
                 target_grid = vutils.make_grid(
-                    truth_imgs, nrow=8, range=(-1, 1), normalize=True,
+                    truth_imgs, nrow=8, range=(0, 1), normalize=True,
                     pad_value=1.0)
                 writer.add_image(phase + '/input', input_grid, epoch)
                 writer.add_image(phase + '/residual', residual_grid, epoch)
