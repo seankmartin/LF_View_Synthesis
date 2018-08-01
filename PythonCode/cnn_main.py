@@ -155,10 +155,10 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                     loss.item()))
 
             if iteration == len(dset_loaders[phase]) - 1:
-                input_imgs = inputs[0, ...].transpose(1, 3)
-                residual_imgs = residuals[0, ...].transpose(1, 3)
-                out_imgs = outputs[0, ...].transpose(1, 3)
-                truth_imgs = targets[0, ...].transpose(1, 3)
+                input_imgs = cnn_utils.transform_lf_to_torch(inputs[0])
+                residual_imgs = cnn_utils.transform_lf_to_torch(residuals[0])
+                out_imgs = cnn_utils.transform_lf_to_torch(outputs[0])
+                truth_imgs = cnn_utils.transform_lf_to_torch(targets[0])
                 input_grid = vutils.make_grid(
                     input_imgs, nrow=8, range=(-1, 1), normalize=True,
                     pad_value=1.0)

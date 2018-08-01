@@ -110,3 +110,11 @@ def log_layer_weights(model, writer, epoch, name, out_string):
     layer_weights = model.state_dict()[name]
     writer.add_histogram(
         out_string, layer_weights, epoch, 'auto')
+
+def transform_lf_to_torch(lf):
+    """
+    Torch expects a grid of images to be in the format:
+    (B x C x H x W) but our light field grids are in the format:
+    (B x W x H x C) so need to transpose them
+    """
+    return lf.transpose(1, 3).transpose(2, 3)
