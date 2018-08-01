@@ -81,6 +81,7 @@ def main(args, config):
 
             output = model(im_input)
             output += im_input
+            output = torch.clamp(output, 0.0, 1.0)
 
     else:
         #Expect folder to have format, depth0.png, colour0.png ...
