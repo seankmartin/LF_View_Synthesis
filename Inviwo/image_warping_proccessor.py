@@ -14,6 +14,7 @@ import torchvision.utils as vutils
 import numpy as np
 from skimage.transform import resize
 
+import conversions
 import image_warping
 
 # For each input image to the network, add an inport here
@@ -33,7 +34,7 @@ if not "outport" in self.outports:
 
 def process(self):
     """Perform the model warping and output an image grid"""
-
+    cam = inviwopy.app.network.EntryExitPoints.camera
     im_data = []
     for name in INPORT_LIST:
         im_data.append(self.getInport(name).getData())
@@ -50,10 +51,21 @@ def process(self):
         im_colour.append(im_data[idx].colorLayers[0].data)
     
     im_depth = []
+    near = cam.nearPlane
+    far = cam.farPlane
+    baseline = 0.5
+    focal_length = cam.projectionMatrix[0][0]
+    fov = cam.fov
+
     for idx, name in enumerate(INPORT_LIST):
-        im_depth.append(im_data[idx].depth.data)
+        im_depth.append(
+            conversions.depth_to_pixel_disp(
+                im_data[idx].depth.data,
+                near=near, far=far, baseline=baseline,
+                focal_length=focal_length,
+                fov=fov,
+                image_pixel_size=im_data[0].dimensions[0])
     
-    # TODO convert depth to disparity
     sample = {'depth': im_depth, 
               'colour': im_colour,
               'grid_size': GRID_SIZE}
