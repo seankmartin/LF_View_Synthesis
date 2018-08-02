@@ -24,6 +24,6 @@ def setup_model(args):
     # See https://arxiv.org/abs/1608.03983
     lr_scheduler = CosineAnnealingLR(
         optimizer,
-        T_max = args.nEpochs // 10)
+        T_max = (args.nEpochs // 10) + 1)
 
     return (model, criterion, optimizer, lr_scheduler)
