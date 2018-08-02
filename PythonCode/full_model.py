@@ -8,7 +8,7 @@ import torch.nn as nn
 import torch.optim as optim
 
 from model_3d import C3D
-from torch.optim.lr_scheduler import ReduceLROnPlateau
+from torch.optim.lr_scheduler import CosineAnnealingLR
 
 def setup_model(args):
     """Returns a tuple of the model, criterion, optimizer and lr_scheduler"""
@@ -21,10 +21,9 @@ def setup_model(args):
         momentum=args.momentum,
         weight_decay=args.weight_decay,
         nesterov=True)
-    lr_scheduler = ReduceLROnPlateau(
+    # See https://arxiv.org/abs/1608.03983
+    lr_scheduler = CosineAnnealingLR(
         optimizer,
-        'min', factor=args.lr_factor,
-        patience=3, threshold=1e-3,
-        threshold_mode='rel', verbose=True)
+        T_max = args.nEpochs // 10)
 
     return (model, criterion, optimizer, lr_scheduler)

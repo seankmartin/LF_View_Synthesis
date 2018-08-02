@@ -14,6 +14,7 @@ import torch
 import torch.nn as nn
 import torchvision.utils as vutils
 from tensorboardX import SummaryWriter
+from torch.optim.lr_scheduler import CosineAnnealingLR
 
 import cnn_utils
 from full_model import setup_model
@@ -61,6 +62,14 @@ def main(args, config, writer):
             best_epoch = epoch
             best_model = copy.deepcopy(model)
 
+        #Update the scheduler - restarting
+        if lr_scheduler.last_epoch == lr_scheduler.T_max:
+            for group in optimizer.param_groups:
+                group['lr'] = args.lr
+            lr_scheduler = CosineAnnealingLR(
+                optimizer,
+                T_max = lr_scheduler.T_max * 2)
+
         cnn_utils.log_all_layer_weights(model, writer, epoch)
 
         if epoch % 5 == 0 and epoch != 0:
@@ -106,7 +115,7 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
     Trains model using data_loader with the given
     optimizer, lr_scheduler, criterion and epoch
     """
-
+    lr_scheduler.step()
     # Each epoch has a training and validation phase
     for phase in ['train', 'val']:
         since = time.time()
@@ -190,7 +199,6 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
 
         if phase == 'val':
             print()
-            lr_scheduler.step(epoch_loss)
             for idx, param_group in enumerate(optimizer.param_groups):
                 writer.add_scalar(
                     'learning_rate', param_group['lr'], epoch)
