@@ -36,11 +36,6 @@ def main(args, config, writer):
     data_loaders = create_dataloaders(args, config)
 
     model, criterion, optimizer, lr_scheduler = setup_model(args)
-<<<<<<< HEAD
-=======
-    print("Successfully loaded the model")
-
->>>>>>> 9d57854... Initial experiment
     if cuda: # GPU support
         model = model.cuda()
         #The below is only needed if loss fn has params
@@ -146,19 +141,8 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
             if iteration == 0:
                 print("Loaded " + phase + " batch in {:.0f}s".format(
                     time.time() - since))
-<<<<<<< HEAD
-            residuals = model(inputs)
-            outputs = inputs + residuals
-            outputs = torch.clamp(outputs, 0.0, 1.0)
-=======
 
-            print("Starting model at iteration {}".format(iteration))
-            start = time.time()
             outputs = model(inputs)
-            print("Successfully ran model in {:.2f} at iter {}".format(
-                time.time() - start, iteration
-            ))
->>>>>>> 9d57854... Initial experiment
 
             loss = criterion(outputs, targets)
             optimizer.zero_grad()
@@ -180,37 +164,24 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                 print("===> Epoch[{}]({}/{}): Loss: {:.5f}".format(
                     epoch, iteration, len(dset_loaders[phase]),
                     loss.item()))
-<<<<<<< HEAD
 
             if iteration == len(dset_loaders[phase]) - 1:
                 input_imgs = cnn_utils.transform_lf_to_torch(inputs[0])
                 residual_imgs = cnn_utils.transform_lf_to_torch(residuals[0])
                 out_imgs = cnn_utils.transform_lf_to_torch(outputs[0])
                 truth_imgs = cnn_utils.transform_lf_to_torch(targets[0])
-=======
-                print("Creating image grid")
-                input_imgs = inputs[0, ...].transpose(1, 3)
-                out_imgs = outputs[0, ...].transpose(1, 3)
-                truth_imgs = targets[0, ...].transpose(1, 3)
->>>>>>> 9d57854... Initial experiment
                 input_grid = vutils.make_grid(
-                    input_imgs, nrow=8, range=(0, 1), normalize=True,
+                    input_imgs, nrow=8, range=(-1, 1), normalize=True,
                     pad_value=1.0)
-<<<<<<< HEAD
-                residual_grid = vutils.make_grid(
-                    residual_imgs, nrow=8, range=(-1, 1), normalize=True,
-                    pad_value=1.0)
-=======
->>>>>>> 9d57854... Initial experiment
                 output_grid = vutils.make_grid(
-                    out_imgs, nrow=8, range=(0, 1), normalize=True,
+                    out_imgs, nrow=8, range=(-1, 1), normalize=True,
                     pad_value=1.0)
                 target_grid = vutils.make_grid(
-                    truth_imgs, nrow=8, range=(0, 1), normalize=True,
+                    truth_imgs, nrow=8, range=(-1, 1), normalize=True,
                     pad_value=1.0)
                 diff_grid = vutils.make_grid(
                     torch.abs(truth_imgs - out_imgs), 
-                    nrow=8, range=(0, 1), normalize=True,
+                    nrow=8, range=(-2, 2), normalize=True,
                     pad_value=1.0)
                 writer.add_image(phase + '/input', input_grid, epoch)
                 writer.add_image(phase + '/output', output_grid, epoch)
@@ -230,65 +201,6 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                     'learning_rate', param_group['lr'], epoch)
             return epoch_loss
 
-<<<<<<< HEAD
-=======
-def test_average(avg_model, dset_loaders, criterion, cuda, writer, epoch):
-    since = time.time()
-    avg_model.eval()
-    phase = 'val'
-    avg = 'average'
-    running_loss = 0.0
-    for iteration, batch in enumerate(dset_loaders[phase]):
-        targets = batch['targets']
-        inputs = batch['inputs']
-        inputs.requires_grad_(False)
-        targets.requires_grad_(False)
-
-        if cuda:
-            inputs = inputs.cuda()
-            targets = targets.cuda()
-
-        # forward
-        if iteration == 0:
-            print("Loaded " + phase + " batch in {:.0f}s".format(
-                time.time() - since))
-        outputs = avg_model(inputs)
-
-        loss = criterion(outputs, targets)
-
-        # statistics
-        running_loss += loss.item()
-
-        if iteration%100 == 0:
-            print("===> Epoch[{}]({}/{}): Loss: {:.5f}".format(
-                epoch, iteration, len(dset_loaders[phase]),
-                loss.item()))
-            input_imgs = inputs[0, ...].transpose(1, 3)
-            out_imgs = outputs[0, ...].transpose(1, 3)
-            truth_imgs = targets[0, ...].transpose(1, 3)
-            input_grid = vutils.make_grid(
-                input_imgs, nrow=8, range=(-1, 1), normalize=True,
-                pad_value=1.0)
-   
-            output_grid = vutils.make_grid(
-                out_imgs, nrow=8, range=(-1, 1), normalize=True,
-                pad_value=1.0)
-            target_grid = vutils.make_grid(
-                truth_imgs, nrow=8, range=(-1, 1), normalize=True,
-                pad_value=1.0)
-            writer.add_image(avg + '/input', input_grid, epoch)
-            writer.add_image(avg + '/output', output_grid, epoch)
-            writer.add_image(avg + '/target', target_grid, epoch)
-
-    epoch_loss = running_loss / len(dset_loaders[phase])
-    writer.add_scalar(avg + '/loss', epoch_loss, epoch)
-    print("Phase {} average overall loss {:.5f}".format(phase, epoch_loss))
-    time_elapsed = time.time() - since
-    print("Phase {} took {:.0f}s overall".format(phase, time_elapsed))
-
-    return epoch_loss
-
->>>>>>> 9d57854... Initial experiment
 if __name__ == '__main__':
     #Command line modifiable parameters
     #See https://github.com/twtygqyy/pytorch-vdsr/blob/master/main_vdsr.py

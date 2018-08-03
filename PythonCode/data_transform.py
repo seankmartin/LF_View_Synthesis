@@ -51,7 +51,7 @@ def normalise_sample(sample):
     """Coverts an lf in the range 0 to maximum into 0 1"""
     maximum = 255.0
     lf = sample['colour']
-    lf.div_(maximum)
+    ((lf.div_(maximum)).mul_(2.0)).add_(-1.0)
     return sample
 
 def upper_left_patch(sample):
@@ -81,8 +81,13 @@ def random_gamma(sample):
 def denormalise_lf(lf):
     """Coverts an lf in the range 0 1 to 0 to maximum"""
     maximum = 255.0
-    lf.mul_(maximum)
+    lf.add_(1.0).div_(2.0).mul_(maximum)
     return lf
+
+def normalise_img(img):
+    """Converts images in range 0 1 to -1 1"""
+    img.mul_(2.0).add_(-1.0)
+    return img
 
 def disparity_to_rgb(sample):
     depth = sample['depth']
@@ -104,5 +109,5 @@ def center_normalise(sample):
     shape = (2,) + sample['depth'].shape
     inputs = torch.zeros(shape, dtype=torch.float32)
     inputs[0] = sample['colour'][sample_index]
-    inputs[1] = sample['depth']
+    inputs[1] = normalise_img(sample['depth'])
     return {'inputs': inputs, 'targets': sample['colour']}
