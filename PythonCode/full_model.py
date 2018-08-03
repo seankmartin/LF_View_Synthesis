@@ -9,6 +9,7 @@ import torch.optim as optim
 
 from model_3d import C3D
 from torch.optim.lr_scheduler import CosineAnnealingLR
+# from torch.optim.lr_scheduler import CyclicLR
 
 def setup_model(args):
     """Returns a tuple of the model, criterion, optimizer and lr_scheduler"""
@@ -25,5 +26,7 @@ def setup_model(args):
     lr_scheduler = CosineAnnealingLR(
         optimizer,
         T_max = (args.nEpochs // 10) + 1)
+    """lr_scheduler = CyclicLR(
+        optimizer)"""
 
     return (model, criterion, optimizer, lr_scheduler)

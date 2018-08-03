@@ -126,6 +126,8 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
 
         running_loss = 0.0
         for iteration, batch in enumerate(dset_loaders[phase]):
+            # Use this if doing cyclic learning
+            # lr_scheduler.batch_step()
             targets = batch['targets']
             inputs = batch['inputs']
             inputs.requires_grad_()
