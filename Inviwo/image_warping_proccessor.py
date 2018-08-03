@@ -20,7 +20,7 @@ import image_warping
 # For each input image to the network, add an inport here
 INPORT_LIST = ["im_inport1"]
 model = None
-cuda = True
+cuda = False
 GRID_SIZE = 64
 OUT_SIZE = inviwopy.glm.size2_t(1024, 1024)
 DTYPE = inviwopy.data.formats.DataUINT8
@@ -34,6 +34,9 @@ if not "outport" in self.outports:
 
 def process(self):
     """Perform the model warping and output an image grid"""
+    if model is None:
+        print("No model for synthesis")
+        return -1
     cam = inviwopy.app.network.EntryExitPoints.camera
     im_data = []
     for name in INPORT_LIST:
@@ -64,11 +67,9 @@ def process(self):
                 near=near, far=far, baseline=baseline,
                 focal_length=focal_length,
                 fov=fov,
-                image_pixel_size=im_data[0].dimensions[0])
+                image_pixel_size=im_data[0].dimensions[0]))
     
-    sample = {'depth': im_depth, 
-              'colour': im_colour,
-              'grid_size': GRID_SIZE}
+    sample = {'depth': im_depth, 'colour': im_colour, 'grid_size': GRID_SIZE}
 
     warped = transform_to_warped(sample)
     im_input = warped['inputs'].unsqueeze_(0)
@@ -116,6 +117,7 @@ def initializeResources(self):
         model.load_state_dict(weights['model'].state_dict())
     else:
         print("=> no model found at '{}'".format(weights_location))
+        return -1
 
     if cuda:
         model = model.cuda()
