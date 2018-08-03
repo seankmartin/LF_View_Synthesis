@@ -26,12 +26,15 @@ def process(self):
         print("Size 1: ", im_data[0].dimensions)
         print("Size 2: ", im_data[1].dimensions)
         return -1
-    out_image = Image.clone(im_data[0])
+    out_image = Image(im_data[0].dimensions, 
+                      inviwopy.data.formats.DataVec4UINT8)
+    print(out_image.colorLayers[0].data.shape)
     im_colour = []
     for idx, name in enumerate(INPORT_LIST):
         im_colour.append(im_data[idx].colorLayers[0].data)
     
     out_colour = get_diff_image(im_colour[0], im_colour[1])
+    print(out_colour.shape)
     out_image.colorLayers[0].data = out_colour
    
     im_depth = []
