@@ -172,10 +172,15 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                 target_grid = vutils.make_grid(
                     truth_imgs, nrow=8, range=(0, 1), normalize=True,
                     pad_value=1.0)
+                diff_grid = vutils.make_grid(
+                    torch.abs(truth_imgs - out_imgs), 
+                    nrow=8, range=(0, 1), normalize=True,
+                    pad_value=1.0)
                 writer.add_image(phase + '/input', input_grid, epoch)
                 writer.add_image(phase + '/residual', residual_grid, epoch)
                 writer.add_image(phase + '/output', output_grid, epoch)
                 writer.add_image(phase + '/target', target_grid, epoch)
+                writer.add_image(phase + '/difference', diff_grid, epoch)
 
         epoch_loss = running_loss / len(dset_loaders[phase])
         writer.add_scalar(phase + '/loss', epoch_loss, epoch)
