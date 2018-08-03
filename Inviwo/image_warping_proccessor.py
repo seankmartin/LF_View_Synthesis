@@ -4,6 +4,16 @@ Takes in two images from inviwo and outputs the difference between them
 import os
 import math
 import time
+import sys
+
+# Location of other scripts
+sys.path.insert(0, "/users/pgrad/martins7/.local/lib/python3.5/site-packages")
+
+# Location of torch and torch vision
+sys.path.insert(0, "/users/pgrad/martins7/pytorch35/lib/python3.5/site-packages")
+
+# Location of pythonCode
+sys.path.insert(0, "/users/pgrad/martins7/LF_View_Synthesis/PythonCode")
 
 import inviwopy
 from inviwopy.data import ImageOutport, ImageInport
@@ -13,6 +23,7 @@ import torch
 import torchvision.utils as vutils
 import numpy as np
 from skimage.transform import resize
+from skimage import img_as_ubyte
 
 import conversions
 import image_warping
@@ -20,10 +31,35 @@ import image_warping
 # For each input image to the network, add an inport here
 INPORT_LIST = ["im_inport1"]
 model = None
-cuda = False
+cuda = True
 GRID_SIZE = 64
 OUT_SIZE = inviwopy.glm.size2_t(1024, 1024)
-DTYPE = inviwopy.data.formats.DataUINT8
+OUT_SIZE_LIST = [1024, 1024]
+DTYPE = inviwopy.data.formats.DataVec4UINT8
+
+if model is None:
+    """Load the model to be used"""
+    model_dir = "/users/pgrad/martins7/overflow-storage/outputs/models"
+    name = "best_model.pth"
+
+    #Load model architecture
+    model = torch.load(os.path.join(
+            model_dir, name))['model']
+
+    # Load the weipreserve_range=Falseghts into the model
+    weights_location = os.path.join(
+            model_dir, name)
+    if os.path.isfile(weights_location):
+        print("=> loading model '{}'".format(weights_location))
+        weights = torch.load(weights_location)
+        model.load_state_dict(weights['model'].state_dict())
+    else:
+        print("=> no model found at '{}'".format(weights_location))
+
+    if cuda:
+        model = model.cuda()
+
+    model.eval()
 
 for name in INPORT_LIST:
     if not name in self.inports:
@@ -37,12 +73,13 @@ def process(self):
     if model is None:
         print("No model for synthesis")
         return -1
+
     cam = inviwopy.app.network.EntryExitPoints.camera
     im_data = []
     for name in INPORT_LIST:
         im_data.append(self.getInport(name).getData())
     for im in im_data: 
-        if (im_data[0].dimensions is not im.dimensions):
+        if not (im_data[0].dimensions == im.dimensions):
             print("Operation is incompatible with images of different size")
             print("Size 1: ", im_data[0].dimensions)
             print("Size 2: ", im.dimensions)
@@ -51,15 +88,16 @@ def process(self):
     out_image = Image(OUT_SIZE, DTYPE)
     im_colour = []
     for idx, name in enumerate(INPORT_LIST):
-        im_colour.append(im_data[idx].colorLayers[0].data)
+        im_colour.append(im_data[idx].colorLayers[0].data[:, :, :3])
     
     im_depth = []
     near = cam.nearPlane
     far = cam.farPlane
     baseline = 0.5
     focal_length = cam.projectionMatrix[0][0]
-    fov = cam.fov
+    fov = cam.fov.value
 
+    print(type(fov))
     for idx, name in enumerate(INPORT_LIST):
         im_depth.append(
             conversions.depth_to_pixel_disp(
@@ -67,12 +105,17 @@ def process(self):
                 near=near, far=far, baseline=baseline,
                 focal_length=focal_length,
                 fov=fov,
-                image_pixel_size=im_data[0].dimensions[0]))
+                image_pixel_size=float(im_data[0].dimensions[0]))
+        )
     
-    sample = {'depth': im_depth, 'colour': im_colour, 'grid_size': GRID_SIZE}
+    sample = {
+        'depth': torch.tensor(np.asarray(im_depth)), 
+        'colour': torch.tensor(np.asarray(im_colour)), 
+        'grid_size': GRID_SIZE}
 
     warped = transform_to_warped(sample)
     im_input = warped['inputs'].unsqueeze_(0)
+    im_input.requires_grad_(False)
 
     if cuda:
         im_input = im_input.cuda()
@@ -81,48 +124,30 @@ def process(self):
     output += im_input
     output = torch.clamp(output, 0.0, 1.0)
 
-    out_colour = transform_lf_to_torch(output)
+    out_colour = transform_lf_to_torch(output[0])
     # Inviwo expects a uint8 here
     output_grid = vutils.make_grid(
                     out_colour, nrow=8, range=(0, 1), normalize=True,
                     pad_value=1.0)
     output_grid = resize(
-        output_grid.transpose(1, 2, 0),
-        OUT_SIZE,
-        preserve_range=True)
-
-    # Add an alpha channel here
-    shape = OUT_SIZE + (4,)
-    final_out = np.ones(shape, np.uint8)
-    final_out[:, :, :3] = output_grid
-    out_image.colorLayers[0].data = final_out
+        output_grid.cpu().detach().numpy().astype(np.uint8).transpose(1, 2, 0),
+        OUT_SIZE_LIST)
     
+    inter_out = img_as_ubyte(output_grid)
+    # Add an alpha channel here
+    shape = tuple(OUT_SIZE_LIST) + (4,)
+    final_out = np.ones(shape, np.uint8)
+    final_out[:, :, :3] = inter_out
+
+
+    print(final_out.shape)
+    print(final_out.dtype)
+    
+    out_image.colorLayers[0].data = final_out
     self.getOutport("outport").setData(out_image)
 
 def initializeResources(self):
-    """Load the model to be used"""
-    model_dir = "/users/pgrad/martins7/overflow-storage/outputs/models"
-    name = "best_model.pth"
-
-    #Load model architecture
-    model = torch.load(os.path.join(
-            model_dir, name))['model']
-
-    # Load the weights into the model
-    weights_location = os.path.join(
-            model_dir, name)
-    if os.path.isfile(weights_location):
-        print("=> loading model '{}'".format(weights_location))
-        weights = torch.load(weights_location)
-        model.load_state_dict(weights['model'].state_dict())
-    else:
-        print("=> no model found at '{}'".format(weights_location))
-        return -1
-
-    if cuda:
-        model = model.cuda()
-
-    model.eval()
+   pass
 
 def transform_lf_to_torch(lf):
     """

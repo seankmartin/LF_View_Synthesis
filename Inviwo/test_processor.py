@@ -8,20 +8,19 @@ import time
 import sys
 
 # Location of other scripts
-sys.path.insert(0, "C://Users\seank\AppData\Local\Programs\Python\Python36\Lib\site-packages")
+sys.path.insert(0, "/users/pgrad/martins7/.local/lib/python3.5/site-packages")
 
 # Location of torch and torch vision
-sys.path.insert(0, "C://Users\seank\Dev\pytorch91\lib\site-packages")
+sys.path.insert(0, "/users/pgrad/martins7/pytorch35/lib/python3.5/site-packages")
 
 import torch
-#import torchvision.utils as vutils
+import torchvision.utils as vutils
 import numpy as np
-#from skimage.transform import resize
+from skimage.transform import resize
 
 import conversions
 import image_warping
 
-print("Yay!")
 """
 The PythonScriptProcessor will run this script on construction and whenever this
 it changes. Hence one needs to take care not to add ports and properties multiple times.
@@ -46,7 +45,8 @@ def process(self):
 	#volume.dataMap.dataRange = dvec2(0.0, 1.0)
 	#volume.dataMap.valueRange = dvec2(0.0, 1.0)
 	#self.outports.outport.setData(volume)
-	help(torch)
+	print("Yay!")
+	pass
 
 def initializeResources(self):
     pass
