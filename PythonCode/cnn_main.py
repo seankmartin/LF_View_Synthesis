@@ -132,6 +132,7 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                     time.time() - since))
             residuals = model(inputs)
             outputs = inputs + residuals
+            outputs = torch.clamp(outputs, 0.0, 1.0)
 
             loss = criterion(outputs, targets)
             optimizer.zero_grad()
@@ -160,21 +161,26 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                 out_imgs = cnn_utils.transform_lf_to_torch(outputs[0])
                 truth_imgs = cnn_utils.transform_lf_to_torch(targets[0])
                 input_grid = vutils.make_grid(
-                    input_imgs, nrow=8, range=(-1, 1), normalize=True,
+                    input_imgs, nrow=8, range=(0, 1), normalize=True,
                     pad_value=1.0)
                 residual_grid = vutils.make_grid(
                     residual_imgs, nrow=8, range=(-1, 1), normalize=True,
                     pad_value=1.0)
                 output_grid = vutils.make_grid(
-                    out_imgs, nrow=8, range=(-1, 1), normalize=True,
+                    out_imgs, nrow=8, range=(0, 1), normalize=True,
                     pad_value=1.0)
                 target_grid = vutils.make_grid(
-                    truth_imgs, nrow=8, range=(-1, 1), normalize=True,
+                    truth_imgs, nrow=8, range=(0, 1), normalize=True,
+                    pad_value=1.0)
+                diff_grid = vutils.make_grid(
+                    torch.abs(truth_imgs - out_imgs), 
+                    nrow=8, range=(0, 1), normalize=True,
                     pad_value=1.0)
                 writer.add_image(phase + '/input', input_grid, epoch)
                 writer.add_image(phase + '/residual', residual_grid, epoch)
                 writer.add_image(phase + '/output', output_grid, epoch)
                 writer.add_image(phase + '/target', target_grid, epoch)
+                writer.add_image(phase + '/difference', diff_grid, epoch)
 
         epoch_loss = running_loss / len(dset_loaders[phase])
         writer.add_scalar(phase + '/loss', epoch_loss, epoch)
@@ -219,6 +225,8 @@ if __name__ == '__main__':
                         help='Prompt at the end of every epoch to continue')
     PARSER.add_argument('--tag', default=None, type=str,
                         help='Unique identifier for a model. REQUIRED')
+    PARSER.add_argument('--config', "--cfg", default='main.ini', type=str,
+                        help="Name of config file to use")
     #Any unknown argument will go to unparsed
     ARGS, UNPARSED = PARSER.parse_known_args()
     if ARGS.tag is None:
@@ -231,7 +239,7 @@ if __name__ == '__main__':
         exit(-1)
     #Config file modifiable parameters
     CONFIG = configparser.ConfigParser()
-    CONFIG.read(os.path.join('config', 'main.ini'))
+    CONFIG.read(os.path.join('config', ARGS.config))
     from datetime import datetime
     TBOARD_LOC = os.path.join(
         CONFIG['PATH']['tboard'],
