@@ -4,6 +4,7 @@ import configparser
 import os
 import time
 import pathlib
+import math
 
 import torch
 import h5py
@@ -110,10 +111,17 @@ def main(args, config):
     print("Saving output to", save_dir)
     append_str = ""
     if args.no_cnn:
-        append_str = "_cnn"
+        cnn_dir = os.path.join(save_dir, "no_cnn")
+        save_dir = os.path.join(save_dir, "cnn")
+        os.mkdir(save_dir)
+        os.mkdir(cnn_dir)
+
     cpu_output = denormalise_lf(output).cpu().detach().numpy().astype(np.uint8)
+    grid_len = int(math.sqrt(grid_size))
     for i in range(grid_size):
-        file_name = 'Colour{}{}.png'.format(i, append_str)
+        row, col = i // grid_len, i % grid_len
+
+        file_name = 'Colour{}{}.png'.format(row, col)
         save_location = os.path.join(save_dir, file_name)
         if i == 0:
             print("Saving images of size ", cpu_output[0, i, ...].shape)
@@ -124,8 +132,10 @@ def main(args, config):
         cpu_input = (
             denormalise_lf(im_input).cpu().detach().numpy().astype(np.uint8))
         for i in range(grid_size):
-            file_name = 'Colour{}_nocnn.png'.format(i)
-            save_location = os.path.join(save_dir, file_name)
+            row, col = i // grid_len, i % grid_len
+
+            file_name = 'Colour{}{}.png'.format(row, col)
+            save_location = os.path.join(cnn_dir, file_name)
             if i == 0:
                 print("Saving images of size ", cpu_input[0, i, ...].shape)
             image_warping.save_array_as_image(
