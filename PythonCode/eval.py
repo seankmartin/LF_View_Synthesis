@@ -2,6 +2,7 @@ import numpy
 import math
 
 from skimage.measure import compare_ssim
+
 def psnr(img1, img2):
     """Comptutes the PSNR between img1 and img2, max pixel value is 255"""
     mse = numpy.mean( (img1 - img2) ** 2 )
