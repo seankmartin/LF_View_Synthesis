@@ -225,6 +225,8 @@ if __name__ == '__main__':
                         help='Prompt at the end of every epoch to continue')
     PARSER.add_argument('--tag', default=None, type=str,
                         help='Unique identifier for a model. REQUIRED')
+    PARSER.add_argument('--config', "--cfg", default='main.ini', type=str,
+                        help="Name of config file to use")
     #Any unknown argument will go to unparsed
     ARGS, UNPARSED = PARSER.parse_known_args()
     if ARGS.tag is None:
@@ -237,7 +239,7 @@ if __name__ == '__main__':
         exit(-1)
     #Config file modifiable parameters
     CONFIG = configparser.ConfigParser()
-    CONFIG.read(os.path.join('config', 'main.ini'))
+    CONFIG.read(os.path.join('config', ARGS.config))
     from datetime import datetime
     TBOARD_LOC = os.path.join(
         CONFIG['PATH']['tboard'],
