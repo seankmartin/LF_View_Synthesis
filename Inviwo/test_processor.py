@@ -21,6 +21,10 @@ from skimage.transform import resize
 import conversions
 import image_warping
 
+help(inviwopy.properties.BoolProperty)
+
+#help(self)
+
 """
 The PythonScriptProcessor will run this script on construction and whenever this
 it changes. Hence one needs to take care not to add ports and properties multiple times.

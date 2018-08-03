@@ -20,6 +20,12 @@ def process(self):
     im_data = []
     for name in INPORT_LIST:
         im_data.append(self.getInport(name).getData())
+    if len(im_data) < 2:
+        print("Not enough images input")
+        print("Images input is {} expected {}".format(
+            len(im_data), 2
+        ))
+        return -1
     if not (im_data[0].dimensions == 
             im_data[1].dimensions):
         print("Operation is incompatible with images of different size")

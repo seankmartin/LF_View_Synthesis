@@ -17,6 +17,7 @@ sys.path.insert(0, "/users/pgrad/martins7/LF_View_Synthesis/PythonCode")
 
 import inviwopy
 from inviwopy.data import ImageOutport, ImageInport
+from inviwopy.properties import BoolProperty
 from inviwopy.data import Image
 
 import torch
@@ -68,11 +69,20 @@ for name in INPORT_LIST:
 if not "outport" in self.outports:
     self.addOutport(ImageOutport("outport"))
 
+if not "off" in self.properties:
+    self.addProperty(
+        BoolProperty("off", "off", True))
+
 def process(self):
     """Perform the model warping and output an image grid"""
+    if self.getPropertyByIdentifier("off").value:
+        print("Image warping is currently turned off")
+        return -1
+
     if model is None:
         print("No model for synthesis")
         return -1
+
 
     cam = inviwopy.app.network.EntryExitPoints.camera
     im_data = []
@@ -96,8 +106,7 @@ def process(self):
     baseline = 0.5
     focal_length = cam.projectionMatrix[0][0]
     fov = cam.fov.value
-
-    print(type(fov))
+    
     for idx, name in enumerate(INPORT_LIST):
         im_depth.append(
             conversions.depth_to_pixel_disp(
@@ -120,6 +129,7 @@ def process(self):
     if cuda:
         im_input = im_input.cuda()
 
+    model.eval()
     output = model(im_input)
     output += im_input
     output = torch.clamp(output, 0.0, 1.0)
@@ -138,7 +148,6 @@ def process(self):
     shape = tuple(OUT_SIZE_LIST) + (4,)
     final_out = np.ones(shape, np.uint8)
     final_out[:, :, :3] = inter_out
-
 
     print(final_out.shape)
     print(final_out.dtype)
