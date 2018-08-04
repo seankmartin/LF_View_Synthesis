@@ -35,7 +35,7 @@ INPORT_LIST = ["im_inport1"]
 model = None
 cuda = True
 GRID_SIZE = 64
-SIZE = 4096
+SIZE = 1024
 OUT_SIZE = inviwopy.glm.size2_t(SIZE, SIZE)
 OUT_SIZE_LIST = [SIZE, SIZE]
 DTYPE = inviwopy.data.formats.DataVec4UINT8
@@ -157,29 +157,27 @@ def process(self):
     output = torch.clamp(output, 0.0, 1.0)
 
     out_colour = transform_lf_to_torch(output[0])
-    # Inviwo expects a uint8 here
+
     output_grid = vutils.make_grid(
                     out_colour, nrow=8, range=(0, 1), normalize=False,
-                    padding=0, pad_value=1.0)
-    # print(output_grid.shape)
-    # print(output_grid.transpose(2, 0)[10])
-    """
+                    padding=2, pad_value=1.0)
+
     output_grid = resize(
-        output_grid.cpu().detach().numpy().transpose(2, 1, 0),
+        output_grid.cpu().detach().numpy().transpose(1, 2, 0),
         OUT_SIZE_LIST)
-    #print(output_grid[10])
+
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         inter_out = img_as_ubyte(output_grid)
-    """
-    inter_out = denormalise_lf(output_grid)
-    inter_out = inter_out.cpu().detach().numpy().astype(np.uint8).transpose(1, 2, 0)
-    print(inter_out[10])
+
+    #inter_out = denormalise_lf(output_grid)
+    #inter_out = inter_out.cpu().detach().numpy().astype(np.uint8).transpose(1, 2, 0)
     # Add an alpha channel here
     shape = tuple(OUT_SIZE_LIST) + (4,)
     final_out = np.full(shape, 255, np.uint8)
     final_out[:, :, :3] = inter_out
     
+    # Inviwo expects a uint8 here
     out_image.colorLayers[0].data = final_out
     self.getOutport("outport").setData(out_image)
 
