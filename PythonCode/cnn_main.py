@@ -157,7 +157,7 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
             # statistics
             running_loss += loss.item()
 
-            if iteration % 100 == 0 and cuda:
+            if iteration == 0 and cuda:
                 cnn_utils.print_mem_usage()
 
             if iteration % 100 == 0:
