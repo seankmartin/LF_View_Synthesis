@@ -167,7 +167,6 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
 
             if iteration == len(dset_loaders[phase]) - 1:
                 input_imgs = cnn_utils.transform_lf_to_torch(inputs[0])
-                residual_imgs = cnn_utils.transform_lf_to_torch(residuals[0])
                 out_imgs = cnn_utils.transform_lf_to_torch(outputs[0])
                 truth_imgs = cnn_utils.transform_lf_to_torch(targets[0])
                 input_grid = vutils.make_grid(
