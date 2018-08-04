@@ -33,7 +33,7 @@ def setup_model(args):
             optimizer, max_lr=args.lr, mode='exp_range')
     if args.schedule.lower() == 'step':
         lr_scheduler = ReduceLROnPlateau(
-            'min', factor=args.lr_factor,
+            optimizer, 'min', factor=args.lr_factor,
             patience=4, threshold=1e-3,
             threshold_mode='rel', verbose=True)
     return (model, criterion, optimizer, lr_scheduler)

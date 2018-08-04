@@ -55,7 +55,8 @@ def main(args, config, writer):
             model=model, dset_loaders=data_loaders,
             optimizer=optimizer, lr_scheduler=lr_scheduler,
             criterion=criterion, epoch=epoch,
-            cuda=cuda, clip=args.clip, writer=writer)
+            cuda=cuda, clip=args.clip, writer=writer, 
+            schedule_type=args.schedule)
 
         if epoch_loss < best_loss:
             best_loss = epoch_loss
@@ -110,12 +111,12 @@ def main(args, config, writer):
     writer.close()
 
 def train(model, dset_loaders, optimizer, lr_scheduler,
-          criterion, epoch, cuda, clip, writer):
+          criterion, epoch, cuda, clip, writer, schedule_type):
     """
     Trains model using data_loader with the given
     optimizer, lr_scheduler, criterion and epoch
     """
-    if args.schedule == 'warm':
+    if schedule_type == 'warm':
         lr_scheduler.step()
     # Each epoch has a training and validation phase
     for phase in ['train', 'val']:
@@ -127,7 +128,7 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
 
         running_loss = 0.0
         for iteration, batch in enumerate(dset_loaders[phase]):
-            if args.schedule == 'cyclical':
+            if schedule_type == 'cyclical':
                 lr_scheduler.batch_step()
             targets = batch['targets']
             inputs = batch['inputs']
@@ -196,7 +197,7 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
 
         if phase == 'val':
             print()
-            if args.schedule == 'step':
+            if schedule_type == 'step':
                 lr_scheduler.step()
             for idx, param_group in enumerate(optimizer.param_groups):
                 writer.add_scalar(
