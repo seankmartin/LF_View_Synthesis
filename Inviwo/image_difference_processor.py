@@ -20,13 +20,20 @@ def process(self):
     im_data = []
     for name in INPORT_LIST:
         im_data.append(self.getInport(name).getData())
+    if len(im_data) < 2:
+        print("Not enough images input")
+        print("Images input is {} expected {}".format(
+            len(im_data), 2
+        ))
+        return -1
     if not (im_data[0].dimensions == 
             im_data[1].dimensions):
         print("Operation is incompatible with images of different size")
         print("Size 1: ", im_data[0].dimensions)
         print("Size 2: ", im_data[1].dimensions)
         return -1
-    out_image = Image.clone(im_data[0])
+    out_image = Image(im_data[0].dimensions, 
+                      inviwopy.data.formats.DataVec4UINT8)
     im_colour = []
     for idx, name in enumerate(INPORT_LIST):
         im_colour.append(im_data[idx].colorLayers[0].data)
