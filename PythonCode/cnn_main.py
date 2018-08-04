@@ -236,7 +236,7 @@ if __name__ == '__main__':
                         help='Unique identifier for a model. REQUIRED')
     PARSER.add_argument('--config', "--cfg", default='main.ini', type=str,
                         help="Name of config file to use")
-    PARSER.add_argument('--schedule' "--s", default='warm', type=str, 
+    PARSER.add_argument('--schedule', "--s", default='warm', type=str, 
                         help=SCHEDULE_HELP)
     #Any unknown argument will go to unparsed
     ARGS, UNPARSED = PARSER.parse_known_args()
