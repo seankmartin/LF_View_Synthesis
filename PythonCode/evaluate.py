@@ -1,11 +1,15 @@
 import numpy
 import math
 
-from skimage.measure import compare_ssim
+from skimage.measure import compare_ssim, compare_psnr
 
 def psnr(img1, img2):
     """Comptutes the PSNR between img1 and img2, max pixel value is 255"""
-    mse = numpy.mean( (img1 - img2) ** 2 )
+    return compare_psnr(img1, img2, 255)
+
+def my_psnr(img1, img2):
+    """Comptutes the PSNR between img1 and img2, max pixel value is 255"""
+    mse = numpy.mean( (img1.astype(float) - img2.astype(float)) ** 2 )
     if mse == 0:
         return 100
     PIXEL_MAX = 255.0
@@ -16,7 +20,9 @@ def psnr(img1, img2):
 def ssim(img1, img2):
     """A wrapper around skimages ssim to match Wang's implementation"""
     return compare_ssim(
-        img1, img2, 
+        img2.astype(float) / 255.0, img1.astype(float) / 255.0,
         gaussian_weights=True,
         use_sample_covariance=False,
-        sigma=1.5)
+        sigma=1.5,
+        multichannel=True,
+        data_range=1.0)
