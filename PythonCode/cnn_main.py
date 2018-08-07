@@ -64,12 +64,13 @@ def main(args, config, writer):
             best_model = copy.deepcopy(model)
 
         #Update the scheduler - restarting
-        if lr_scheduler.last_epoch == lr_scheduler.T_max:
-            for group in optimizer.param_groups:
-                group['lr'] = args.lr
-            lr_scheduler = CosineAnnealingLR(
-                optimizer,
-                T_max = lr_scheduler.T_max * 2)
+        if schedule_type == 'warm':
+            if lr_scheduler.last_epoch == lr_scheduler.T_max:
+                for group in optimizer.param_groups:
+                    group['lr'] = args.lr
+                lr_scheduler = CosineAnnealingLR(
+                    optimizer,
+                    T_max=lr_scheduler.T_max * 2)
 
         cnn_utils.log_all_layer_weights(model, writer, epoch)
 
