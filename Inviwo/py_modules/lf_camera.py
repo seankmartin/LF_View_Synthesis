@@ -1,5 +1,5 @@
 import os
-from time import sleep
+from time import sleep, time
 import sys
 
 import inviwopy
@@ -57,7 +57,7 @@ class LightFieldCamera:
         print(cam_to_string(camera), end = '\n', file = file)
         print("pixels;{}".format(pixel_size), file = file)
 
-    def view_array(self, cam, save=False, save_dir=os.path.expanduser('~')):
+    def view_array(self, cam, save=False, save_dir=os.path.expanduser('~'), should_time=False):
         """Move the inviwo camera through the array for the current workspace.
 
         Keyword arguments:
@@ -74,6 +74,8 @@ class LightFieldCamera:
         prev_cam_look_from = cam.lookFrom
         prev_cam_look_to = cam.lookTo
 
+        if should_time:
+            start_time = time()
         for idx, val in enumerate(self.calculate_camera_array()):
             (look_from, look_to) = val
             cam.lookFrom = look_from
@@ -130,9 +132,10 @@ class LightFieldCamera:
                         print('Saving to: ' + file_path)
                         canvas.snapshot(file_path)
             else:
-                print('Viewing position ({}, {})'.format(row_num, col_num))
                 #Smooths the viewing process
-                sleep(0.1)
+                if not should_time:
+                    print('Viewing position ({}, {})'.format(row_num, col_num))
+                    sleep(0.1)
 
         canvas = inviwopy.app.network.canvases[0]
         pixel_dim = canvas.inputSize.dimensions.value[0]
@@ -142,9 +145,15 @@ class LightFieldCamera:
                 self.print_metadata(cam, pixel_dim, f)
 
         # Reset the camera to original position
+        time_taken = 0
+        if should_time:
+            time_taken = time() - start_time
+            print("Overall time taken to render grid was {:4f}".format(
+                time_taken))
         print()
         cam.lookFrom = prev_cam_look_from
         cam.lookTo = prev_cam_look_to
+        return time_taken
 
     def get_look_right(self):
         """Get the right look vector for the top left camera"""

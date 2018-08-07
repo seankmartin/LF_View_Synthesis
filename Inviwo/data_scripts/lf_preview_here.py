@@ -23,7 +23,7 @@ def main(pixel_dim):
                                                                interspatial_distance=0.5)
 
     #Preview the lf camera array
-    lf_camera_here.view_array(cam, save=False)
+    lf_camera_here.view_array(cam, save=False, should_time=True)
 
 
 if __name__ == '__main__':
