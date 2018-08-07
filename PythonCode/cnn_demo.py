@@ -17,6 +17,8 @@ import helpers
 import data_transform
 from data_transform import denormalise_lf
 import image_warping
+import evaluate
+import welford
 
 def get_sub_dir_for_saving(base_dir):
     """
@@ -38,7 +40,7 @@ def get_sub_dir_for_saving(base_dir):
 
     return sub_dir_to_save_to
 
-def main(args, config):
+def main(args, config, sample_index):
     cuda = cnn_utils.check_cuda(config)
 
     model = cnn_utils.load_model_and_weights(args, config)
@@ -46,7 +48,7 @@ def main(args, config):
         model = model.cuda()
 
     model.eval()
-    
+
     # Create output directory
     base_dir = os.path.join(config['PATH']['output_dir'], 'warped')
     if not os.path.isdir(base_dir):
@@ -55,69 +57,69 @@ def main(args, config):
 
     # TODO if GT is available, can get diff images
     start_time = time.time()
-    if not args.no_hdf5:
-        file_path = os.path.join(config['PATH']['hdf5_dir'],
-                                  config['PATH']['hdf5_name'])
-        with h5py.File(file_path, mode='r', libver='latest') as hdf5_file:
-            depth_grp = hdf5_file['val']['disparity']
-            SNUM = 3
-            depth_images = torch.tensor(
-                depth_grp['images'][SNUM, ...],
-                dtype=torch.float32)
+    file_path = os.path.join(config['PATH']['hdf5_dir'],
+                                config['PATH']['hdf5_name'])
+    with h5py.File(file_path, mode='r', libver='latest') as hdf5_file:
+        depth_grp = hdf5_file['val']['disparity']
+        SNUM = sample_index
+        depth_images = torch.tensor(
+            depth_grp['images'][SNUM, ...],
+            dtype=torch.float32)
 
-            colour_grp = hdf5_file['val']['colour']
-            colour_images = torch.tensor(
-                colour_grp['images'][SNUM, ...],
-                dtype=torch.float32)
+        colour_grp = hdf5_file['val']['colour']
+        colour_images = torch.tensor(
+            colour_grp['images'][SNUM, ...],
+            dtype=torch.float32)
 
-            sample = {'depth': depth_images, 
-                      'colour': colour_images,
-                      'grid_size': depth_images.shape[0]}
+        sample = {'depth': depth_images,
+                    'colour': colour_images,
+                    'grid_size': depth_images.shape[0]}
 
-            warped = data_transform.center_normalise(sample)
-            im_input = warped['inputs'].unsqueeze_(0)
+        warped = data_transform.center_normalise(sample)
+        im_input = warped['inputs'].unsqueeze_(0)
 
-            if cuda:
-                im_input = im_input.cuda()
+        if cuda:
+            im_input = im_input.cuda()
 
-            output = model(im_input)
+        output = model(im_input)
 
-    else:
-        #Expect folder to have format, depth0.png, colour0.png ...
-        INPUT_IMAGES = 1
-        for i in range(INPUT_IMAGES):
-            end_str = str(i) + '.png'
-            depth_loc = os.path.join(
-                config['PATH']['image_dir'],
-                'depth' + end_str
-            )
-            colour_loc = os.path.join(
-                config['PATH']['image_dir'],
-                'colour' + end_str
-            )
-            depth = Image.open(depth_loc)
-            depth.load()
-            #Convert to disparity - needs metadata
-            #warp it as in hdf5
-            #combine with other warped
-            #do model
+        time_taken = time.time() - start_time
+        print("Time taken was {:4f}s".format(time_taken))
+        grid_size = 64
 
-    time_taken = time.time() - start_time
-    print("Time taken was {:.0f}s".format(time_taken))
-    grid_size = 64
+        psnr_accumulator = (0, 0, 0)
+        ssim_accumulator = (0, 0, 0)
 
-    print("Saving output to", save_dir)
-    cpu_output = denormalise_lf(output).cpu().detach().numpy().astype(np.uint8)
-    grid_len = int(math.sqrt(grid_size))
-    for i in range(grid_size):
-        row, col = i // grid_len, i % grid_len
+        print("Saving output to", save_dir)
 
-        file_name = 'Colour{}{}.png'.format(row, col)
-        save_location = os.path.join(save_dir, file_name)
-        if i == 0:
-            print("Saving images of size ", cpu_output[0, i, ...].shape)
-        image_warping.save_array_as_image(
-            cpu_output[0, i, ...], save_location)
+        cpu_output = denormalise_lf(output).cpu().detach().numpy().astype(np.uint8)
+        grid_len = int(math.sqrt(grid_size))
+        for i in range(grid_size):
+            row, col = i // grid_len, i % grid_len
+
+            file_name = 'Colour{}{}.png'.format(row, col)
+            save_location = os.path.join(save_dir, file_name)
+            if i == 0:
+                print("Saving images of size ", cpu_output[0, i, ...].shape)
+            image_warping.save_array_as_image(
+                cpu_output[0, i, ...], save_location)
+
+            if not args.no_eval:
+                psnr = evaluate.my_psnr(
+                    cpu_output[0, i, ...], 
+                    colour_images[i].numpy().astype(np.uint8))
+                ssim = evaluate.ssim(
+                    cpu_output[0, i, ...], 
+                    colour_images[i].numpy().astype(np.uint8))
+                psnr_accumulator = welford.update(psnr_accumulator, psnr)
+                ssim_accumulator = welford.update(ssim_accumulator, ssim)
+
+        psnr_mean, psnr_var, _ = welford.finalize(psnr_accumulator)
+        ssim_mean, ssim_var, _ = welford.finalize(ssim_accumulator)
+        print("For cnn, psnr average {:5f}, stddev {:5f}".format(
+            psnr_mean, math.sqrt(psnr_var)))
+        print("For cnn, ssim average {:5f}, stddev {:5f}".format(
+            ssim_mean, math.sqrt(ssim_var)))
 
 if __name__ == '__main__':
     MODEL_HELP_STR = ' '.join((
@@ -131,8 +133,10 @@ if __name__ == '__main__':
         description='Process modifiable parameters from command line')
     PARSER.add_argument('--pretrained', default="best_model.pth", type=str,
                         help=MODEL_HELP_STR)
-    PARSER.add_argument('--no_hdf5', action='store_true',
-                        help=HDF_HELP_STR)
+    PARSER.add_argument('--no_eval', action='store_true',
+                        help='do not evaluate the output')
+    PARSER.add_argument('--sample', default=0, type=int,
+                        help='which light field sample to use, default 0')
     #Any unknown argument will go to unparsed
     ARGS, UNPARSED = PARSER.parse_known_args()
 
@@ -150,4 +154,4 @@ if __name__ == '__main__':
     print('Command Line arguments')
     print(ARGS)
     print()
-    main(ARGS, CONFIG)
+    main(ARGS, CONFIG, ARGS.sample)
