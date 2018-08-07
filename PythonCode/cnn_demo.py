@@ -162,6 +162,21 @@ def main(args, config, sample_index):
             print("For no cnn, ssim average {:5f}, stddev {:5f}".format(
                 ssim_mean, math.sqrt(ssim_var)))
 
+        #Ground truth possible
+        """
+        grid_size = 64
+        grid_len = int(math.sqrt(grid_size))
+        for i in range(grid_size):
+            row, col = i // grid_len, i % grid_len
+
+            file_name = 'Colour{}{}.png'.format(row, col)
+            save_location = os.path.join(save_dir, file_name)
+            if i == 0:
+                print("Saving images of size ", colour_images[i, ...].shape)
+            image_warping.save_array_as_image(
+                colour_images[i, ...].numpy().astype(np.uint8), save_location)
+        """
+
 if __name__ == '__main__':
     MODEL_HELP_STR = ' '.join((
         'Model name to load from config model dir',
