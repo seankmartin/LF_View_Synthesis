@@ -19,7 +19,7 @@ def disparity_based_rendering(
     sample_index = grid_size // 2 + (grid_one_way // 2)
     for i in range(grid_one_way):
         for j in range(grid_one_way):
-            res = image_warping.fw_warp_image(
+            res = image_warping.sk_warp(
                 ref_view=views[sample_index],
                 disparity_map=disparities[sample_index],
                 ref_pos=np.asarray([grid_one_way // 2, grid_one_way // 2]),
@@ -55,8 +55,8 @@ def normalise_sample(sample):
 
 def upper_left_patch(sample):
     width = sample['colour'].shape[2]
-    sample['colour'] = sample['colour'][:, 0:width//2, 0:width//2, :]
-    sample['depth'] = sample['depth'][:, 0:width//2, 0:width//2, :]
+    sample['colour'] = sample['colour'][:, 0:width//2, 0:width//2]
+    sample['depth'] = sample['depth'][:, 0:width//2, 0:width//2]
     return sample
 
 def get_random_crop(sample, patch_size):
@@ -66,8 +66,8 @@ def get_random_crop(sample, patch_size):
     start_v = random.randint(0, high)
     end_h = start_h + patch_size
     end_v = start_v + patch_size
-    sample['depth'] = sample['depth'][:, start_h:end_h, start_v:end_v, :]
-    sample['colour'] = sample['colour'][:, start_h:end_h, start_v:end_v, :]
+    sample['depth'] = sample['depth'][:, start_h:end_h, start_v:end_v]
+    sample['colour'] = sample['colour'][:, start_h:end_h, start_v:end_v]
     return sample
 
 def random_gamma(sample):
