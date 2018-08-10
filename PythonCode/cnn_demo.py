@@ -42,7 +42,6 @@ def get_sub_dir_for_saving(base_dir):
 
 def main(args, config, sample_index):
     cuda = cnn_utils.check_cuda(config)
-
     model = cnn_utils.load_model_and_weights(args, config)
     if cuda:
         model = model.cuda()
@@ -55,25 +54,24 @@ def main(args, config, sample_index):
         pathlib.Path(base_dir).mkdir(parents=True, exist_ok=True)
     save_dir = get_sub_dir_for_saving(base_dir)
 
-    # TODO if GT is available, can get diff images
     start_time = time.time()
     file_path = os.path.join(config['PATH']['hdf5_dir'],
                                 config['PATH']['hdf5_name'])
     with h5py.File(file_path, mode='r', libver='latest') as hdf5_file:
         depth_grp = hdf5_file['val']['disparity']
         SNUM = sample_index
-        depth_images = torch.tensor(
-            depth_grp['images'][SNUM, ...],
-            dtype=torch.float32)
+        depth_images = torch.squeeze(torch.tensor(
+            depth_grp['images'][SNUM],
+            dtype=torch.float32))
 
         colour_grp = hdf5_file['val']['colour']
         colour_images = torch.tensor(
-            colour_grp['images'][SNUM, ...],
+            colour_grp['images'][SNUM],
             dtype=torch.float32)
 
         sample = {'depth': depth_images,
-                    'colour': colour_images,
-                    'grid_size': depth_images.shape[0]}
+                  'colour': colour_images,
+                  'grid_size': depth_images.shape[0]}
 
         warped = data_transform.center_normalise(sample)
         im_input = warped['inputs'].unsqueeze_(0)
@@ -92,7 +90,14 @@ def main(args, config, sample_index):
 
         print("Saving output to", save_dir)
 
-        cpu_output = denormalise_lf(output).cpu().detach().numpy().astype(np.uint8)
+        output = torch.squeeze(denormalise_lf(output))
+        cpu_output = np.around(output.cpu().detach().numpy()).astype(np.uint8)
+
+        if (not args.no_eval) or args.get_diff:
+            ground_truth = np.around(
+                denormalise_lf(colour_images).numpy()
+                ).astype(np.uint8)
+
         grid_len = int(math.sqrt(grid_size))
         for i in range(grid_size):
             row, col = i // grid_len, i % grid_len
@@ -100,17 +105,29 @@ def main(args, config, sample_index):
             file_name = 'Colour{}{}.png'.format(row, col)
             save_location = os.path.join(save_dir, file_name)
             if i == 0:
-                print("Saving images of size ", cpu_output[0, i, ...].shape)
+                print("Saving images of size ", cpu_output[i].shape)
             image_warping.save_array_as_image(
-                cpu_output[0, i, ...], save_location)
+                cpu_output[i], save_location)
+            
+            if args.get_diff:
+                colour = ground_truth[i]
+                diff = image_warping.get_diff_image(colour, cpu_output[i])
+                #diff = get_diff_image_floatint(res, colour)
+                file_name = 'Diff{}{}.png'.format(row, col)
+                save_location = os.path.join(cnn_dir, file_name)
+                image_warping.save_array_as_image(diff, save_location)
 
             if not args.no_eval:
+                img = ground_truth[i]
+                file_name = 'GT_Colour{}{}.png'.format(row, col)
+                save_location = os.path.join(save_dir, file_name)
+                image_warping.save_array_as_image(img, save_location)
                 psnr = evaluate.my_psnr(
-                    cpu_output[0, i, ...], 
-                    colour_images[i].numpy().astype(np.uint8))
+                    cpu_output[i], 
+                    img)
                 ssim = evaluate.ssim(
-                    cpu_output[0, i, ...], 
-                    colour_images[i].numpy().astype(np.uint8))
+                    cpu_output[i], 
+                    img)
                 psnr_accumulator = welford.update(psnr_accumulator, psnr)
                 ssim_accumulator = welford.update(ssim_accumulator, ssim)
 
@@ -137,6 +154,8 @@ if __name__ == '__main__':
                         help='do not evaluate the output')
     PARSER.add_argument('--sample', default=0, type=int,
                         help='which light field sample to use, default 0')
+    PARSER.add_argument('--get_diff', action='store_true',
+                        help="Should get difference images")
     #Any unknown argument will go to unparsed
     ARGS, UNPARSED = PARSER.parse_known_args()
 

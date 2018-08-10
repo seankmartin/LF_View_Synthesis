@@ -53,7 +53,7 @@ def sk_warp(
         cval=blank, preserve_range=preserve_range, order=1
         )
     if preserve_range:
-        novel_view = novel_view.astype(np.uint8)
+        novel_view = np.around(novel_view).astype(np.uint8)
     return novel_view
 
 def valid_pixel(pixel, img_size):
@@ -139,12 +139,12 @@ def save_array_as_image(array, save_location):
 
 def get_diff_image(im1, im2):
     diff = np.subtract(im1.astype(float), im2.astype(float))
-    diff = abs(diff).astype(np.uint8)
+    diff = np.around(abs(diff)).astype(np.uint8)
     return diff
 
 def get_diff_image_floatint(im1_float, im2_int):
     diff = np.subtract(im1_float, im2_int.astype(float) / 255.0)
-    diff = abs(diff).astype(np.uint8)
+    diff = np.around(abs(diff)).astype(np.uint8)
     return diff
 
 def get_sub_dir_for_saving(base_dir):
@@ -170,17 +170,17 @@ def get_sub_dir_for_saving(base_dir):
 def main(config):
     hdf5_path = os.path.join(config['PATH']['output_dir'],
                              config['PATH']['hdf5_name'])
-    warp_type = WARP_TYPE.SK
+    warp_type = WARP_TYPE.FW
     with h5py.File(hdf5_path, mode='r', libver='latest') as hdf5_file:
         grid_size = 64
         grid_one_way = 8
         sample_index = grid_size // 2 + (grid_one_way // 2)
-        depth_grp = hdf5_file['train']['disparity']
-        SNUM = 2
-        depth_image = depth_grp['images'][SNUM, sample_index, :, :, 0]
+        depth_grp = hdf5_file['val']['disparity']
+        SNUM = 0
+        depth_image = np.squeeze(depth_grp['images'][SNUM, sample_index])
 
         #Hardcoded some values for now
-        colour_grp = hdf5_file['train']['colour']
+        colour_grp = hdf5_file['val']['colour']
         colour_image = colour_grp['images'][SNUM, sample_index]
 
         #Can later expand like 0000 if needed
