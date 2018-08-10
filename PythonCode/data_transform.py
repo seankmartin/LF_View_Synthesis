@@ -20,8 +20,8 @@ def disparity_based_rendering(
     for i in range(grid_one_way):
         for j in range(grid_one_way):
             res = image_warping.fw_warp_image(
-                ref_view=views[sample_index, ...],
-                disparity_map=disparities[sample_index, ...],
+                ref_view=views[sample_index],
+                disparity_map=disparities[sample_index],
                 ref_pos=np.asarray([grid_one_way // 2, grid_one_way // 2]),
                 novel_pos=np.asarray([i, j]),
                 dtype=dtype,
