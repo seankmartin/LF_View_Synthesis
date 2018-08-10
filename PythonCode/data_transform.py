@@ -56,8 +56,8 @@ def normalise_sample(sample):
 
 def upper_left_patch(sample):
     width = sample['colour'].shape[2]
-    sample['colour'] = sample['colour'][:, 0:width//2, 0:width//2, :]
-    sample['depth'] = sample['depth'][:, 0:width//2, 0:width//2, :]
+    sample['colour'] = sample['colour'][:, 0:width//2, 0:width//2]
+    sample['depth'] = sample['depth'][:, 0:width//2, 0:width//2]
     return sample
 
 def get_random_crop(sample, patch_size):
@@ -67,8 +67,8 @@ def get_random_crop(sample, patch_size):
     start_v = random.randint(0, high)
     end_h = start_h + patch_size
     end_v = start_v + patch_size
-    sample['depth'] = sample['depth'][:, start_h:end_h, start_v:end_v, :]
-    sample['colour'] = sample['colour'][:, start_h:end_h, start_v:end_v, :]
+    sample['depth'] = sample['depth'][:, start_h:end_h, start_v:end_v]
+    sample['colour'] = sample['colour'][:, start_h:end_h, start_v:end_v]
     return sample
 
 def random_gamma(sample):
@@ -95,7 +95,7 @@ def disparity_to_rgb(sample):
     max = float(depth.max())
     depth.add_(-min).div_(max - min + 1e-5)
     scale = cm.ScalarMappable(None, cmap="plasma")
-    coloured = scale.to_rgba(depth[:, :, 0], norm=False)
+    coloured = scale.to_rgba(depth, norm=False)
     sample['depth'] = torch.tensor(coloured[:, :, :3], dtype=torch.float32) 
     return sample
 

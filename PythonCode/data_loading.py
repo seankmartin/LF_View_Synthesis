@@ -44,8 +44,8 @@ class TrainFromHdf5(data.Dataset):
                 self.file_path, mode='r',
                 libver='latest', swmr=True) as h5_file:
             idx = index // self.num_crops
-            depth = torch.tensor(
-                h5_file[self.depth][idx], dtype=torch.float32)
+            depth = torch.squeeze(torch.tensor(
+                h5_file[self.depth][idx], dtype=torch.float32))
             colour = torch.tensor(
                 h5_file[self.colour][idx], dtype=torch.float32)
             grid_size = self.grid_size
@@ -92,8 +92,8 @@ class ValFromHdf5(data.Dataset):
         with h5py.File(
                 self.file_path, mode='r',
                 libver='latest', swmr=True) as h5_file:
-            depth = torch.tensor(
-                h5_file[self.depth][index], dtype=torch.float32)
+            depth = torch.squeeze(torch.tensor(
+                h5_file[self.depth][index], dtype=torch.float32))
             colour = torch.tensor(
                 h5_file[self.colour][index], dtype=torch.float32)
             grid_size = self.grid_size

@@ -114,7 +114,7 @@ def main(args, config, sample_index):
                 diff = image_warping.get_diff_image(colour, cpu_output[i])
                 #diff = get_diff_image_floatint(res, colour)
                 file_name = 'Diff{}{}.png'.format(row, col)
-                save_location = os.path.join(cnn_dir, file_name)
+                save_location = os.path.join(save_dir, file_name)
                 image_warping.save_array_as_image(diff, save_location)
 
             if not args.no_eval:
