@@ -2,12 +2,13 @@
 import configparser
 import os
 from enum import Enum
+import math
 
 import h5py
 from PIL import Image
 import numpy as np
 from skimage.transform import warp
-import math
+import torch
 
 import welford
 import evaluate
@@ -16,6 +17,7 @@ class WARP_TYPE(Enum):
     FW = 1
     SK = 2
     SLOW = 3
+    TORCH = 4
 
 def shift_disp(xy, disp, distance, dtype):
     #Repeat the elements of the disparity_map to match the distance
@@ -62,6 +64,77 @@ def valid_pixel(pixel, img_size):
     valid = (((pixel[0] > -1) and (pixel[0] < size_x)) and
              ((pixel[1] > -1) and (pixel[1] < size_y)))
     return valid
+
+def torch_sample(array, indexes, desired_shape):
+    """
+    From a numpy array, and a set of indices of shape [2, X]
+    Where indexes[0] denotes the x indices of the array
+    and indexes[1] denotes the y indices of the array
+    return array indexed at these positions
+    """
+    torch_arr = torch.tensor(array, dtype=torch.float64)
+    indexed = torch_arr[[indexes[0], indexes[1]]]
+    return indexed.reshape(desired_shape[0], desired_shape[1], desired_shape[2])
+
+def torch_warp(
+        ref_view, disparity_map, ref_pos, novel_pos):
+    s_indices = np.arange(ref_view.shape[0])
+    t_indices = np.arange(ref_view.shape[0])
+    
+    x, y = np.meshgrid(s_indices, t_indices, indexing= 'ij')
+    
+    distance = ref_pos - novel_pos
+    
+    x_shifted = (x.astype(np.float32) - disparity_map * distance[0]).flatten()
+    y_shifted = (y.astype(np.float32) - disparity_map * distance[1]).flatten()
+    
+    #indices for linear interpolation in a square around the central point
+    x_low = np.floor(x_shifted).astype(int)
+    x_high = x_low + 1
+    
+    y_low = np.floor(y_shifted).astype(int)
+    y_high = y_low + 1
+    
+    #Place co-ordinates outside the image back into the image
+    x_low_clip = np.clip(x_low, 0, ref_view.shape[0] - 1)
+    x_high_clip = np.clip(x_high, 0, ref_view.shape[0] - 1)
+    y_low_clip = np.clip(y_low, 0, ref_view.shape[1] - 1)
+    y_high_clip = np.clip(y_high, 0, ref_view.shape[1] - 1)
+    
+    #Gather the interpolation points
+    interp_pts_1 = np.stack((x_low_clip, y_low_clip), -1).T
+    interp_pts_2 = np.stack((x_low_clip, y_high_clip), -1).T
+    interp_pts_3 = np.stack((x_high_clip, y_low_clip), -1).T
+    interp_pts_4 = np.stack((x_high_clip, y_high_clip), -1).T
+    
+    #Index into the images
+    desired_shape = ref_view.shape
+    res_1 = torch_sample(ref_view, interp_pts_1, desired_shape)
+    res_2 = torch_sample(ref_view, interp_pts_2, desired_shape)
+    res_3 = torch_sample(ref_view, interp_pts_3, desired_shape)
+    res_4 = torch_sample(ref_view, interp_pts_4, desired_shape)
+ 
+    #Compute interpolation weights
+    x_low_f = x_low.astype(np.float64)
+    d_x_low = 1.0 - (x_shifted - x_low_f)
+    d_x_high = 1.0 - d_x_low
+    y_low_f = y_low.astype(np.float64)
+    d_y_low = 1.0 - (y_shifted - y_low_f)
+    d_y_high = 1.0 - d_y_low
+    
+    w1 = torch.from_numpy(d_x_low * d_y_low)
+    w2 = torch.from_numpy(d_x_low * d_y_high)
+    w3 = torch.from_numpy(d_x_high * d_y_low)
+    w4 = torch.from_numpy(d_x_high * d_y_high)
+    
+    weighted_1 = torch.mul(w1.repeat(3).reshape(desired_shape), res_1)
+    weighted_2 = torch.mul(w2.repeat(3).reshape(desired_shape), res_2)
+    weighted_3 = torch.mul(w3.repeat(3).reshape(desired_shape), res_3)
+    weighted_4 = torch.mul(w4.repeat(3).reshape(desired_shape), res_4)
+    
+    novel_view = torch.add(torch.add(weighted_1, weighted_2), weighted_3)
+    torch.add(novel_view, weighted_4, out=novel_view)
+    return novel_view
 
 def fw_warp_image(
     ref_view, disparity_map, ref_pos, novel_pos, 
@@ -170,7 +243,7 @@ def get_sub_dir_for_saving(base_dir):
 def main(config):
     hdf5_path = os.path.join(config['PATH']['output_dir'],
                              config['PATH']['hdf5_name'])
-    warp_type = WARP_TYPE.FW
+    warp_type = WARP_TYPE.TORCH
     with h5py.File(hdf5_path, mode='r', libver='latest') as hdf5_file:
         grid_size = 64
         grid_one_way = 8
@@ -207,6 +280,11 @@ def main(config):
                         colour_image, depth_image,
                         np.asarray([4, 4]), np.asarray([i, j])
                     )
+                elif warp_type is WARP_TYPE.TORCH:
+                    res = np.around(torch_warp(
+                        colour_image, depth_image, 
+                        np.asarray([4, 4]), np.asarray([i, j])
+                    ).numpy()).astype(np.uint8)
                 file_name = 'Warped_Colour{}{}.png'.format(i, j)
                 save_location = os.path.join(save_dir, file_name)
                 save_array_as_image(res, save_location)
