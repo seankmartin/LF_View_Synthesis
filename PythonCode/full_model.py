@@ -7,14 +7,14 @@ Criterion
 import torch.nn as nn
 import torch.optim as optim
 
-from model_3d import C2D
+from model_2d import C2D
 from torch.optim.lr_scheduler import CosineAnnealingLR
 # from torch.optim.lr_scheduler import CyclicLR
 
 def setup_model(args):
     """Returns a tuple of the model, criterion, optimizer and lr_scheduler"""
     print("Building model")
-    model = C2D(inchannels=65, outchannels=64)
+    model = C2D(args, inchannels=64, outchannels=64)
     criterion = nn.MSELoss(size_average=True)
     optimizer = optim.SGD(
         model.parameters(),
