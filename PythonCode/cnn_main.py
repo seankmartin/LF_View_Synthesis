@@ -203,7 +203,7 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
         print("Phase {} average overall loss {:.5f}".format(phase, epoch_loss))
         time_elapsed = time.time() - since
         print("Phase {} took {:.0f}s overall".format(phase, time_elapsed))
-        
+
         if phase == 'val':
             print()
             for idx, param_group in enumerate(optimizer.param_groups):
@@ -246,7 +246,7 @@ if __name__ == '__main__':
                         help="Number of features to use, default 64")
     PARSER.add_argument('--n_resblocks', '--nr', default=10, type=int,
                         help="Number of residual blocks, default 10")
-    PARSER.add_argument('--res_scale', '--nr', default=1.0, type=float,
+    PARSER.add_argument('--res_scale', '--rs', default=1.0, type=float,
                         help="Float to scale residuals by, default 1.0")
     #Any unknown argument will go to unparsed
     ARGS, UNPARSED = PARSER.parse_known_args()
