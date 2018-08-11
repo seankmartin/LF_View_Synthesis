@@ -11,9 +11,9 @@ class C2D(nn.Module):
         #Originally used ReLU
         act = nn.ELU(inplace=True)
 
-        #rgb_mean = (0.4488, 0.4371, 0.4040)
-        #rgb_std = (1.0, 1.0, 1.0)
-        #self.sub_mean = common.MeanShift(args.rgb_range, rgb_mean, rgb_std)
+        rgb_mean = (0.4488, 0.4371, 0.4040)
+        rgb_std = (1.0, 1.0, 1.0)
+        self.sub_mean = common.MeanShift(1.0, rgb_mean, rgb_std)
         
 
         # define head module
@@ -36,21 +36,21 @@ class C2D(nn.Module):
             nn.Tanh()
         ]
 
-        #self.add_mean = common.MeanShift(args.rgb_range, rgb_mean, rgb_std, 1)
+        self.add_mean = common.MeanShift(1.0, rgb_mean, rgb_std, 1)
 
         self.head = nn.Sequential(*m_head)
         self.body = nn.Sequential(*m_body)
         self.tail = nn.Sequential(*m_tail)
 
     def forward(self, x):
-        # x = self.sub_mean(x)
+        x = self.sub_mean(x)
         x = self.head(x)
 
         res = self.body(x)
         res += x
 
         x = self.tail(res)
-        # x = self.add_mean(x)
+        x = self.add_mean(x)
 
         return x 
 
@@ -59,15 +59,14 @@ class C2D(nn.Module):
         for name, param in state_dict.items():
             if name in own_state:
                 #Only copy the body information
-                if not name.find('body'):
-                    continue
-                if isinstance(param, nn.Parameter):
-                    param = param.data
-                try:
-                    own_state[name].copy_(param)
-                except Exception:
-                    if name.find('tail') == -1:
-                        raise RuntimeError('While copying the parameter named {}, '
-                                           'whose dimensions in the model are {} and '
-                                           'whose dimensions in the checkpoint are {}.'
-                                           .format(name, own_state[name].size(), param.size()))
+                if name.find('body') is not -1:
+                    if isinstance(param, nn.Parameter):
+                        param = param.data
+                    try:
+                        own_state[name].copy_(param)
+                    except Exception:
+                        if name.find('tail') == -1:
+                            raise RuntimeError('While copying the parameter named {}, '
+                                            'whose dimensions in the model are {} and '
+                                            'whose dimensions in the checkpoint are {}.'
+                                            .format(name, own_state[name].size(), param.size()))

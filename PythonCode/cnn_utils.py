@@ -63,7 +63,10 @@ def load_weights(model, args, config):
     if os.path.isfile(weights_location):
         print("=> loading model '{}'".format(weights_location))
         weights = torch.load(weights_location)
-        model.load_state_dict(weights['model'].state_dict())
+        if 'model' in weights:
+            model.load_state_dict(weights['model'].state_dict())
+        else:
+            model.load_state_dict(weights)
     else:
         print("=> no model found at '{}'".format(weights_location))
 
@@ -94,19 +97,22 @@ def print_mem_usage():
 def log_all_layer_weights(model, writer, epoch):
     log_layer_weights(
         model, writer, epoch,
-        'body.0', 'First layer weight')
+        'layer1', 'First layer weight')
     log_layer_weights(
         model, writer, epoch,
-        'body.1', 'Second layer weight')
+        'layer2', 'Second layer weight')
     log_layer_weights(
         model, writer, epoch,
-        'body.2', 'Third layer weight')
+        'layer3', 'Third layer weight')
     log_layer_weights(
         model, writer, epoch,
-        'body.3', 'Last layer weight')
+        'layer4', 'Last layer weight')
+    log_layer_weights(
+        model, writer, epoch,
+        'layer5', 'Last layer weight')
 
 def log_layer_weights(model, writer, epoch, name, out_string):
-    name = name + '.body.0.weight'
+    name = name + '.0.conv1.weight'
     layer_weights = model.state_dict()[name]
     writer.add_histogram(
         out_string, layer_weights, epoch, 'auto')
