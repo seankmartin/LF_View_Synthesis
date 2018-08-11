@@ -203,10 +203,10 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
         print("Phase {} average overall loss {:.5f}".format(phase, epoch_loss))
         time_elapsed = time.time() - since
         print("Phase {} took {:.0f}s overall".format(phase, time_elapsed))
-
-        if phase == 'val':
-            print()
-            for idx, param_group in enumerate(optimizer.param_groups):
+nputs
+        if phase == 'val':nputs
+            print()nputs
+            for idx, param_group in enumerate(optimizer.param_groups):nputs
                 writer.add_scalar(
                     'learning_rate', param_group['lr'], epoch)
             return epoch_loss
