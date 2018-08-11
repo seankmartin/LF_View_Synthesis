@@ -337,13 +337,13 @@ def get_sub_dir_for_saving(base_dir):
 def main(config):
     hdf5_path = os.path.join(config['PATH']['output_dir'],
                              config['PATH']['hdf5_name'])
-    warp_type = WARP_TYPE.TORCH_ALL
+    warp_type = WARP_TYPE.TORCH
     with h5py.File(hdf5_path, mode='r', libver='latest') as hdf5_file:
         grid_size = 64
         grid_one_way = 8
         sample_index = grid_size // 2 + (grid_one_way // 2)
         depth_grp = hdf5_file['val']['disparity']
-        SNUM = 0
+        SNUM = 20
         depth_image = np.squeeze(depth_grp['images'][SNUM, sample_index])
 
         #Hardcoded some values for now

@@ -19,13 +19,11 @@ def disparity_based_rendering(
     sample_index = grid_size // 2 + (grid_one_way // 2)
     for i in range(grid_one_way):
         for j in range(grid_one_way):
-            res = image_warping.sk_warp(
+            res = image_warping.torch_warp(
                 ref_view=views[sample_index],
                 disparity_map=disparities[sample_index],
                 ref_pos=np.asarray([grid_one_way // 2, grid_one_way // 2]),
-                novel_pos=np.asarray([i, j]),
-                dtype=dtype,
-                blank=blank
+                novel_pos=np.asarray([i, j])
             )
             warped_images[i * grid_one_way + j] = res
     return warped_images
@@ -45,6 +43,29 @@ def transform_to_warped(sample):
 
     inputs = torch.from_numpy(warped_images)
     return {'inputs': inputs, 'targets': targets}
+
+def torch_stack(input_t, channels=64):
+    #This has shape im_size, im_size, num_colours * num_images
+    out = torch.squeeze(
+        torch.cat(torch.chunk(input_t, channels, dim=0), dim=-1))
+
+    #This has shape num_colour * num_images, im_size, im_size
+    out = out.transpose_(0, 2).transpose_(1, 2)
+    return out
+
+def torch_unstack(input_t, channels=64):
+    #This has shape num_images, num_channels, im_size, im_size
+    input_back = torch.stack(torch.chunk(input_t, 64, dim=0))
+
+    #This has shape num_images, im_size, im_size, num_channels
+    input_back = input_back.transpose_(1, 3).transpose_(1, 2)
+
+    return input_back
+
+def stack(sample, channels=64):
+    sample['inputs'] = torch_stack(sample['inputs'], channels)
+    sample['targets'] = torch_stack(sample['targets'], channels)
+    return sample
 
 def normalise_sample(sample):
     """Coverts an lf in the range 0 to maximum into 0 1"""

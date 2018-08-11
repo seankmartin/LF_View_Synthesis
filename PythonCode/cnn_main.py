@@ -20,6 +20,7 @@ import cnn_utils
 from full_model import setup_model
 from data_loading import create_dataloaders
 import helpers
+from data_transform import torch_unstack
 
 CONTINUE_MESSAGE = "==> Would you like to continue training?"
 SAVE_MESSAGE = "==> Would you like to save the model?"
@@ -167,6 +168,10 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                     loss.item()))
 
             if iteration == len(dset_loaders[phase]) - 1:
+                inputs[0] = torch_unstack(inputs[0])
+                residuals[0] = torch_unstack(residuals[0])
+                outputs[0] = torch_unstack(outputs[0])
+                targets[0] = torch_unstack(targets[0])
                 input_imgs = cnn_utils.transform_lf_to_torch(inputs[0])
                 residual_imgs = cnn_utils.transform_lf_to_torch(residuals[0])
                 out_imgs = cnn_utils.transform_lf_to_torch(outputs[0])
@@ -237,6 +242,12 @@ if __name__ == '__main__':
                         help='Unique identifier for a model. REQUIRED')
     PARSER.add_argument('--config', "--cfg", default='main.ini', type=str,
                         help="Name of config file to use")
+    PARSER.add_argument('--n_feats', '--nf', default=64, type=int,
+                        help="Number of features to use, default 64")
+    PARSER.add_argument('--n_resblocks', '--nr', default=10, type=int,
+                        help="Number of residual blocks, default 10")
+    PARSER.add_argument('--res_scale', '--nr', default=1.0, type=float,
+                        help="Float to scale residuals by, default 1.0")
     #Any unknown argument will go to unparsed
     ARGS, UNPARSED = PARSER.parse_known_args()
     if ARGS.tag is None:

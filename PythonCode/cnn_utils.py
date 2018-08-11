@@ -94,19 +94,19 @@ def print_mem_usage():
 def log_all_layer_weights(model, writer, epoch):
     log_layer_weights(
         model, writer, epoch,
-        'first', 'First layer weight')
+        'body.0', 'First layer weight')
     log_layer_weights(
         model, writer, epoch,
-        'layer1', 'Second layer weight')
+        'body.1', 'Second layer weight')
     log_layer_weights(
         model, writer, epoch,
-        'layer2', 'Third layer weight')
+        'body.2', 'Third layer weight')
     log_layer_weights(
         model, writer, epoch,
-        'final', 'Last layer weight')
+        'body.3', 'Last layer weight')
 
 def log_layer_weights(model, writer, epoch, name, out_string):
-    name = name + '.conv.weight'
+    name = name + '.body.0.weight'
     layer_weights = model.state_dict()[name]
     writer.add_histogram(
         out_string, layer_weights, epoch, 'auto')

@@ -57,6 +57,8 @@ class TrainFromHdf5(data.Dataset):
             if self.transform:
                 sample = self.transform(sample)
 
+            sample = data_transform.stack(sample)
+
             return sample
 
     def __len__(self):
@@ -104,6 +106,8 @@ class ValFromHdf5(data.Dataset):
 
         if self.transform:
             sample = self.transform(sample)
+
+        sample = data_transform.stack(sample)
 
         return sample
 
