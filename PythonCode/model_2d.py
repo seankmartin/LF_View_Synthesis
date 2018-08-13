@@ -11,9 +11,9 @@ class C2D(nn.Module):
         #Originally used ReLU
         act = nn.ELU(inplace=True)
 
-        #rgb_mean = (0.4488, 0.4371, 0.4040)
-        #rgb_std = (1.0, 1.0, 1.0)
-        #self.sub_mean = common.MeanShift(args.rgb_range, rgb_mean, rgb_std)
+        rgb_mean = (0.4488, 0.4371, 0.4040)
+        rgb_std = (1.0, 1.0, 1.0)
+        self.sub_mean = common.MeanShift(1, rgb_mean, rgb_std, channels=3 * inchannels)
         
 
         # define head module
@@ -36,21 +36,22 @@ class C2D(nn.Module):
             nn.Tanh()
         ]
 
-        #self.add_mean = common.MeanShift(args.rgb_range, rgb_mean, rgb_std, 1)
+        self.add_mean = common.MeanShift(
+            1, rgb_mean, rgb_std, channels=3 * outchannels, sign=1)
 
         self.head = nn.Sequential(*m_head)
         self.body = nn.Sequential(*m_body)
         self.tail = nn.Sequential(*m_tail)
 
     def forward(self, x):
-        # x = self.sub_mean(x)
+        x = self.sub_mean(x)
         x = self.head(x)
 
         res = self.body(x)
         res += x
 
         x = self.tail(res)
-        # x = self.add_mean(x)
+        x = self.add_mean(x)
 
         return x 
 
@@ -64,6 +65,7 @@ class C2D(nn.Module):
                         param = param.data
                     try:
                         own_state[name].copy_(param)
+                        print(name, own_state[name].requires_grad)
                     except Exception:
                         if name.find('tail') == -1:
                             raise RuntimeError('While copying the parameter named {}, '
