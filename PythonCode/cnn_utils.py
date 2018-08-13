@@ -63,7 +63,10 @@ def load_weights(model, args, config):
     if os.path.isfile(weights_location):
         print("=> loading model '{}'".format(weights_location))
         weights = torch.load(weights_location)
-        model.load_state_dict(weights['model'].state_dict())
+        if 'model' in weights:
+            model.load_state_dict(weights['model'].state_dict())
+        else:
+            model.load_state_dict(weights)
     else:
         print("=> no model found at '{}'".format(weights_location))
 
