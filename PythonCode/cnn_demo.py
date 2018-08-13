@@ -75,6 +75,7 @@ def main(args, config, sample_index):
                   'grid_size': depth_images.shape[0]}
 
         warped = data_transform.transform_to_warped(sample)
+        warped = data_transform.stack(warped)
         im_input = warped['inputs'].unsqueeze_(0)
 
         if cuda:
@@ -99,6 +100,7 @@ def main(args, config, sample_index):
             os.mkdir(no_cnn_dir)
 
         output = torch.squeeze(denormalise_lf(output))
+        output = data_transform.torch_unstack(output)
         cpu_output = np.around(output.cpu().detach().numpy()).astype(np.uint8)
 
         if (not args.no_eval) or args.get_diff:
@@ -150,6 +152,7 @@ def main(args, config, sample_index):
 
         if args.no_cnn:
             squeeze_input = torch.squeeze(denormalise_lf(im_input))
+            squeeze_input = data_transform.torch_unstack(squeeze_input)
             cpu_input = np.around(
                 squeeze_input.cpu().detach().numpy()).astype(np.uint8)
             for i in range(grid_size):
