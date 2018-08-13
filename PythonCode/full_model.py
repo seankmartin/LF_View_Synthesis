@@ -14,7 +14,7 @@ from torch.optim.lr_scheduler import CosineAnnealingLR
 def setup_model(args):
     """Returns a tuple of the model, criterion, optimizer and lr_scheduler"""
     print("Building model")
-    model = C2D(args, inchannels=64, outchannels=64)
+    model = C2D(args, inchannels=65, outchannels=64)
     criterion = nn.MSELoss(size_average=True)
     optimizer = optim.SGD(
         model.parameters(),
