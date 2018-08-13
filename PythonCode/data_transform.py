@@ -7,26 +7,16 @@ import torch
 
 import image_warping
 
-def disparity_based_rendering(
-        disparities, views, grid_size,
-        dtype=np.float32, blank=-1.0):
+def disparity_based_rendering(disparities, views, grid_size):
     """Returns a list of warped images using the input views and disparites"""
      # Alternatively, grid_one_way - 1 can be used below
     shape = (grid_size,) + views.shape[-3:]
-    warped_images = np.empty(
-        shape=shape, dtype=dtype)
     grid_one_way = int(math.sqrt(grid_size))
     sample_index = grid_size // 2 + (grid_one_way // 2)
-    for i in range(grid_one_way):
-        for j in range(grid_one_way):
-            res = image_warping.torch_warp(
-                ref_view=views[sample_index],
-                disparity_map=disparities[sample_index],
-                ref_pos=np.asarray([grid_one_way // 2, grid_one_way // 2]),
-                novel_pos=np.asarray([i, j])
-            )
-            warped_images[i * grid_one_way + j] = res
-    return warped_images
+    return image_warping.depth_rendering(
+        ref_view=views[sample_index],
+        disparity_map=disparities[sample_index],
+        lf_size=shape)
 
 def transform_to_warped(sample):
     """
@@ -38,11 +28,9 @@ def transform_to_warped(sample):
     targets = sample['colour']
     grid_size = sample['grid_size']
     warped_images = disparity_based_rendering(
-        disparity.numpy(), targets.numpy(), grid_size,
-        dtype=np.float32, blank=0.0)
+        disparity.numpy(), targets.numpy(), grid_size)
 
-    inputs = torch.from_numpy(warped_images)
-    return {'inputs': inputs, 'targets': targets}
+    return {'inputs': warped_images, 'targets': targets}
 
 def torch_stack(input_t, channels=64):
     #This has shape im_size, im_size, num_colours * num_images

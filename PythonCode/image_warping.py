@@ -47,7 +47,7 @@ def torch_big_sample(array, indexes, desired_shape):
     Samples a large torch array using indexes, which are x, y arrays
     Reshapes output to desired_shape
     """
-    torch_arr = torch.tensor(array, dtype=torch.float64)
+    torch_arr = torch.tensor(array, dtype=torch.float32)
     indexed = torch_arr[[indexes[0], indexes[1]]]
     return indexed.reshape(desired_shape)
     #chunked = torch.chunk(indexed, desired_shape[0])
@@ -91,8 +91,8 @@ def depth_rendering(ref_view, disparity_map, lf_size = (64, 512, 512, 3)):
     tiled_map = np.tile(disparity_map, (lf_size[0], 1, 1))
 
     # Compute the shifted pixels
-    x_shifted = (x.astype(np.float64) - tiled_map * dis_repeated[0]).flatten()
-    y_shifted = (y.astype(np.float64) - tiled_map * dis_repeated[1]).flatten()
+    x_shifted = (x.astype(np.float32) - tiled_map * dis_repeated[0]).flatten()
+    y_shifted = (y.astype(np.float32) - tiled_map * dis_repeated[1]).flatten()
 
     #indices for linear interpolation in a square around the central point
     x_low = np.floor(x_shifted).astype(int)
@@ -121,11 +121,11 @@ def depth_rendering(ref_view, disparity_map, lf_size = (64, 512, 512, 3)):
     res_4 = torch_big_sample(ref_view, interp_pts_4, desired_shape)
 
     #Compute interpolation weights
-    x_low_f = x_low.astype(np.float64)
-    d_x_low = 1.0 - (x_shifted - x_low_f)
+    x_low_f = x_low.astype(np.float32)
+    d_x_low = 1.0 - (x_shifted.astype(np.float32) - x_low_f)
     d_x_high = 1.0 - d_x_low
-    y_low_f = y_low.astype(np.float64)
-    d_y_low = 1.0 - (y_shifted - y_low_f)
+    y_low_f = y_low.astype(np.float32)
+    d_y_low = 1.0 - (y_shifted.astype(np.float32) - y_low_f)
     d_y_high = 1.0 - d_y_low
 
     w1 = torch.from_numpy(d_x_low * d_y_low)
@@ -185,8 +185,8 @@ def depth_rendering_gpu(ref_view, disparity_map, lf_size = (64, 512, 512, 3)):
     tiled_map = np.tile(disparity_map, (lf_size[0], 1, 1))
 
     # Compute the shifted pixels
-    x_shifted = (x.astype(np.float64) - tiled_map * dis_repeated[0]).flatten()
-    y_shifted = (y.astype(np.float64) - tiled_map * dis_repeated[1]).flatten()
+    x_shifted = (x.astype(np.float32) - tiled_map * dis_repeated[0]).flatten()
+    y_shifted = (y.astype(np.float32) - tiled_map * dis_repeated[1]).flatten()
 
     #indices for linear interpolation in a square around the central point
     x_low = np.floor(x_shifted).astype(int)
@@ -209,18 +209,18 @@ def depth_rendering_gpu(ref_view, disparity_map, lf_size = (64, 512, 512, 3)):
 
     #Index into the images
     desired_shape = lf_size
-    ref_view = torch.tensor(ref_view, dtype=torch.float64).cuda()
+    ref_view = torch.tensor(ref_view, dtype=torch.float32).cuda()
     res_1 = torch_tensor_sample(ref_view, interp_pts_1, desired_shape)
     res_2 = torch_tensor_sample(ref_view, interp_pts_2, desired_shape)
     res_3 = torch_tensor_sample(ref_view, interp_pts_3, desired_shape)
     res_4 = torch_tensor_sample(ref_view, interp_pts_4, desired_shape)
 
     #Compute interpolation weights
-    x_low_f = x_low.astype(np.float64)
-    d_x_low = 1.0 - (x_shifted - x_low_f)
+    x_low_f = x_low.astype(np.float32)
+    d_x_low = 1.0 - (x_shifted.astype(np.float32) - x_low_f)
     d_x_high = 1.0 - d_x_low
-    y_low_f = y_low.astype(np.float64)
-    d_y_low = 1.0 - (y_shifted - y_low_f)
+    y_low_f = y_low.astype(np.float32)
+    d_y_low = 1.0 - (y_shifted.astype(np.float32) - y_low_f)
     d_y_high = 1.0 - d_y_low
 
     w1 = torch.from_numpy(d_x_low * d_y_low)
@@ -291,7 +291,7 @@ def torch_sample(array, indexes, desired_shape):
     and indexes[1] denotes the y indices of the array
     return array indexed at these positions
     """
-    torch_arr = torch.tensor(array, dtype=torch.float64)
+    torch_arr = torch.tensor(array, dtype=torch.float32)
     indexed = torch_arr[[indexes[0], indexes[1]]]
     return indexed.reshape(desired_shape)
 
@@ -306,8 +306,8 @@ def torch_warp(
 
     #print(np.array([x.reshape(ref_view.shape[:-1]),
     #      y.reshape(ref_view.shape[:-1])]))
-    x_shifted = (x.astype(np.float64) - disparity_map * distance[0]).flatten()
-    y_shifted = (y.astype(np.float64) - disparity_map * distance[1]).flatten()
+    x_shifted = (x.astype(np.float32) - disparity_map * distance[0]).flatten()
+    y_shifted = (y.astype(np.float32) - disparity_map * distance[1]).flatten()
     #print(np.array([x_shifted.reshape(ref_view.shape[:-1]),
     #      y_shifted.reshape(ref_view.shape[:-1])]))
 
@@ -340,10 +340,10 @@ def torch_warp(
     res_4 = torch_sample(ref_view, interp_pts_4, desired_shape)
 
     #Compute interpolation weights
-    x_low_f = x_low.astype(np.float64)
+    x_low_f = x_low.astype(np.float32)
     d_x_low = 1.0 - (x_shifted - x_low_f)
     d_x_high = 1.0 - d_x_low
-    y_low_f = y_low.astype(np.float64)
+    y_low_f = y_low.astype(np.float32)
     d_y_low = 1.0 - (y_shifted - y_low_f)
     d_y_high = 1.0 - d_y_low
 
