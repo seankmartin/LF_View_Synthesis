@@ -27,13 +27,6 @@ CONTINUE_MESSAGE = "==> Would you like to continue training?"
 SAVE_MESSAGE = "==> Would you like to save the model?"
 
 def main(args, config, writer):
-    # Used to allow gpu usage during multiprocessing - for manual seed
-    mp.set_start_method('spawn')
-
-    #Used to allow repropucible methods
-    seed = 20
-    torch.manual_seed(seed)
-
     best_loss = math.inf
     best_model, best_epoch = None, None
     cuda = cnn_utils.check_cuda(config)
