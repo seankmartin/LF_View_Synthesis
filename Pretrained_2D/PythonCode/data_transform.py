@@ -104,6 +104,6 @@ def disparity_to_rgb(disparity_map):
     min = float(depth.min())
     max = float(depth.max())
     depth.add_(-min).div_(max - min + 1e-5)
-    scale = cm.ScalarMappable(None, cmap="plasma")
+    scale = cm.ScalarMappable(None, cmap="viridis")
     coloured = scale.to_rgba(depth, norm=False)
     return torch.tensor(coloured[:, :, :3], dtype=torch.float32) 
