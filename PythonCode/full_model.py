@@ -17,7 +17,7 @@ def setup_model(args):
     model = C2D(args, inchannels=65, outchannels=64)
     criterion = nn.MSELoss(size_average=True)
     optimizer = optim.SGD(
-        model.parameters(),
+        filter(lambda p: p.requires_grad, model.parameters()),
         lr=args.lr,
         momentum=args.momentum,
         weight_decay=args.weight_decay,

@@ -47,7 +47,7 @@ def main(args, config, writer):
                         model, optimizer, args, config)
 
     if args.pretrained: # Direct copy weights from another model
-        cnn_utils.load_weights(model, args, config)
+        cnn_utils.load_weights(model, args, config, frozen=args.frozen)
 
     # Perform training and testing
     print("Beginning training loop")
@@ -167,6 +167,11 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                     epoch, iteration, len(dset_loaders[phase]),
                     loss.item()))
 
+                if phase == 'train':
+                    if not cnn_utils.check_gradients(model):
+                        print("No gradients are being computed during training")
+                        exit(-1)
+
             if iteration == len(dset_loaders[phase]) - 1:
                 inputs_s = torch_unstack(inputs[0, :-3])
                 input_depth = inputs[0, -3:]
@@ -190,7 +195,7 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                     truth_imgs, nrow=8, range=(0, 1), normalize=True,
                     pad_value=1.0)
                 diff_grid = vutils.make_grid(
-                    torch.abs(truth_imgs - out_imgs), 
+                    torch.abs(truth_imgs - out_imgs),
                     nrow=8, range=(0, 1), normalize=True,
                     pad_value=1.0)
                 writer.add_image(phase + '/input', input_grid, epoch)

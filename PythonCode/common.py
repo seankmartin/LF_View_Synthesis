@@ -22,7 +22,8 @@ class MeanShift(nn.Conv2d):
             torch.Tensor(rgb_mean), 0).expand(channels // 3, 3).reshape(channels)
         self.bias.data = sign * rgb_range * mean
         self.bias.data.div_(std)
-        self.requires_grad = False
+        for param in self.parameters():
+            param.requires_grad = False
 
 class BasicBlock(nn.Sequential):
     def __init__(
