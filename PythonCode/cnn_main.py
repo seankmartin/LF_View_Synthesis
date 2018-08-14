@@ -255,6 +255,8 @@ if __name__ == '__main__':
                         help="Number of residual blocks, default 10")
     PARSER.add_argument('--res_scale', '--rs', default=1.0, type=float,
                         help="Float to scale residuals by, default 1.0")
+    PARSER.add_argument('--frozen', '--f', default=True, type=bool,
+                        help="Should the loaded weights be frozen?")
     #Any unknown argument will go to unparsed
     ARGS, UNPARSED = PARSER.parse_known_args()
     if ARGS.tag is None:
