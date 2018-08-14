@@ -56,7 +56,7 @@ def main(args, config, writer):
             optimizer=optimizer, lr_scheduler=lr_scheduler,
             criterion=criterion, epoch=epoch,
             cuda=cuda, clip=args.clip, writer=writer, 
-            schedule_type=args.schedule)
+            schedule_type=args.schedule.lower())
 
         if epoch_loss < best_loss:
             best_loss = epoch_loss
@@ -64,7 +64,7 @@ def main(args, config, writer):
             best_model = copy.deepcopy(model)
 
         #Update the scheduler - restarting
-        if schedule_type == 'warm':
+        if args.schedule == 'warm':
             if lr_scheduler.last_epoch == lr_scheduler.T_max:
                 for group in optimizer.param_groups:
                     group['lr'] = args.lr
