@@ -96,7 +96,7 @@ def denormalise_lf(lf):
     maximum = 255.0
     lf.mul_(maximum)
     return lf
-revert commit
+
 def disparity_to_rgb(disparity_map):
     """Converts a disparity map into the range 0 1"""
     depth = disparity_map
