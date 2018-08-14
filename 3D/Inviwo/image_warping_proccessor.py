@@ -14,7 +14,7 @@ sys.path.insert(0, "/users/pgrad/martins7/.local/lib/python3.5/site-packages")
 sys.path.insert(0, "/users/pgrad/martins7/pytorch35/lib/python3.5/site-packages")
 
 # Location of pythonCode
-sys.path.insert(0, "/users/pgrad/martins7/LF_View_Synthesis/ThreeD_CNN/PythonCode")
+sys.path.insert(0, "/users/pgrad/martins7/LF_View_Synthesis/3D/PythonCode")
 
 import inviwopy
 from inviwopy.data import ImageOutport, ImageInport
