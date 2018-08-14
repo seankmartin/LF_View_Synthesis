@@ -1,6 +1,7 @@
 #!/bin/bash
 printf "The first variable should be the number of the epochs to test each model for"
 
+cd ../
 #Try the 3D model with no warping
 printf "\nTesting the 3D model without geometrical warping"
 cd Direct_3D/Scripts
