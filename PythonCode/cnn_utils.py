@@ -3,6 +3,7 @@ import os
 import math
 
 import torch
+import torch.nn as nn
 
 def check_cuda(config):
     """Checks cuda settings from config - Returns true if cuda available"""
@@ -124,3 +125,10 @@ def transform_lf_to_torch(lf):
     (B x W x H x C) so need to transpose them
     """
     return lf.transpose(1, 3).transpose(2, 3)
+
+def log_gradients(model):
+    dict_set = model.state_dict().items()
+    for name, param in dict_set:
+        print(name, param.requires_grad)
+        if isinstance(param, nn.Parameter):
+            print(name, param.requires_grad)
