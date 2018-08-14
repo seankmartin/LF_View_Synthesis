@@ -55,7 +55,7 @@ def load_from_checkpoint(model, optimizer, args, config):
         print("=> no checkpoint found at '{}'".format(resume_location))
     return best_loss
 
-def load_weights(model, args, config):
+def load_weights(model, args, config, frozen=False):
     """Load the state dict into the passed in model"""
 
     weights_location = os.path.join(
@@ -65,9 +65,9 @@ def load_weights(model, args, config):
         print("=> loading model '{}'".format(weights_location))
         weights = torch.load(weights_location)
         if 'model' in weights:
-            model.load_state_dict(weights['model'].state_dict())
+            model.load_state_dict(weights['model'].state_dict(), frozen)
         else:
-            model.load_state_dict(weights)
+            model.load_state_dict(weights, frozen)
     else:
         print("=> no model found at '{}'".format(weights_location))
 
@@ -138,12 +138,11 @@ def log_children(model):
         child_counter += 1
 
 def log_child_gradients(model):
-    child_counter = 0
-    for child in model.children():
-        print(" child", child_counter, "is -")
+    print("\nPrinting model information")
+    for child_name, child in model.named_children():
+        print(" child", child_name, "is -")
         print(child)
-        child_counter += 1
-        for idx, param in enumerate(child.parameters()):
+        for name, param in child.named_parameters():
             print(
-                "Parameter {} requires grad?".format(idx), 
+                "Parameter {} requires grad?".format(name), 
                 param.requires_grad)
