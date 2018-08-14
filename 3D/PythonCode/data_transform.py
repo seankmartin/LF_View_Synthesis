@@ -4,15 +4,14 @@ import random
 
 import numpy as np
 import torch
+import matplotlib.cm as cm
 
 import image_warping
 
-def disparity_based_rendering(disparities, views, grid_size):
+def disparity_based_rendering(disparities, views, grid_size, sample_index):
     """Returns a list of warped images using the input views and disparites"""
      # Alternatively, grid_one_way - 1 can be used below
     shape = (grid_size,) + views.shape[-3:]
-    grid_one_way = int(math.sqrt(grid_size))
-    sample_index = grid_size // 2 + (grid_one_way // 2)
     return image_warping.depth_rendering(
         ref_view=views[sample_index],
         disparity_map=disparities[sample_index],
@@ -27,10 +26,17 @@ def transform_to_warped(sample):
     disparity = sample['depth']
     targets = sample['colour']
     grid_size = sample['grid_size']
+    grid_one_way = int(math.sqrt(grid_size))
+    sample_index = grid_size // 2 + (grid_one_way // 2)
     warped_images = disparity_based_rendering(
-        disparity.numpy(), targets.numpy(), grid_size)
+        disparity.numpy(), targets.numpy(), grid_size, sample_index)
+    coloured = torch.unsqueeze(
+        disparity_to_rgb(disparity[sample_index]), 0)
+    inputs = torch.cat(
+            (warped_images, coloured) 
+        )
 
-    return {'inputs': warped_images, 'targets': targets}
+    return {'inputs': inputs, 'targets': targets}
 
 def normalise_sample(sample):
     """Coverts an lf in the range 0 to maximum into 0 1"""
@@ -68,3 +74,13 @@ def denormalise_lf(lf):
     maximum = 255.0
     lf.mul_(maximum)
     return lf
+
+def disparity_to_rgb(disparity_map):
+    """Converts a disparity map into the range 0 1"""
+    depth = disparity_map
+    min = float(depth.min())
+    max = float(depth.max())
+    depth.add_(-min).div_(max - min + 1e-5)
+    scale = cm.ScalarMappable(None, cmap="viridis")
+    coloured = scale.to_rgba(depth, norm=False)
+    return torch.tensor(coloured[:, :, :3], dtype=torch.float32)
