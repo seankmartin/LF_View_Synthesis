@@ -125,7 +125,9 @@ def transform_lf_to_torch(lf):
 
 def check_gradients(model):
     """Returns false if the model has no gradients at the first level"""
-    if list(model.parameters())[0].grad is None:
+    gradient_params = list(
+        filter(lambda p: p.requires_grad, model.parameters()))
+    if gradient_params[0].grad is None:
         print("There is some bad error, gradients are None!")
         return False
     return True
