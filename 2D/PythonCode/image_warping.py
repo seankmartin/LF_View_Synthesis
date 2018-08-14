@@ -55,7 +55,7 @@ def torch_big_sample(array, indexes, desired_shape):
     #out = torch.stack(chunked)
 
 #Think I have slightly the wrong idea here
-def depth_rendering(ref_view, disparity_map, lf_size = (64, 512, 512, 3)):
+def depth_rendering(ref_view, disparity_map, lf_size=(64, 512, 512, 3)):
     """
     Perform full depth based rendering for a light field
 

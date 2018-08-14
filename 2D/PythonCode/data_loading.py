@@ -57,7 +57,7 @@ class TrainFromHdf5(data.Dataset):
             if self.transform:
                 sample = self.transform(sample)
 
-            sample = data_transform.stack(sample)
+            sample = data_transform.stack(sample, channels=65)
 
             return sample
 
@@ -107,7 +107,7 @@ class ValFromHdf5(data.Dataset):
         if self.transform:
             sample = self.transform(sample)
 
-        sample = data_transform.stack(sample)
+        sample = data_transform.stack(sample, channels=65)
 
         return sample
 

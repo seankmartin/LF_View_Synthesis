@@ -144,7 +144,7 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                 print("Loaded " + phase + " batch in {:.0f}s".format(
                     time.time() - since))
             residuals = model(inputs)
-            outputs = inputs + residuals
+            outputs = inputs[:, :-3] + residuals
             outputs = torch.clamp(outputs, 0.0, 1.0)
 
             loss = criterion(outputs, targets)
@@ -169,7 +169,8 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                     loss.item()))
 
             if iteration == len(dset_loaders[phase]) - 1:
-                inputs_s = torch_unstack(inputs[0])
+                inputs_s = torch_unstack(inputs[0, :-3])
+                input_depth = inputs[0, -3:]
                 residuals_s = torch_unstack(residuals[0])
                 outputs_s = torch_unstack(outputs[0])
                 targets_s = torch_unstack(targets[0])
@@ -194,6 +195,7 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                     nrow=8, range=(0, 1), normalize=True,
                     pad_value=1.0)
                 writer.add_image(phase + '/input', input_grid, epoch)
+                writer.add_image(phase + '/input_depth', input_depth, epoch)
                 writer.add_image(phase + '/residual', residual_grid, epoch)
                 writer.add_image(phase + '/output', output_grid, epoch)
                 writer.add_image(phase + '/target', target_grid, epoch)
