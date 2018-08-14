@@ -96,13 +96,13 @@ def denormalise_lf(lf):
     maximum = 255.0
     lf.mul_(maximum)
     return lf
-
+revert commit
 def disparity_to_rgb(disparity_map):
     """Converts a disparity map into the range 0 1"""
     depth = disparity_map
     min = float(depth.min())
     max = float(depth.max())
     depth.add_(-min).div_(max - min + 1e-5)
-    scale = cm.ScalarMappable(None, cmap="plasma")
+    scale = cm.ScalarMappable(None, cmap="viridis")
     coloured = scale.to_rgba(depth, norm=False)
     return torch.tensor(coloured[:, :, :3], dtype=torch.float32)
