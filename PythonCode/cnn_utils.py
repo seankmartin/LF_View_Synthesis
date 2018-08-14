@@ -126,9 +126,27 @@ def transform_lf_to_torch(lf):
     """
     return lf.transpose(1, 3).transpose(2, 3)
 
-def log_gradients(model):
-    dict_set = model.state_dict().items()
-    for name, param in dict_set:
-        print(name, param.requires_grad)
-        if isinstance(param, nn.Parameter):
-            print(name, param.requires_grad)
+def check_gradients(model):
+    """Returns false if the model has no gradients at the first level"""
+    if list(model.parameters())[0].grad is None:
+        print("There is some bad error, gradients are None!")
+        return False
+    return True
+
+def log_children(model):
+    child_counter = 0
+    for child in model.children():
+        print(" child", child_counter, "is -")
+        print(child)
+        child_counter += 1
+
+def log_child_gradients(model):
+    child_counter = 0
+    for child in model.children():
+        print(" child", child_counter, "is -")
+        print(child)
+        child_counter += 1
+        for idx, param in enumerate(child.parameters()):
+            print(
+                "Parameter {} requires grad?".format(idx), 
+                param.requires_grad)
