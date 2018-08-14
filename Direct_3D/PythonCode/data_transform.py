@@ -56,8 +56,8 @@ def normalise_sample(sample):
 
 def upper_left_patch(sample):
     width = sample['colour'].shape[2]
-    sample['colour'] = sample['colour'][:, 0:width//2, 0:width//2]
-    sample['depth'] = sample['depth'][:, 0:width//2, 0:width//2]
+    sample['colour'] = sample['colour'][:, 0:width//4, 0:width//4]
+    sample['depth'] = sample['depth'][:, 0:width//4, 0:width//4]
     return sample
 
 def get_random_crop(sample, patch_size):
