@@ -191,7 +191,7 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                     truth_imgs, nrow=8, range=(0, 1), normalize=True,
                     pad_value=1.0)
                 diff_grid = vutils.make_grid(
-                    torch.abs(truth_imgs - out_imgs), 
+                    torch.abs(truth_imgs - out_imgs),
                     nrow=8, range=(0, 1), normalize=True,
                     pad_value=1.0)
                 writer.add_image(phase + '/input', input_grid, epoch)
@@ -218,6 +218,10 @@ if __name__ == '__main__':
     #Command line modifiable parameters
     #See https://github.com/twtygqyy/pytorch-vdsr/blob/master/main_vdsr.py
     #For the source of some of these arguments
+
+    LAYER_HELP = "".join(
+        "How many layers should Ripool use at each layer"
+        " - default is [1, 2, 2, 1]")
     PARSER = argparse.ArgumentParser(
         description='Process modifiable parameters from command line')
     PARSER.add_argument("--nEpochs", "--n", type=int, default=50,
@@ -251,8 +255,20 @@ if __name__ == '__main__':
                         help="Number of residual blocks, default 10")
     PARSER.add_argument('--res_scale', '--rs', default=1.0, type=float,
                         help="Float to scale residuals by, default 1.0")
+    PARSER.add_argument("--layers", "--l",
+                        action = 'append', type=int, default = [],
+                        help=LAYER_HELP)
     #Any unknown argument will go to unparsed
     ARGS, UNPARSED = PARSER.parse_known_args()
+    if(ARGS.layers == []):
+        ARGS.layers = [1, 2, 2, 1]
+
+    elif(len(ARGS.layers) is not 4):
+        print("There should be 4 layers, you entered", ARGS.layers)
+        print("Enter the layers like --l num --l num2 --l num3 --l num4")
+        print("Or leave it blank to use default")
+        exit(-1)
+        
     if ARGS.tag is None:
         print("Please enter a --tag flag through cmd when running")
         exit(-1)
@@ -261,6 +277,7 @@ if __name__ == '__main__':
         print("Unrecognised command line argument passed")
         print(UNPARSED)
         exit(-1)
+
     #Config file modifiable parameters
     CONFIG = configparser.ConfigParser()
     CONFIG.read(os.path.join('config', ARGS.config))

@@ -15,7 +15,7 @@ def setup_model(args):
     """Returns a tuple of the model, criterion, optimizer and lr_scheduler"""
     print("Building model")
     model = BigRipool(
-        layers=[1, 1, 1, 1], 
+        layers=args.layers, 
         activation_fn=nn.ELU,
         thin=False,
         inchannels=195)
