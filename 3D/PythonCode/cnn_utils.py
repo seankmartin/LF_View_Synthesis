@@ -118,3 +118,11 @@ def transform_lf_to_torch(lf):
     (B x W x H x C) so need to transpose them
     """
     return lf.transpose(1, 3).transpose(2, 3)
+
+def transform_img_to_torch(img):
+    """
+    Torch expects an images to be in the format:
+    (C x H x W) but our light field grids are in the format:
+    (W x H x C) so need to transpose them
+    """
+    return img.transpose(0, 2).transpose(1, 2)
