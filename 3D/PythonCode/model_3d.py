@@ -33,6 +33,21 @@ class C3D(nn.Module):
                 print("Initialising ", m, " with Xavier initialisation")
                 nn.init.xavier_normal_(m.weight.data)
 
+    def load_state_dict(self, state_dict, first=True):
+        own_state = self.state_dict()
+        for name, param in state_dict.items():
+            if name in own_state:
+                #Only copy the body information
+                if not first:
+                    if (name.find('first') is not -1):
+                        param = param.data
+                        print("Loading", name)
+                        own_state[name].copy_(param)
+                    else:
+                        param = param.data
+                        print("Loading", name)
+                        own_state[name].copy_(param)
+
 class ThreexLayer(nn.Module):
     """
     This Layer represents a 3d convolution followed by a batch norm and activation

@@ -240,6 +240,8 @@ if __name__ == '__main__':
                         help='Unique identifier for a model. REQUIRED')
     PARSER.add_argument('--config', "--cfg", default='main.ini', type=str,
                         help="Name of config file to use")
+    PARSER.add_argument('--first', "--f", default=True, type=bool,
+                        help="Load the first layer pretrained - default True")
     #Any unknown argument will go to unparsed
     ARGS, UNPARSED = PARSER.parse_known_args()
     if ARGS.tag is None:
