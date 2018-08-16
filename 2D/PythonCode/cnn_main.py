@@ -57,7 +57,7 @@ def main(args, config, writer):
             model=model, dset_loaders=data_loaders,
             optimizer=optimizer, lr_scheduler=lr_scheduler,
             criterion=criterion, epoch=epoch,
-            cuda=cuda, clip=args.clip, writer=writer)
+            cuda=cuda, clip=args.clip, writer=writer, args=args)
 
         if epoch_loss < best_loss:
             best_loss = epoch_loss
@@ -65,12 +65,13 @@ def main(args, config, writer):
             best_model = copy.deepcopy(model)
 
         #Update the scheduler - restarting
-        if lr_scheduler.last_epoch == lr_scheduler.T_max:
-            for group in optimizer.param_groups:
-                group['lr'] = args.lr
-            lr_scheduler = CosineAnnealingLR(
-                optimizer,
-                T_max = lr_scheduler.T_max * 2)
+	if args.schedule.lower() == 'warm'
+	    if lr_scheduler.last_epoch == lr_scheduler.T_max:
+                for group in optimizer.param_groups:
+                    group['lr'] = args.lr
+                lr_scheduler = CosineAnnealingLR(
+                    optimizer,
+                    T_max = lr_scheduler.T_max * 2)
 
         cnn_utils.log_all_layer_weights(model, writer, epoch)
 
@@ -112,12 +113,13 @@ def main(args, config, writer):
     writer.close()
 
 def train(model, dset_loaders, optimizer, lr_scheduler,
-          criterion, epoch, cuda, clip, writer):
+          criterion, epoch, cuda, clip, writer, args):
     """
     Trains model using data_loader with the given
     optimizer, lr_scheduler, criterion and epoch
     """
-    lr_scheduler.step()
+    if args.schedule.lower() == 'warm':
+        lr_scheduler.step()
     # Each epoch has a training and validation phase
     for phase in ['train', 'val']:
         since = time.time()
@@ -128,8 +130,8 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
 
         running_loss = 0.0
         for iteration, batch in enumerate(dset_loaders[phase]):
-            # Use this if doing cyclic learning
-            # lr_scheduler.batch_step()
+            if args.schedule.lower() == 'cyclical':
+                lr_scheduler.batch_step()
             targets = batch['targets']
             inputs = batch['inputs']
             inputs.requires_grad_()
@@ -209,6 +211,8 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
 
         if phase == 'val':
             print()
+            if args.schedule.lower() == 'step':
+                lr_scheduler.step()
             for idx, param_group in enumerate(optimizer.param_groups):
                 writer.add_scalar(
                     'learning_rate', param_group['lr'], epoch)
@@ -222,6 +226,8 @@ if __name__ == '__main__':
     LAYER_HELP = "".join(
         "How many layers should Ripool use at each layer"
         " - default is [1, 2, 2, 1]")
+    SCHEDULE_HELP = " ".join(("Different learning rate modification strategies",
+                              "Possible values are cyclical, warm, step"))
     PARSER = argparse.ArgumentParser(
         description='Process modifiable parameters from command line')
     PARSER.add_argument("--nEpochs", "--n", type=int, default=50,
@@ -258,6 +264,8 @@ if __name__ == '__main__':
     PARSER.add_argument("--layers", "--l",
                         action = 'append', type=int, default = [],
                         help=LAYER_HELP)
+    PARSER.add_argument('--schedule', "--s", default='warm', type=str,
+                        help=SCHEDULE_HELP)
     #Any unknown argument will go to unparsed
     ARGS, UNPARSED = PARSER.parse_known_args()
     if(ARGS.layers == []):

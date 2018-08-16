@@ -9,13 +9,13 @@ import torch.optim as optim
 
 from res_model import BigRipool
 from torch.optim.lr_scheduler import CosineAnnealingLR
-# from torch.optim.lr_scheduler import CyclicLR
+from torch.optim.lr_scheduler import CyclicLR
 
 def setup_model(args):
     """Returns a tuple of the model, criterion, optimizer and lr_scheduler"""
     print("Building model")
     model = BigRipool(
-        layers=args.layers, 
+        layers=args.layers,
         activation_fn=nn.ELU,
         thin=False,
         inchannels=195)
@@ -27,10 +27,17 @@ def setup_model(args):
         weight_decay=args.weight_decay,
         nesterov=True)
     # See https://arxiv.org/abs/1608.03983
-    lr_scheduler = CosineAnnealingLR(
-        optimizer,
-        T_max = (args.nEpochs // 10) + 1)
-    """lr_scheduler = CyclicLR(
-        optimizer)"""
+    if args.schedule.lower() == 'warm':
+        lr_scheduler = CosineAnnealingLR(
+            optimizer,
+            T_max = (args.nEpochs // 10) + 1)
+    if args.schedule.lower() == 'cyclical':
+        lr_scheduler = CyclicLR(
+            optimizer, max_lr=args.lr, mode='exp_range')
+    if args.schedule.lower() == 'step':
+        lr_scheduler = ReduceLROnPlateau(
+            'min', factor=args.lr_factor,
+            patience=4, threshold=1e-3,
+            threshold_mode='rel', verbose=True)
 
     return (model, criterion, optimizer, lr_scheduler)
