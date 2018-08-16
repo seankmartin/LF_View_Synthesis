@@ -65,8 +65,8 @@ def main(args, config, writer):
             best_model = copy.deepcopy(model)
 
         #Update the scheduler - restarting
-	if args.schedule.lower() == 'warm'
-	    if lr_scheduler.last_epoch == lr_scheduler.T_max:
+        if args.schedule.lower() == 'warm':
+            if lr_scheduler.last_epoch == lr_scheduler.T_max:
                 for group in optimizer.param_groups:
                     group['lr'] = args.lr
                 lr_scheduler = CosineAnnealingLR(

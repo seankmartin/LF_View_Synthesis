@@ -10,6 +10,7 @@ import torch.optim as optim
 from res_model import BigRipool
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.optim.lr_scheduler import CyclicLR
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 def setup_model(args):
     """Returns a tuple of the model, criterion, optimizer and lr_scheduler"""
@@ -36,6 +37,7 @@ def setup_model(args):
             optimizer, max_lr=args.lr, mode='exp_range')
     if args.schedule.lower() == 'step':
         lr_scheduler = ReduceLROnPlateau(
+            optimizer,
             'min', factor=args.lr_factor,
             patience=4, threshold=1e-3,
             threshold_mode='rel', verbose=True)
