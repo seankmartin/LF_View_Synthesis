@@ -55,7 +55,7 @@ def torch_big_sample(array, indexes, desired_shape):
     #out = torch.stack(chunked)
 
 #Think I have slightly the wrong idea here
-def depth_rendering(ref_view, disparity_map, lf_size=(64, 512, 512, 3)):
+def depth_rendering(ref_view, disparity_map, lf_size = (64, 512, 512, 3)):
     """
     Perform full depth based rendering for a light field
 
@@ -476,6 +476,9 @@ def main(args, config):
         grid_one_way = 8
         sample_index = grid_size // 2 + (grid_one_way // 2)
         depth_grp = hdf5_file['val']['disparity']
+
+        overall_psnr_accum = (0, 0, 0)
+        overall_ssim_accum = (0, 0, 0)
         for sample_num in range(args.nSamples):
             SNUM = sample_num
             print("Working on image", SNUM)
@@ -567,6 +570,16 @@ def main(args, config):
                 psnr_mean, math.sqrt(psnr_var)))
             print("ssim average {:5f}, stddev {:5f}".format(
                 ssim_mean, math.sqrt(ssim_var)))
+            overall_psnr_accum = welford.update(
+                overall_psnr_accum, psnr_mean)
+            overall_ssim_accum = welford.update(
+                overall_ssim_accum, ssim_mean)
+        psnr_mean, psnr_var, _ = welford.finalize(overall_psnr_accum)
+        ssim_mean, ssim_var, _ = welford.finalize(overall_ssim_accum)
+        print("\nOverall psnr average {:5f}, stddev {:5f}".format(
+            psnr_mean, math.sqrt(psnr_var)))
+        print("Overall ssim average {:5f}, stddev {:5f}".format(
+            ssim_mean, math.sqrt(ssim_var)))
 
 if __name__ == '__main__':
     PARSER = argparse.ArgumentParser(
