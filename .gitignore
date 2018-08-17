@@ -7,3 +7,4 @@ launch.json
 *logs/
 */out/
 *all_scalars.json
+*temp
