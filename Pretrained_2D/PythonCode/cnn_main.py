@@ -248,7 +248,7 @@ if __name__ == '__main__':
                         help='Unique identifier for a model. REQUIRED')
     PARSER.add_argument('--config', "--cfg", default='main.ini', type=str,
                         help="Name of config file to use")
-    PARSER.add_argument('--n_feats', '--nf', default=64, type=int,
+    PARSER.add_argument('--n_feats', '--nf', default=8, type=int,
                         help="Number of features to use, default 64")
     PARSER.add_argument('--n_resblocks', '--nr', default=4, type=int,
                         help="Number of residual blocks, default 10")
