@@ -214,6 +214,21 @@ class BigRipool(nn.Module):
         x = self.layer4(x)
         x = self.layer5(x)
         return x
+    
+    def load_state_dict(self, state_dict, first=True):
+        own_state = self.state_dict()
+        for name, param in state_dict.items():
+            if name in own_state:
+                #Only copy the body information
+                if not first:
+                    if (name.find('first') is not -1):
+                        param = param.data
+                        print("Loading", name)
+                        own_state[name].copy_(param)
+                    else:
+                        param = param.data
+                        print("Loading", name)
+                        own_state[name].copy_(param)
 
 
 class SimpleRipool(nn.Module):

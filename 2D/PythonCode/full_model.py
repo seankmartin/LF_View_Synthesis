@@ -18,7 +18,7 @@ def setup_model(args):
         layers=args.layers, 
         activation_fn=nn.ELU,
         thin=False,
-        inchannels=195)
+        inchannels=193)
     criterion = nn.MSELoss(size_average=True)
     optimizer = optim.SGD(
         model.parameters(),

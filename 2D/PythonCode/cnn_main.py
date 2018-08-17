@@ -21,7 +21,7 @@ import cnn_utils
 from full_model import setup_model
 from data_loading import create_dataloaders
 import helpers
-from data_transform import torch_unstack
+from data_transform import torch_unstack, denormalise_lf, disparity_to_rgb
 
 CONTINUE_MESSAGE = "==> Would you like to continue training?"
 SAVE_MESSAGE = "==> Would you like to save the model?"
@@ -144,7 +144,7 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                 print("Loaded " + phase + " batch in {:.0f}s".format(
                     time.time() - since))
             residuals = model(inputs)
-            outputs = inputs[:, :-3] + residuals
+            outputs = inputs[:, :-1] + residuals
             outputs = torch.clamp(outputs, 0.0, 1.0)
 
             loss = criterion(outputs, targets)
@@ -169,8 +169,10 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                     loss.item()))
 
             if iteration == len(dset_loaders[phase]) - 1:
-                inputs_s = torch_unstack(inputs[0, :-3])
-                input_depth = inputs[0, -3:]
+                inputs_s = torch_unstack(inputs[0, :-1])
+                input_depth = denormalise_lf(
+                    disparity_to_rgb(inputs[0, -1].cpu().detach())
+                    )
                 residuals_s = torch_unstack(residuals[0])
                 outputs_s = torch_unstack(outputs[0])
                 targets_s = torch_unstack(targets[0])
@@ -195,7 +197,8 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                     nrow=8, range=(0, 1), normalize=True,
                     pad_value=1.0)
                 writer.add_image(phase + '/input', input_grid, epoch)
-                writer.add_image(phase + '/input_depth', input_depth, epoch)
+                writer.add_image(phase + '/input_depth', 
+                                 input_depth.numpy(), epoch)
                 writer.add_image(phase + '/residual', residual_grid, epoch)
                 writer.add_image(phase + '/output', output_grid, epoch)
                 writer.add_image(phase + '/target', target_grid, epoch)
@@ -258,6 +261,8 @@ if __name__ == '__main__':
     PARSER.add_argument("--layers", "--l",
                         action = 'append', type=int, default = [],
                         help=LAYER_HELP)
+    PARSER.add_argument('--first', "--f", default=True, type=bool,
+                        help="Load the first layer pretrained - default True")
     #Any unknown argument will go to unparsed
     ARGS, UNPARSED = PARSER.parse_known_args()
     if(ARGS.layers == []):

@@ -30,12 +30,12 @@ def transform_to_warped(sample):
     sample_index = grid_size // 2 + (grid_one_way // 2)
     warped_images = disparity_based_rendering(
         disparity.numpy(), targets.numpy(), grid_size, sample_index)
-    coloured = torch.unsqueeze(
-        disparity_to_rgb(disparity[sample_index]), 0)
+    normalised_disp = torch.unsqueeze(
+        normalise_img(disparity[sample_index]), 0)
     inputs = torch.cat(
-            (warped_images, coloured) 
+            (torch_stack(warped_images), normalised_disp) 
         )
-    return {'inputs': inputs, 'targets': targets}
+    return {'inputs': inputs, 'targets': torch_stack(targets)}
 
 def torch_stack(input_t, channels=64):
     #This has shape im_size, im_size, num_colours * num_images
@@ -59,6 +59,9 @@ def stack(sample, channels=64):
     sample['inputs'] = torch_stack(sample['inputs'], channels)
     sample['targets'] = torch_stack(sample['targets'], channels)
     return sample
+
+def normalise_img(img, maximum=255.0):
+    return img.div_(maximum)
 
 def normalise_sample(sample):
     """Coverts an lf in the range 0 to maximum into 0 1"""
