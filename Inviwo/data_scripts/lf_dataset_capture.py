@@ -82,11 +82,12 @@ if __name__ == '__main__':
     PIXEL_DIM = 512
     CLIP = False
     PLANE = True
-    NUM_RANDOM_LF_SAMPLES = 2
+    NUM_RANDOM_LF_SAMPLES = {'train': 10, 'val': 10}
     for name in 'train', 'val':
         save_main_dir = os.path.join(home, 'turing', 'overflow-storage', 
                                  'numpy_set', name)
-        main(save_main_dir, PIXEL_DIM, CLIP, NUM_RANDOM_LF_SAMPLES, PLANE)
+        main(save_main_dir, PIXEL_DIM, CLIP, 
+        NUM_RANDOM_LF_SAMPLES[name], PLANE)
         meta_loc = os.path.join(save_main_dir, "metadata.csv")
         if not os.path.isfile(meta_loc):
             old_meta_loc = os.path.join(
