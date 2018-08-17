@@ -51,7 +51,6 @@ def main(save_main_dir, pixel_dim, clip, num_random, plane):
     app = inviwopy.app
     network = app.network
     cam = network.EntryExitPoints.camera
-    cam.lookUp = vec3(0, 1, 0)
     cam.nearPlane = 6.0
     cam.farPlane = 1000.0
     canvases = inviwopy.app.network.canvases
@@ -65,7 +64,8 @@ def main(save_main_dir, pixel_dim, clip, num_random, plane):
     random_lfs = create_random_lf_cameras(
                      num_random,
                      (180, 35), 1,
-                     interspatial_distance=0.5)
+                     interspatial_distance=0.5,
+                     look_up=vec3(0, 1, 0))
 
     for lf in random_lfs:
         if clip:

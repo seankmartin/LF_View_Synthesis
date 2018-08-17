@@ -19,8 +19,9 @@ def main(pixel_dim):
     inviwo_utils.update()
 
     # Create a light field camera at the current camera position
-    lf_camera_here = LightFieldCamera(cam.lookFrom, cam.lookTo,
-                                                               interspatial_distance=0.5)
+    lf_camera_here = LightFieldCamera(
+        cam.lookFrom, cam.lookTo, cam.lookUp,
+        interspatial_distance=0.5)
 
     #Preview the lf camera array
     lf_camera_here.view_array(cam, save=False, should_time=True)

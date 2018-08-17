@@ -73,7 +73,9 @@ class LightFieldCamera:
         # Save the current camera position
         prev_cam_look_from = cam.lookFrom
         prev_cam_look_to = cam.lookTo
-
+        prev_cam_look_up = cam.lookUp
+        
+        cam.lookUp = self.look_up
         if should_time:
             start_time = time()
         for idx, val in enumerate(self.calculate_camera_array()):
@@ -153,6 +155,7 @@ class LightFieldCamera:
         print()
         cam.lookFrom = prev_cam_look_from
         cam.lookTo = prev_cam_look_to
+        cam.lookUp = prev_cam_look_up
         return time_taken
 
     def get_look_right(self):

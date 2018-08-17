@@ -25,7 +25,8 @@ def rand_vec_between_spheres(big_radius, small_radius):
 def create_random_lf_cameras(num_to_create, look_from_radii,
                              max_look_to_origin=1.0,
                              interspatial_distance=1.0,
-                             spatial_rows=8, spatial_cols=8):
+                             spatial_rows=8, spatial_cols=8,
+                             look_up = vec3(0, 1, 0)):
     """Create a list of randomnly positioned lf cameras
 
     Keyword arguments:
@@ -37,7 +38,6 @@ def create_random_lf_cameras(num_to_create, look_from_radii,
     """
     lf_cameras = []
     d = max_look_to_origin
-    look_up = vec3(0, 1, 0)
     for _ in range(num_to_create):
         look_from = rand_vec_between_spheres(*look_from_radii)
         look_to = vec3(random_float(), random_float(), random_float()) * d
