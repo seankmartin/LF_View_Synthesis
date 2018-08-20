@@ -574,12 +574,13 @@ def main(args, config):
                 overall_psnr_accum, psnr_mean)
             overall_ssim_accum = welford.update(
                 overall_ssim_accum, ssim_mean)
-        psnr_mean, psnr_var, _ = welford.finalize(overall_psnr_accum)
-        ssim_mean, ssim_var, _ = welford.finalize(overall_ssim_accum)
-        print("\nOverall psnr average {:5f}, stddev {:5f}".format(
-            psnr_mean, math.sqrt(psnr_var)))
-        print("Overall ssim average {:5f}, stddev {:5f}".format(
-            ssim_mean, math.sqrt(ssim_var)))
+        if args.nSamples > 1:
+            psnr_mean, psnr_var, _ = welford.finalize(overall_psnr_accum)
+            ssim_mean, ssim_var, _ = welford.finalize(overall_ssim_accum)
+            print("\nOverall psnr average {:5f}, stddev {:5f}".format(
+                psnr_mean, math.sqrt(psnr_var)))
+            print("Overall ssim average {:5f}, stddev {:5f}".format(
+                ssim_mean, math.sqrt(ssim_var)))
 
 if __name__ == '__main__':
     PARSER = argparse.ArgumentParser(
