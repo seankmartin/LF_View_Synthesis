@@ -7,14 +7,14 @@ import time
 import sys
 import warnings
 
-# Location of other scripts
-sys.path.insert(0, "/users/pgrad/martins7/.local/lib/python3.5/site-packages")
-
 # Location of torch and torch vision
 sys.path.insert(0, "/users/pgrad/martins7/pytorch35/lib/python3.5/site-packages")
 
+# Location of other scripts
+#sys.path.insert(0, "/users/pgrad/martins7/.local/lib/python3.5/site-packages")
+
 # Location of pythonCode
-sys.path.insert(0, "/users/pgrad/martins7/LF_View_Synthesis/PythonCode")
+sys.path.insert(0, "/users/pgrad/martins7/LF_View_Synthesis/2D/PythonCode")
 
 import inviwopy
 from inviwopy.data import ImageOutport, ImageInport
@@ -29,6 +29,8 @@ from skimage import img_as_ubyte
 
 import conversions
 import image_warping
+import data_transform
+import cnn_utils
 
 # For each input image to the network, add an inport here
 INPORT_LIST = ["im_inport1"]
@@ -42,8 +44,8 @@ DTYPE = inviwopy.data.formats.DataVec4UINT8
 
 if model is None:
     """Load the model to be used"""
-    model_dir = "/users/pgrad/martins7/overflow-storage/outputs/models"
-    name = "best_model.pth"
+    model_dir = "/users/pgrad/martins7/turing/overflow-storage/outputs/models"
+    name = "best_2D_model.pth"
 
     #Load model architecture
     model = torch.load(os.path.join(
@@ -140,23 +142,25 @@ def process(self):
         )
     
     sample = {
-        'depth': torch.tensor(im_depth[0], dtype=torch.float32), 
-        'colour': torch.tensor(im_colour[0], dtype=torch.float32), 
+        'depth': torch.tensor(im_depth[0], dtype=torch.float32).unsqueeze_(0), 
+        'colour': torch.tensor(im_colour[0], dtype=torch.float32).unsqueeze_(0),
         'grid_size': GRID_SIZE}
 
-    warped = transform_to_warped(sample)
+    warped = data_transform.transform_inviwo_to_warped(sample)
+    warped = data_transform.stack(warped, 65)
     im_input = warped['inputs'].unsqueeze_(0)
-    im_input.requires_grad_(False)
     
     if cuda:
         im_input = im_input.cuda()
 
     model.eval()
     output = model(im_input)
+    im_input = im_input[:, :-3]
     output += im_input
     output = torch.clamp(output, 0.0, 1.0)
 
-    out_colour = transform_lf_to_torch(output[0])
+    out_colour = cnn_utils.transform_lf_to_torch(
+        data_transform.torch_unstack(output[0]))
 
     output_grid = vutils.make_grid(
                     out_colour, nrow=8, range=(0, 1), normalize=False,
@@ -183,65 +187,6 @@ def process(self):
 
 def initializeResources(self):
     pass
-
-def transform_lf_to_torch(lf):
-    """
-    Torch expects a grid of images to be in the format:
-    (B x C x H x W) but our light field grids are in the format:
-    (B x W x H x C) so need to transpose them
-    """
-    return lf.transpose(1, 3).transpose(2, 3)
-
-def denormalise_lf(lf):
-    """Coverts an lf in the range 0 1 to 0 to maximum"""
-    maximum = 255.0
-    lf.mul_(maximum)
-    return lf
-
-def disparity_based_rendering(
-        disparities, views, grid_size,
-        dtype=np.float32, blank=-1.0):
-    """Returns a list of warped images using the input views and disparites"""
-     # Alternatively, grid_one_way - 1 can be used below
-    shape = (grid_size,) + views.shape[-3:]
-    warped_images = np.empty(
-        shape=shape, dtype=dtype)
-    grid_one_way = int(math.sqrt(grid_size))
-    for i in range(grid_one_way):
-        for j in range(grid_one_way):
-            res = image_warping.fw_warp_image(
-                ref_view=views,
-                disparity_map=disparities,
-                ref_pos=np.asarray([grid_one_way // 2, grid_one_way // 2]),
-                novel_pos=np.asarray([i, j]),
-                dtype=dtype,
-                blank=blank
-            )
-            warped_images[i * grid_one_way + j] = res
-    return warped_images
-
-def transform_to_warped(sample):
-    """
-    Input a dictionary of depth images and reference views,
-    Output a dictionary of inputs -warped and targets - reference
-    """
-    normalise_sample(sample)
-    disparity = sample['depth']
-    targets = sample['colour']
-    grid_size = sample['grid_size']
-    warped_images = disparity_based_rendering(
-        disparity.numpy(), targets.numpy(), grid_size,
-        dtype=np.float32, blank=0.0)
-
-    inputs = torch.from_numpy(warped_images)
-    return {'inputs': inputs, 'targets': targets}
-
-def normalise_sample(sample):
-    """Coverts an lf in the range 0 to maximum into 0 1"""
-    maximum = 255.0
-    lf = sample['colour']
-    lf.div_(maximum)
-    return sample
 
 # Tell the PythonScriptProcessor about the 'initializeResources' function we want to use
 self.setInitializeResources(initializeResources)

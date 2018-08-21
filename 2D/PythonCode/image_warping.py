@@ -5,6 +5,7 @@ from enum import Enum
 import math
 import argparse
 from time import time
+import warnings
 
 import h5py
 from PIL import Image
@@ -266,16 +267,18 @@ def sk_warp(
     """
     distance = ref_pos - novel_pos
 
-    novel_view = warp(
-        image=ref_view, inverse_map=shift_disp,
-        map_args={
-            "disp": disparity_map, "distance": np.flipud(distance),
-            "dtype": dtype},
-        cval=blank, preserve_range=preserve_range, order=1
-        )
-    if preserve_range:
-        novel_view = np.around(novel_view).astype(np.uint8)
-    return novel_view
+    with warnings.catch_warnings():
+        warnings.simplefilter
+        novel_view = warp(
+            image=ref_view, inverse_map=shift_disp,
+            map_args={
+                "disp": disparity_map, "distance": np.flipud(distance),
+                "dtype": dtype},
+            cval=blank, preserve_range=preserve_range, order=1
+            )
+        if preserve_range:
+            novel_view = np.around(novel_view).astype(np.uint8)
+        return novel_view
 
 def valid_pixel(pixel, img_size):
     """Returns true if the pixel co-ordinate lies inside the image grid"""
