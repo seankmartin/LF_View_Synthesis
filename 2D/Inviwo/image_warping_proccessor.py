@@ -19,6 +19,7 @@ sys.path.insert(0, "/users/pgrad/martins7/LF_View_Synthesis/2D/PythonCode")
 import inviwopy
 from inviwopy.data import ImageOutport, ImageInport
 from inviwopy.properties import BoolProperty
+from inviwopy.properties import IntProperty
 from inviwopy.data import Image
 
 import torch
@@ -39,6 +40,8 @@ cuda = True
 GRID_SIZE = 64
 SIZE = 1024
 OUT_SIZE = inviwopy.glm.size2_t(SIZE, SIZE)
+SAMPLE_SIZE = inviwopy.glm.size2_t(256, 256)
+SAMPLE_SIZE_LIST = [256, 256]
 OUT_SIZE_LIST = [SIZE, SIZE]
 DTYPE = inviwopy.data.formats.DataVec4UINT8
 
@@ -74,6 +77,9 @@ for name in INPORT_LIST:
 if not "outport" in self.outports:
     self.addOutport(ImageOutport("outport"))
 
+if not "sample" in self.outports:
+    self.addOutport(ImageOutport("sample"))
+
 if not "off" in self.properties:
     self.addProperty(
         BoolProperty("off", "Off", True))
@@ -81,6 +87,13 @@ if not "off" in self.properties:
 if not "display_input" in self.properties:
     self.addProperty(
         BoolProperty("display_input", "Show Input", True))
+
+if not "sample_num" in self.properties:
+    self.addProperty(
+        IntProperty("sample_num", "Sample Number", 0)
+    )
+    self.getPropertyByIdentifier("sample_num").minValue = 0
+    self.getPropertyByIdentifier("sample_num").maxValue = 63
 
 def process(self):
     """Perform the model warping and output an image grid"""
@@ -122,6 +135,7 @@ def process(self):
             return -1
      
     out_image = Image(OUT_SIZE, DTYPE)
+    sample_image = Image(SAMPLE_SIZE, DTYPE)
     im_colour = []
     for idx, name in enumerate(INPORT_LIST):
         im_colour.append(im_data[idx].colorLayers[0].data[:, :, :3].transpose(1, 0, 2))
@@ -163,8 +177,10 @@ def process(self):
     
     end_time = time.time() - start_time
     print("Grid light field rendered in {:4f}".format(end_time))
+    out_unstack = data_transform.torch_unstack(output[0])
     out_colour = cnn_utils.transform_lf_to_torch(
-        data_transform.torch_unstack(output[0]))
+        out_unstack
+    )
 
     output_grid = vutils.make_grid(
                     out_colour, nrow=8, range=(0, 1), normalize=False,
@@ -185,9 +201,18 @@ def process(self):
     final_out = np.full(shape, 255, np.uint8)
     final_out[:, :, :3] = inter_out
     
+    shape = tuple(SAMPLE_SIZE_LIST) + (4,)
+    sample_out = np.full(shape, 255, np.uint8)
+    sample_out[:, :, :3] = np.around(
+        data_transform.denormalise_lf(
+            out_unstack).cpu().detach().numpy()
+    ).astype(np.uint8)[self.getPropertyByIdentifier("sample_num").value]
+
     # Inviwo expects a uint8 here
     out_image.colorLayers[0].data = final_out
+    sample_image.colorLayers[0].data = sample_out
     self.getOutport("outport").setData(out_image)
+    self.getOutport("sample").setData(sample_image)
 
     end_time = time.time() - start_time
     print("Overall render time was {:4f}".format(end_time))
