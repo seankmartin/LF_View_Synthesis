@@ -185,7 +185,6 @@ def train(model, depth_model, depth_optim, depth_criterion,
             inputs.requires_grad_()
             targets.requires_grad_(False)
 
-
             if cuda:
                 inputs = inputs.cuda()
                 targets = targets.cuda()
@@ -225,6 +224,13 @@ def train(model, depth_model, depth_optim, depth_criterion,
                         exit(-1)
 
             if iteration == len(dset_loaders[phase]) - 1:
+                depth_coloured = torch.zeros(
+                    [batch['depth'].shape[1], 3,
+                     batch['depth'].shape[2], batch['depth'].shape[3]]
+                    )
+                for i in range(batch['colour'].shape[0]):
+                    depth_coloured[i] = data_transform.disparity_to_rgb(
+                        depth_out[0, i].detach().cpu()).transpose_(2, 0).transpose_(1, 2)
                 inputs_s = undo_remap(inputs[0], desired_shape, dtype=torch.float32)
                 residuals_s = undo_remap(residuals[0], desired_shape, dtype=torch.float32)
                 outputs_s = undo_remap(outputs[0], desired_shape, dtype=torch.float32)
@@ -233,6 +239,10 @@ def train(model, depth_model, depth_optim, depth_criterion,
                 residual_imgs = cnn_utils.transform_lf_to_torch(residuals_s)
                 out_imgs = cnn_utils.transform_lf_to_torch(outputs_s)
                 truth_imgs = cnn_utils.transform_lf_to_torch(targets_s)
+                depth_grid = vutils.make_grid(
+                    depth_coloured, nrow=8, range=(0,1), normalize=True,
+                    pad_value=1.0
+                )
                 input_grid = vutils.make_grid(
                     input_imgs, nrow=8, range=(0, 1), normalize=True,
                     pad_value=1.0)
@@ -254,6 +264,7 @@ def train(model, depth_model, depth_optim, depth_criterion,
                 writer.add_image(phase + '/output', output_grid, epoch)
                 writer.add_image(phase + '/target', target_grid, epoch)
                 writer.add_image(phase + '/difference', diff_grid, epoch)
+                writer.add_image(phase + '/depths', depth_grid, epoch)
 
         d_epoch_loss = d_running_loss / len(dset_loaders[phase])
         writer.add_scalar(phase + '/loss', d_epoch_loss, epoch)
