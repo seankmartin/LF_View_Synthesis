@@ -21,6 +21,7 @@ from full_model import setup_model, setup_depth_model
 from depth_model import DepthModel
 from data_loading import create_dataloaders
 import helpers
+import data_transform
 from data_transform import undo_remap
 
 CONTINUE_MESSAGE = "==> Would you like to continue training?"
@@ -134,7 +135,8 @@ def train(model, depth_model, depth_optim, depth_criterion,
             model.train() # Set model to training mode
         else:
             model.eval() # Set model to evaluate mode
-
+        
+        d_running_loss = 0.0
         running_loss = 0.0
         for iteration, batch in enumerate(dset_loaders[phase]):
             # Use this if doing cyclic learning
@@ -148,7 +150,7 @@ def train(model, depth_model, depth_optim, depth_criterion,
 
             if cuda:
                 d_inputs = d_inputs.cuda()
-                targets = targets.cuda()
+                d_targets = d_targets.cuda()
 
             depth_out = depth_model(d_inputs)
             loss = depth_criterion(depth_out, d_targets)
@@ -168,8 +170,8 @@ def train(model, depth_model, depth_optim, depth_criterion,
                 depth_optim.step()
             
             desired_shape = [int(shape[0]) for shape in batch['grid_size']]
-            inputs = torch.zeros((batch_size[0],) + desired_shape, dtype=torch.float32)
-            targets = torch.zeros((batch_size[0],) + desired_shape, dtype=torch.float32)
+            inputs = torch.zeros((batch.shape[0],) + desired_shape, dtype=torch.float32)
+            targets = torch.zeros((batch.shape[0],) + desired_shape, dtype=torch.float32)
             
             for i in range(batch.shape[0]):
                 sample = {'depth': depth_out[i], 'targets': batch['colour'][i], 'grid_size': desired_shape}
