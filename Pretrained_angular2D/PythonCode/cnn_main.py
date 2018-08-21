@@ -173,7 +173,7 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                         exit(-1)
 
             if iteration == len(dset_loaders[phase]) - 1:
-                desired_shape = batch['shape']
+                desired_shape = [int(shape[0]) for shape in batch['shape']]
                 inputs_s = undo_remap(inputs[0], desired_shape, dtype=torch.float32)
                 residuals_s = undo_remap(residuals[0], desired_shape, dtype=torch.float32)
                 outputs_s = undo_remap(outputs[0], desired_shape, dtype=torch.float32)
