@@ -25,14 +25,11 @@ def time_one():
     print("Rendering complete in {:4f}".format(end_time))
     return end_time
 
-
-def main(num_samples, sleep=True):
+def main(num_samples):
     random.seed(time.time())
     time_accumulator = (0, 0, 0)
     for _ in range(num_samples):
         last_time = time_one()
-        if sleep:
-            time.sleep(0.1)
         time_accumulator = welford.update(time_accumulator, last_time)
     if num_samples > 1:
         mean_time, std_dev_time, _ = welford.finalize(time_accumulator)

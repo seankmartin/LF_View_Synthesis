@@ -20,24 +20,22 @@ def random_vec3():
 
 def time_one():
     cam = inviwopy.app.network.EntryExitPoints.camera
-    start_time = time.time()
+    #start_time = time.time()
     lf_camera_here = LightFieldCamera(
         random_vec3(), random_vec3(), random_vec3(),
         interspatial_distance=0.5)
 
     #Preview the lf camera array
-    lf_camera_here.view_array(cam, save=False, should_time=True)
-    end_time = time.time() - start_time
+    end_time = lf_camera_here.view_array(cam, save=False, should_time=True)
+    #end_time = time.time() - start_time
     print("Rendering complete in {:4f}".format(end_time))
     return end_time
 
-def main(num_samples, sleep=True):
+def main(num_samples):
     random.seed(time.time())
     time_accumulator = (0, 0, 0)
     for _ in range(num_samples):
         last_time = time_one()
-        if sleep:
-            time.sleep(0.1)
         time_accumulator = welford.update(time_accumulator, last_time)
     if num_samples > 1:
         mean_time, std_dev_time, _ = welford.finalize(time_accumulator)
