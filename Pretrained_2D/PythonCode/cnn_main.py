@@ -20,7 +20,7 @@ import cnn_utils
 from full_model import setup_model
 from data_loading import create_dataloaders
 import helpers
-from data_transform import torch_unstack
+from data_transform import undo_remap
 
 CONTINUE_MESSAGE = "==> Would you like to continue training?"
 SAVE_MESSAGE = "==> Would you like to save the model?"
@@ -143,7 +143,7 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                 print("Loaded " + phase + " batch in {:.0f}s".format(
                     time.time() - since))
             residuals = model(inputs)
-            outputs = inputs[:, :-3] + residuals
+            outputs = inputs + residuals
             outputs = torch.clamp(outputs, 0.0, 1.0)
 
             loss = criterion(outputs, targets)
@@ -173,11 +173,11 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                         exit(-1)
 
             if iteration == len(dset_loaders[phase]) - 1:
-                inputs_s = torch_unstack(inputs[0, :-3])
-                input_depth = inputs[0, -3:]
-                residuals_s = torch_unstack(residuals[0])
-                outputs_s = torch_unstack(outputs[0])
-                targets_s = torch_unstack(targets[0])
+                desired_shape = [int(shape[0]) for shape in batch['shape']]
+                inputs_s = undo_remap(inputs[0], desired_shape, dtype=torch.float32)
+                residuals_s = undo_remap(residuals[0], desired_shape, dtype=torch.float32)
+                outputs_s = undo_remap(outputs[0], desired_shape, dtype=torch.float32)
+                targets_s = undo_remap(targets[0], desired_shape, dtype=torch.float32)
                 input_imgs = cnn_utils.transform_lf_to_torch(inputs_s)
                 residual_imgs = cnn_utils.transform_lf_to_torch(residuals_s)
                 out_imgs = cnn_utils.transform_lf_to_torch(outputs_s)
@@ -199,7 +199,6 @@ def train(model, dset_loaders, optimizer, lr_scheduler,
                     nrow=8, range=(0, 1), normalize=True,
                     pad_value=1.0)
                 writer.add_image(phase + '/input', input_grid, epoch)
-                writer.add_image(phase + '/input_depth', input_depth, epoch)
                 writer.add_image(phase + '/residual', residual_grid, epoch)
                 writer.add_image(phase + '/output', output_grid, epoch)
                 writer.add_image(phase + '/target', target_grid, epoch)
@@ -249,9 +248,9 @@ if __name__ == '__main__':
                         help='Unique identifier for a model. REQUIRED')
     PARSER.add_argument('--config', "--cfg", default='main.ini', type=str,
                         help="Name of config file to use")
-    PARSER.add_argument('--n_feats', '--nf', default=256, type=int,
+    PARSER.add_argument('--n_feats', '--nf', default=8, type=int,
                         help="Number of features to use, default 64")
-    PARSER.add_argument('--n_resblocks', '--nr', default=10, type=int,
+    PARSER.add_argument('--n_resblocks', '--nr', default=4, type=int,
                         help="Number of residual blocks, default 10")
     PARSER.add_argument('--res_scale', '--rs', default=1.0, type=float,
                         help="Float to scale residuals by, default 1.0")

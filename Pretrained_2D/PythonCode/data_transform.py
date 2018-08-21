@@ -28,15 +28,12 @@ def transform_to_warped(sample):
     grid_size = sample['grid_size']
     grid_one_way = int(math.sqrt(grid_size))
     sample_index = grid_size // 2 + (grid_one_way // 2)
-
+    shape = targets.shape
     warped_images = disparity_based_rendering(
         disparity.numpy(), targets.numpy(), grid_size, sample_index)
-    coloured = torch.unsqueeze(
-        disparity_to_rgb(disparity[sample_index]), 0)
-    inputs = torch.cat(
-            (warped_images, coloured) 
-        )
-    return {'inputs': inputs, 'targets': targets}
+    inputs = create_remap(warped_images, dtype=torch.float32)
+    targets = create_remap(targets, dtype=torch.float32)
+    return {'inputs': inputs, 'targets': targets, 'shape': shape}
 
 def torch_stack(input_t, channels=64):
     #This has shape im_size, im_size, num_colours * num_images
@@ -107,3 +104,31 @@ def disparity_to_rgb(disparity_map):
     scale = cm.ScalarMappable(None, cmap="viridis")
     coloured = scale.to_rgba(depth, norm=False)
     return torch.tensor(coloured[:, :, :3], dtype=torch.float32) 
+
+def create_remap(in_tensor, dtype=torch.uint8):
+    """
+    Remaps an input tensor of shape B, W, H, C into
+    W * sqrt(B), H * sqrt(B), C
+    Where each grid of size sqrt(B) * sqrt(B) in the remap
+    contains pixel information from the 64 input images
+    """
+    num, im_width, im_height, channels = in_tensor.shape
+    one_way = int(math.floor(math.sqrt(num)))
+    out_tensor = torch.zeros(
+        size=(im_width * one_way, im_height * one_way, channels), 
+        dtype=dtype)
+    for i in range(num):
+        out_tensor[i//one_way::one_way, i%one_way::one_way] = in_tensor[i]
+    return out_tensor.transpose_(0, 2).transpose_(1, 2)
+        
+def undo_remap(in_tensor, desired_shape, dtype=torch.uint8):
+    """
+    Remaps an input tensor to undo create_remap
+    """
+    num, im_width, im_height, channels = desired_shape
+    one_way = int(math.floor(math.sqrt(num)))
+    in_tensor.transpose_(0, 2).transpose_(0, 1)
+    out_tensor = torch.zeros(size=desired_shape, dtype=dtype)
+    for i in range(num):
+        out_tensor[i] = in_tensor[i//one_way::one_way, i%one_way::one_way]
+    return out_tensor
