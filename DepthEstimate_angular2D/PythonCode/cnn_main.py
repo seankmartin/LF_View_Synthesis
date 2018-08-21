@@ -142,9 +142,8 @@ def train(model, depth_model, depth_optim, depth_criterion,
             # Use this if doing cyclic learning
             # lr_scheduler.batch_step()
             sample_index = 8 * 4 + 4
-            d_targets = batch['depth'].transpose_(4, 2).transpose_(3, 4)
-            d_inputs = batch['depth'][:, sample_index]
-            d_inputs.transpose_(3, 1).transpose_(2, 3)
+            d_targets = batch['depth']
+            d_inputs = d_targets[:, sample_index].unsqueeze_(1)
             d_inputs.requires_grad_()
             d_targets.requires_grad_(False)
 
@@ -169,17 +168,27 @@ def train(model, depth_model, depth_optim, depth_criterion,
                     model.parameters(), clip)
                 depth_optim.step()
             
-            desired_shape = [int(shape[0]) for shape in batch['grid_size']]
-            inputs = torch.zeros((batch.shape[0],) + desired_shape, dtype=torch.float32)
-            targets = torch.zeros((batch.shape[0],) + desired_shape, dtype=torch.float32)
+            desired_shape = batch['colour'].shape[1:]
+            one_way = int(math.floor(math.sqrt(desired_shape[0])))
+            map_shape = [3, desired_shape[1] * one_way, desired_shape[2] * one_way]
+            inputs = torch.zeros([batch['colour'].shape[0]] + map_shape, dtype=torch.float32)
+            targets = torch.zeros([batch['colour'].shape[0]] + map_shape, dtype=torch.float32)
+            inputs.requires_grad_(False)
+            targets.requires_grad_(False)
             
-            for i in range(batch.shape[0]):
-                sample = {'depth': depth_out[i], 'targets': batch['colour'][i], 'grid_size': desired_shape}
-                inputs[i] = data_transform.transform_to_warped(sample)
-                targets[i] = batch['colour'][i]
+            for i in range(batch['colour'].shape[0]):
+                sample = {'depth': depth_out[i].detach().cpu(), 'colour': batch['colour'][i].detach().cpu(), 'grid_size': desired_shape[0]}
+                out = data_transform.transform_to_warped(sample)
+                inputs[i] = out['inputs']
+                targets[i] = out['targets']
             
             inputs.requires_grad_()
             targets.requires_grad_(False)
+
+
+            if cuda:
+                inputs = inputs.cuda()
+                targets = targets.cuda()
 
             # forward
             if iteration == 0:

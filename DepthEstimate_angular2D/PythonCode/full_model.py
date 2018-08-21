@@ -35,7 +35,7 @@ def setup_model(args):
 def setup_depth_model(args):
     """Returns a tuple of the model, criterion, optimizer and lr_scheduler"""
     print("Building model")
-    model = DepthModel(inchannels=3, outchannels=64)
+    model = DepthModel(inchannels=1, outchannels=64)
     criterion = nn.MSELoss(size_average=True)
     optimizer = optim.SGD(
         filter(lambda p: p.requires_grad, model.parameters()),
