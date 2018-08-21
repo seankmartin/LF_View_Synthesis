@@ -167,11 +167,12 @@ def train(model, depth_model, depth_optim, depth_criterion,
                     model.parameters(), clip)
                 depth_optim.step()
             
-            inputs = torch.zeros((batch.shape[0],) + batch['grid_size'][0])
-            targets = torch.zeros((batch.shape[0],) + batch['grid_size'][0])
+            desired_shape = [int(shape[0]) for shape in batch['grid_size']]
+            inputs = torch.zeros((batch_size[0],) + desired_shape, dtype=torch.float32)
+            targets = torch.zeros((batch_size[0],) + desired_shape, dtype=torch.float32)
             
-            for i in range(batch.shape[0])
-                sample = {'depth': depth_out[i], 'targets': batch['colour'][i], 'grid_size': batch['grid_size'][0]}
+            for i in range(batch.shape[0]):
+                sample = {'depth': depth_out[i], 'targets': batch['colour'][i], 'grid_size': desired_shape}
                 inputs[i] = data_transform.transform_to_warped(sample)
                 targets[i] = batch['colour'][i]
             
@@ -213,7 +214,6 @@ def train(model, depth_model, depth_optim, depth_criterion,
                         exit(-1)
 
             if iteration == len(dset_loaders[phase]) - 1:
-                desired_shape = batch['shape']
                 inputs_s = undo_remap(inputs[0], desired_shape, dtype=torch.float32)
                 residuals_s = undo_remap(residuals[0], desired_shape, dtype=torch.float32)
                 outputs_s = undo_remap(outputs[0], desired_shape, dtype=torch.float32)

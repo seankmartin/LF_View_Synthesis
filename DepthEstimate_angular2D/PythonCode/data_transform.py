@@ -127,7 +127,7 @@ def undo_remap(in_tensor, desired_shape, dtype=torch.uint8):
     """
     num, im_width, im_height, channels = desired_shape
     one_way = int(math.floor(math.sqrt(num)))
-    in_tensor.transpose_(0, 2).transpose_(1, 2)
+    in_tensor.transpose_(0, 2).transpose_(0, 1)
     out_tensor = torch.zeros(size=desired_shape, dtype=dtype)
     for i in range(num):
         out_tensor[i] = in_tensor[i//one_way::one_way, i%one_way::one_way]
