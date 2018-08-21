@@ -88,6 +88,8 @@ def process(self):
         print("Image warping is currently turned off")
         return 1
 
+    start_time = time.time()
+
     if self.getPropertyByIdentifier("display_input").value:
         im_data = []
         for name in INPORT_LIST:
@@ -158,7 +160,9 @@ def process(self):
     im_input = im_input[:, :-3]
     output += im_input
     output = torch.clamp(output, 0.0, 1.0)
-
+    
+    end_time = time.time() - start_time
+    print("Grid light field rendered in {:4f}".format(end_time))
     out_colour = cnn_utils.transform_lf_to_torch(
         data_transform.torch_unstack(output[0]))
 
@@ -184,6 +188,9 @@ def process(self):
     # Inviwo expects a uint8 here
     out_image.colorLayers[0].data = final_out
     self.getOutport("outport").setData(out_image)
+
+    end_time = time.time() - start_time
+    print("Overall render time was {:4f}".format(end_time))
 
 def initializeResources(self):
     pass
