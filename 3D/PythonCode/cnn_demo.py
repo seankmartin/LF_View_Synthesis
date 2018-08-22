@@ -81,7 +81,7 @@ def main(args, config, sample_index):
             im_input = im_input.cuda()
 
         output = model(im_input)
-        output += im_input
+        output += im_input[:, :-1]
         output = torch.clamp(output, 0.0, 1.0)
 
         time_taken = time.time() - start_time
@@ -149,7 +149,7 @@ def main(args, config, sample_index):
         ssim_accumulator = (0, 0, 0)
 
         if args.no_cnn:
-            squeeze_input = torch.squeeze(denormalise_lf(im_input))
+            squeeze_input = torch.squeeze(denormalise_lf(im_input[:, :-1]))
             cpu_input = np.around(
                 squeeze_input.cpu().detach().numpy()).astype(np.uint8)
             for i in range(grid_size):
@@ -213,7 +213,7 @@ if __name__ == '__main__':
         'Otherwise image_dir is used'))
     PARSER = argparse.ArgumentParser(
         description='Process modifiable parameters from command line')
-    PARSER.add_argument('--pretrained', default="best_model.pth", type=str,
+    PARSER.add_argument('--pretrained', default="best_3D_model.pth", type=str,
                         help=MODEL_HELP_STR)
     PARSER.add_argument('--no_cnn', action='store_true',
                         help="output the images with and without the cnn")
@@ -223,6 +223,8 @@ if __name__ == '__main__':
                         help='which light field sample to use, default 0')
     PARSER.add_argument('--get_diff', action='store_true',
                         help="Should get difference images")
+    PARSER.add_argument('--first', "--f", default=True, type=bool,
+                        help="Load the first layer pretrained - default True")
     #Any unknown argument will go to unparsed
     ARGS, UNPARSED = PARSER.parse_known_args()
 
