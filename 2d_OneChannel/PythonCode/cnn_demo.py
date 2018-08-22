@@ -75,14 +75,13 @@ def main(args, config, sample_index):
                   'grid_size': depth_images.shape[0]}
 
         warped = data_transform.transform_to_warped(sample)
-        warped = data_transform.stack(warped)
         im_input = warped['inputs'].unsqueeze_(0)
 
         if cuda:
             im_input = im_input.cuda()
 
         output = model(im_input)
-        output += im_input
+        output += im_input[:, :-1]
         output = torch.clamp(output, 0.0, 1.0)
 
         time_taken = time.time() - start_time
