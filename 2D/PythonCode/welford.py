@@ -25,7 +25,7 @@ def finalize(existing_aggregate):
     # retrieve the mean, variance and sample variance from an aggregate
     """
     (count, mean, M2) = existing_aggregate
-    (mean, variance, sample_variance) = (mean, M2/count, M2/(count - 1))
     if count < 2:
-        return float('nan')
+        return float('nan'), float('nan'), float('nan')
+    (mean, variance, sample_variance) = (mean, M2/count, M2/(count - 1))
     return (mean, variance, sample_variance)
