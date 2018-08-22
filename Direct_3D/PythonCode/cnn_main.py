@@ -250,6 +250,7 @@ if __name__ == '__main__':
         print("Unrecognised command line argument passed")
         print(UNPARSED)
         exit(-1)
+
     #Config file modifiable parameters
     CONFIG = configparser.ConfigParser()
     CONFIG.read(os.path.join('config', ARGS.config))
