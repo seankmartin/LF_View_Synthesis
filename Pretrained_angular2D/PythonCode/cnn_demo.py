@@ -75,6 +75,7 @@ def main(args, config, sample_index):
                   'grid_size': depth_images.shape[0]}
 
         warped = data_transform.transform_to_warped(sample)
+        desired_shape = warped['shape']
         im_input = warped['inputs'].unsqueeze_(0)
 
         if cuda:
@@ -99,6 +100,7 @@ def main(args, config, sample_index):
             os.mkdir(no_cnn_dir)
 
         output = torch.squeeze(denormalise_lf(output))
+        output = data_transform.undo_remap(output, desired_shape, dtype=torch.float32)
         cpu_output = np.around(output.cpu().detach().numpy()).astype(np.uint8)
 
         if (not args.no_eval) or args.get_diff:
@@ -150,6 +152,8 @@ def main(args, config, sample_index):
 
         if args.no_cnn:
             squeeze_input = torch.squeeze(denormalise_lf(im_input))
+            squeeze_input = data_transform.undo_remap(
+                squeeze_input, desired_shape, torch.float32)
             cpu_input = np.around(
                 squeeze_input.cpu().detach().numpy()).astype(np.uint8)
             for i in range(grid_size):
@@ -213,7 +217,7 @@ if __name__ == '__main__':
         'Otherwise image_dir is used'))
     PARSER = argparse.ArgumentParser(
         description='Process modifiable parameters from command line')
-    PARSER.add_argument('--pretrained', default="best_model.pth", type=str,
+    PARSER.add_argument('--pretrained', default="best_angular_model.pth", type=str,
                         help=MODEL_HELP_STR)
     PARSER.add_argument('--no_cnn', action='store_true',
                         help="output the images with and without the cnn")
