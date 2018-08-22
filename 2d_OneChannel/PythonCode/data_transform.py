@@ -37,6 +37,24 @@ def transform_to_warped(sample):
         )
     return {'inputs': inputs, 'targets': torch_stack(targets)}
 
+def transform_inviwo_to_warped(sample):
+    """
+    Input a dictionary of depth images and reference views,
+    Output a dictionary of inputs -warped and targets - reference
+    """
+    normalise_sample(sample)
+    disparity = sample['depth']
+    targets = sample['colour']
+    grid_size = sample['grid_size']
+    warped_images = disparity_based_rendering(
+        disparity.numpy(), targets.numpy(), grid_size, 0)
+    normalised_disp = torch.unsqueeze(
+        normalise_img(disparity[0]), 0)
+    inputs = torch.cat(
+            (torch_stack(warped_images), normalised_disp) 
+        )
+    return {'inputs': inputs, 'targets': targets}
+
 def torch_stack(input_t, channels=64):
     #This has shape im_size, im_size, num_colours * num_images
     out = torch.squeeze(

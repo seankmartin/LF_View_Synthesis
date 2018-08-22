@@ -48,7 +48,7 @@ DTYPE = inviwopy.data.formats.DataVec4UINT8
 if model is None:
     """Load the model to be used"""
     model_dir = "/users/pgrad/martins7/turing/overflow-storage/outputs/models"
-    name = "best_2D_model.pth"
+    name = "best_2D_OneChannel_model.pth"
 
     #Load model architecture
     model = torch.load(os.path.join(
@@ -164,7 +164,7 @@ def process(self):
 
     warped = data_transform.transform_inviwo_to_warped(sample)
     im_input = warped['inputs'].unsqueeze_(0)
-    
+
     if cuda:
         im_input = im_input.cuda()
 
