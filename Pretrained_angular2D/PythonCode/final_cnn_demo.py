@@ -69,14 +69,13 @@ def do_one_demo(args, config, hdf5_file, model, sample_num, cuda):
                 'grid_size': depth_images.shape[0]}
 
     warped = data_transform.transform_to_warped(sample)
-    warped = data_transform.stack(warped, 65)
+    desired_shape = warped['shape']
     im_input = warped['inputs'].unsqueeze_(0)
 
     if cuda:
         im_input = im_input.cuda()
 
     output = model(im_input)
-    im_input = im_input[:, :-3]
     output += im_input
     output = torch.clamp(output, 0.0, 1.0)
 
@@ -95,8 +94,7 @@ def do_one_demo(args, config, hdf5_file, model, sample_num, cuda):
         os.mkdir(no_cnn_dir)
 
     output = torch.squeeze(denormalise_lf(output))
-    output = data_transform.torch_unstack(output)
-    im_input = im_input.cpu().detach()
+    output = data_transform.undo_remap(output, desired_shape, dtype=torch.float32)
     cpu_output = np.around(output.cpu().detach().numpy()).astype(np.uint8)
 
     if (not args.no_eval) or args.get_diff:
@@ -154,9 +152,10 @@ def do_one_demo(args, config, hdf5_file, model, sample_num, cuda):
     psnr2, ssim2 = 0, 0
     if args.no_cnn:
         squeeze_input = torch.squeeze(denormalise_lf(im_input))
-        squeeze_input = data_transform.torch_unstack(squeeze_input)
+        squeeze_input = data_transform.undo_remap(
+            squeeze_input, desired_shape, torch.float32)
         cpu_input = np.around(
-            squeeze_input.numpy()).astype(np.uint8)
+            squeeze_input.cpu().detach().numpy()).astype(np.uint8)
         for i in range(grid_size):
             row, col = i // grid_len, i % grid_len
 
@@ -268,7 +267,7 @@ if __name__ == '__main__':
         'Otherwise image_dir is used'))
     PARSER = argparse.ArgumentParser(
         description='Process modifiable parameters from command line')
-    PARSER.add_argument('--pretrained', default="best_EDSR_model.pth", type=str,
+    PARSER.add_argument('--pretrained', default="best_angular_model.pth", type=str,
                         help=MODEL_HELP_STR)
     PARSER.add_argument('--no_cnn', action='store_true',
                         help="output the images with and without the cnn")
@@ -280,8 +279,6 @@ if __name__ == '__main__':
                         help="Number of sample to evaluate")
     PARSER.add_argument("--no_save", "--ns", action='store_true',
                         help="Should not save images")
-    PARSER.add_argument('--first', "--f", default=True, type=bool,
-                        help="Load the first layer pretrained - default True")
     #Any unknown argument will go to unparsed
     ARGS, UNPARSED = PARSER.parse_known_args()
 

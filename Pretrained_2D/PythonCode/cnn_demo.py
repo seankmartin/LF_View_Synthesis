@@ -228,6 +228,8 @@ if __name__ == '__main__':
                         help='which light field sample to use, default 0')
     PARSER.add_argument('--get_diff', action='store_true',
                         help="Should get difference images")
+    PARSER.add_argument('--first', "--f", default=True, type=bool,
+                        help="Load the first layer pretrained - default True")
     #Any unknown argument will go to unparsed
     ARGS, UNPARSED = PARSER.parse_known_args()
 

@@ -257,6 +257,8 @@ if __name__ == '__main__':
                         help="Float to scale residuals by, default 1.0")
     PARSER.add_argument('--frozen', '--f', default=True, type=bool,
                         help="Should the loaded weights be frozen?, default=True")
+    PARSER.add_argument('--first', "--f", default=True, type=bool,
+                        help="Load the first layer pretrained - default True")
     #Any unknown argument will go to unparsed
     ARGS, UNPARSED = PARSER.parse_known_args()
     if ARGS.tag is None:
