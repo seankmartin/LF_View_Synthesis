@@ -75,12 +75,14 @@ def main(args, config, sample_index):
                   'grid_size': depth_images.shape[0]}
 
         warped = data_transform.transform_to_warped(sample)
+        warped = data_transform.stack(warped, 65)
         im_input = warped['inputs'].unsqueeze_(0)
 
         if cuda:
             im_input = im_input.cuda()
 
         output = model(im_input)
+        im_input = im_input[:, :-3]
         output += im_input
         output = torch.clamp(output, 0.0, 1.0)
 
@@ -99,6 +101,8 @@ def main(args, config, sample_index):
             os.mkdir(no_cnn_dir)
 
         output = torch.squeeze(denormalise_lf(output))
+        output = data_transform.torch_unstack(output)
+        im_input = im_input.cpu().detach()
         cpu_output = np.around(output.cpu().detach().numpy()).astype(np.uint8)
 
         if (not args.no_eval) or args.get_diff:
@@ -150,8 +154,9 @@ def main(args, config, sample_index):
 
         if args.no_cnn:
             squeeze_input = torch.squeeze(denormalise_lf(im_input))
+            squeeze_input = data_transform.torch_unstack(squeeze_input)
             cpu_input = np.around(
-                squeeze_input.cpu().detach().numpy()).astype(np.uint8)
+                squeeze_input.numpy()).astype(np.uint8)
             for i in range(grid_size):
                 row, col = i // grid_len, i % grid_len
 
@@ -213,7 +218,7 @@ if __name__ == '__main__':
         'Otherwise image_dir is used'))
     PARSER = argparse.ArgumentParser(
         description='Process modifiable parameters from command line')
-    PARSER.add_argument('--pretrained', default="best_model.pth", type=str,
+    PARSER.add_argument('--pretrained', default="best_EDSR_model.pth", type=str,
                         help=MODEL_HELP_STR)
     PARSER.add_argument('--no_cnn', action='store_true',
                         help="output the images with and without the cnn")

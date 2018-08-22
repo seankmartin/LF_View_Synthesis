@@ -218,7 +218,7 @@ if __name__ == '__main__':
         'Otherwise image_dir is used'))
     PARSER = argparse.ArgumentParser(
         description='Process modifiable parameters from command line')
-    PARSER.add_argument('--pretrained', default="best_model.pth", type=str,
+    PARSER.add_argument('--pretrained', default="best_2D_model.pth", type=str,
                         help=MODEL_HELP_STR)
     PARSER.add_argument('--no_cnn', action='store_true',
                         help="output the images with and without the cnn")
