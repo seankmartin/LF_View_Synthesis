@@ -1,0 +1,439 @@
+Program started with the following options
+Config file contains: 
+{(('hdf5_dir', '/users/pgrad/martins7/turing/overflow-storage/numpy_set'), ('hdf5_name', 'lf_set.h5'), ('model_dir', '/users/pgrad/martins7/turing/overflow-storage/outputs/models'), ('checkpoint_dir', '/users/pgrad/martins7/turing/overflow-storage/outputs/checkpoints'), ('image_dir', '/users/pgrad/martins7/turing/overflow-storage/example'), ('output_dir', '/users/pgrad/martins7/turing/overflow-storage/example'), ('tboard', '/users/pgrad/martins7/turing/overflow-storage/outputs/runs')), 'PATH'}
+{(('batch_size', '8'), ('cuda', 'True'), ('gpu_id', '0'), ('patch_size', '128'), ('num_crops', '4'), ('num_workers', '8')), 'NETWORK'}
+Command Line arguments
+Namespace(first=True, get_diff=False, nSamples=100, no_cnn=False, no_eval=False, no_save=True, pretrained='best_angular_model.pth')
+
+=> using gpu id: '0'
+=> cudnn version is 7102
+=> loading model '/users/pgrad/martins7/turing/overflow-storage/outputs/models/best_angular_model.pth'
+Loading sub_mean.weight
+Loading sub_mean.bias
+Loading add_mean.weight
+Loading add_mean.bias
+Loading head.0.weight
+Loading head.0.bias
+Loading body.0.body.0.weight
+Loading body.0.body.0.bias
+Loading body.0.body.2.weight
+Loading body.0.body.2.bias
+Loading body.1.body.0.weight
+Loading body.1.body.0.bias
+Loading body.1.body.2.weight
+Loading body.1.body.2.bias
+Loading body.2.body.0.weight
+Loading body.2.body.0.bias
+Loading body.2.body.2.weight
+Loading body.2.body.2.bias
+Loading body.3.body.0.weight
+Loading body.3.body.0.bias
+Loading body.3.body.2.weight
+Loading body.3.body.2.bias
+Loading body.4.weight
+Loading body.4.bias
+Loading tail.0.weight
+Loading tail.0.bias
+Working on image 0
+Time taken was 4s
+For cnn, psnr average 33.066376, stddev 3.460319
+For cnn, ssim average 0.944560, stddev 0.020237
+Working on image 1
+Time taken was 3s
+For cnn, psnr average 36.895992, stddev 2.555623
+For cnn, ssim average 0.919176, stddev 0.030469
+Working on image 2
+Time taken was 3s
+For cnn, psnr average 33.922934, stddev 2.915997
+For cnn, ssim average 0.903428, stddev 0.033125
+Working on image 3
+Time taken was 3s
+For cnn, psnr average 36.244527, stddev 3.001966
+For cnn, ssim average 0.941174, stddev 0.021267
+Working on image 4
+Time taken was 3s
+For cnn, psnr average 37.119721, stddev 2.929327
+For cnn, ssim average 0.946374, stddev 0.019106
+Working on image 5
+Time taken was 3s
+For cnn, psnr average 35.226610, stddev 3.089880
+For cnn, ssim average 0.939463, stddev 0.017883
+Working on image 6
+Time taken was 4s
+For cnn, psnr average 35.738404, stddev 2.972178
+For cnn, ssim average 0.933559, stddev 0.020601
+Working on image 7
+Time taken was 4s
+For cnn, psnr average 28.136853, stddev 2.947593
+For cnn, ssim average 0.865370, stddev 0.045529
+Working on image 8
+Time taken was 4s
+For cnn, psnr average 33.906542, stddev 3.345456
+For cnn, ssim average 0.913653, stddev 0.040641
+Working on image 9
+Time taken was 4s
+For cnn, psnr average 35.162713, stddev 2.723242
+For cnn, ssim average 0.923465, stddev 0.020942
+Working on image 10
+Time taken was 4s
+For cnn, psnr average 30.217716, stddev 3.841247
+For cnn, ssim average 0.957226, stddev 0.014480
+Working on image 11
+Time taken was 4s
+For cnn, psnr average 34.326711, stddev 2.729896
+For cnn, ssim average 0.907975, stddev 0.043636
+Working on image 12
+Time taken was 4s
+For cnn, psnr average 33.919169, stddev 2.999692
+For cnn, ssim average 0.891885, stddev 0.055943
+Working on image 13
+Time taken was 4s
+For cnn, psnr average 36.499102, stddev 2.579954
+For cnn, ssim average 0.927873, stddev 0.018857
+Working on image 14
+Time taken was 4s
+For cnn, psnr average 31.226942, stddev 3.681174
+For cnn, ssim average 0.962374, stddev 0.013693
+Working on image 15
+Time taken was 4s
+For cnn, psnr average 30.861779, stddev 3.797409
+For cnn, ssim average 0.950638, stddev 0.018068
+Working on image 16
+Time taken was 5s
+For cnn, psnr average 32.188781, stddev 3.080647
+For cnn, ssim average 0.890487, stddev 0.039737
+Working on image 17
+Time taken was 4s
+For cnn, psnr average 36.154380, stddev 2.147249
+For cnn, ssim average 0.935398, stddev 0.018253
+Working on image 18
+Time taken was 4s
+For cnn, psnr average 36.641872, stddev 2.991166
+For cnn, ssim average 0.933033, stddev 0.026180
+Working on image 19
+Time taken was 4s
+For cnn, psnr average 32.719385, stddev 3.265901
+For cnn, ssim average 0.903554, stddev 0.040929
+Working on image 20
+Time taken was 4s
+For cnn, psnr average 37.433334, stddev 2.945292
+For cnn, ssim average 0.928504, stddev 0.030884
+Working on image 21
+Time taken was 5s
+For cnn, psnr average 35.565052, stddev 2.746125
+For cnn, ssim average 0.918499, stddev 0.029118
+Working on image 22
+Time taken was 4s
+For cnn, psnr average 37.979146, stddev 2.871414
+For cnn, ssim average 0.932931, stddev 0.027586
+Working on image 23
+Time taken was 5s
+For cnn, psnr average 34.766527, stddev 3.558584
+For cnn, ssim average 0.913958, stddev 0.036019
+Working on image 24
+Time taken was 5s
+For cnn, psnr average 31.570880, stddev 3.699466
+For cnn, ssim average 0.902204, stddev 0.036698
+Working on image 25
+Time taken was 4s
+For cnn, psnr average 36.010360, stddev 2.736553
+For cnn, ssim average 0.947722, stddev 0.017511
+Working on image 26
+Time taken was 5s
+For cnn, psnr average 38.138246, stddev 2.602147
+For cnn, ssim average 0.950722, stddev 0.017584
+Working on image 27
+Time taken was 4s
+For cnn, psnr average 34.474645, stddev 2.799859
+For cnn, ssim average 0.923486, stddev 0.025989
+Working on image 28
+Time taken was 5s
+For cnn, psnr average 32.274048, stddev 3.412280
+For cnn, ssim average 0.924581, stddev 0.023974
+Working on image 29
+Time taken was 4s
+For cnn, psnr average 37.420050, stddev 2.049036
+For cnn, ssim average 0.944272, stddev 0.016732
+Working on image 30
+Time taken was 4s
+For cnn, psnr average 36.204798, stddev 2.929491
+For cnn, ssim average 0.923299, stddev 0.035156
+Working on image 31
+Time taken was 4s
+For cnn, psnr average 37.177690, stddev 3.131822
+For cnn, ssim average 0.940376, stddev 0.024180
+Working on image 32
+Time taken was 5s
+For cnn, psnr average 34.336587, stddev 3.159557
+For cnn, ssim average 0.907690, stddev 0.046265
+Working on image 33
+Time taken was 4s
+For cnn, psnr average 34.685867, stddev 3.459962
+For cnn, ssim average 0.901335, stddev 0.041059
+Working on image 34
+Time taken was 4s
+For cnn, psnr average 35.893030, stddev 2.606363
+For cnn, ssim average 0.920281, stddev 0.034368
+Working on image 35
+Time taken was 6s
+For cnn, psnr average 31.995014, stddev 3.742067
+For cnn, ssim average 0.880314, stddev 0.048742
+Working on image 36
+Time taken was 4s
+For cnn, psnr average 37.330029, stddev 2.920684
+For cnn, ssim average 0.934327, stddev 0.028460
+Working on image 37
+Time taken was 5s
+For cnn, psnr average 29.269410, stddev 3.767686
+For cnn, ssim average 0.937073, stddev 0.023445
+Working on image 38
+Time taken was 6s
+For cnn, psnr average 31.186389, stddev 3.267407
+For cnn, ssim average 0.928632, stddev 0.022309
+Working on image 39
+Time taken was 5s
+For cnn, psnr average 32.604081, stddev 3.443101
+For cnn, ssim average 0.893568, stddev 0.051700
+Working on image 40
+Time taken was 5s
+For cnn, psnr average 31.184702, stddev 2.910381
+For cnn, ssim average 0.907731, stddev 0.029646
+Working on image 41
+Time taken was 5s
+For cnn, psnr average 36.009812, stddev 2.641666
+For cnn, ssim average 0.932249, stddev 0.022604
+Working on image 42
+Time taken was 4s
+For cnn, psnr average 33.981206, stddev 3.492383
+For cnn, ssim average 0.889498, stddev 0.050322
+Working on image 43
+Time taken was 4s
+For cnn, psnr average 38.431779, stddev 2.861026
+For cnn, ssim average 0.933589, stddev 0.027438
+Working on image 44
+Time taken was 5s
+For cnn, psnr average 28.734641, stddev 3.597893
+For cnn, ssim average 0.931896, stddev 0.020979
+Working on image 45
+Time taken was 5s
+For cnn, psnr average 34.891150, stddev 2.809162
+For cnn, ssim average 0.921940, stddev 0.022433
+Working on image 46
+Time taken was 5s
+For cnn, psnr average 33.514968, stddev 3.284400
+For cnn, ssim average 0.935229, stddev 0.024614
+Working on image 47
+Time taken was 4s
+For cnn, psnr average 35.463878, stddev 3.308407
+For cnn, ssim average 0.940874, stddev 0.024091
+Working on image 48
+Time taken was 5s
+For cnn, psnr average 31.906822, stddev 3.396945
+For cnn, ssim average 0.933203, stddev 0.028223
+Working on image 49
+Time taken was 5s
+For cnn, psnr average 36.065254, stddev 2.993744
+For cnn, ssim average 0.912911, stddev 0.035173
+Working on image 50
+Time taken was 5s
+For cnn, psnr average 31.876386, stddev 3.068526
+For cnn, ssim average 0.924561, stddev 0.025132
+Working on image 51
+Time taken was 4s
+For cnn, psnr average 33.440759, stddev 3.229984
+For cnn, ssim average 0.899128, stddev 0.037265
+Working on image 52
+Time taken was 5s
+For cnn, psnr average 37.565483, stddev 3.000942
+For cnn, ssim average 0.936386, stddev 0.025082
+Working on image 53
+Time taken was 4s
+For cnn, psnr average 34.708766, stddev 3.042331
+For cnn, ssim average 0.915305, stddev 0.041253
+Working on image 54
+Time taken was 5s
+For cnn, psnr average 36.251788, stddev 2.940581
+For cnn, ssim average 0.952863, stddev 0.017635
+Working on image 55
+Time taken was 4s
+For cnn, psnr average 36.521887, stddev 3.136852
+For cnn, ssim average 0.927640, stddev 0.035432
+Working on image 56
+Time taken was 4s
+For cnn, psnr average 32.555568, stddev 3.576254
+For cnn, ssim average 0.882857, stddev 0.058297
+Working on image 57
+Time taken was 4s
+For cnn, psnr average 29.034861, stddev 3.697043
+For cnn, ssim average 0.924094, stddev 0.024193
+Working on image 58
+Time taken was 5s
+For cnn, psnr average 35.079084, stddev 2.713421
+For cnn, ssim average 0.909267, stddev 0.042714
+Working on image 59
+Time taken was 4s
+For cnn, psnr average 30.970079, stddev 4.059712
+For cnn, ssim average 0.956228, stddev 0.017677
+Working on image 60
+Time taken was 4s
+For cnn, psnr average 33.219611, stddev 3.528896
+For cnn, ssim average 0.951897, stddev 0.014373
+Working on image 61
+Time taken was 4s
+For cnn, psnr average 32.009002, stddev 3.451530
+For cnn, ssim average 0.940352, stddev 0.019354
+Working on image 62
+Time taken was 4s
+For cnn, psnr average 31.036875, stddev 4.444181
+For cnn, ssim average 0.955613, stddev 0.019148
+Working on image 63
+Time taken was 4s
+For cnn, psnr average 37.494606, stddev 3.271577
+For cnn, ssim average 0.948035, stddev 0.019518
+Working on image 64
+Time taken was 4s
+For cnn, psnr average 31.892617, stddev 3.100210
+For cnn, ssim average 0.864262, stddev 0.056749
+Working on image 65
+Time taken was 4s
+For cnn, psnr average 37.456006, stddev 3.130288
+For cnn, ssim average 0.940210, stddev 0.024457
+Working on image 66
+Time taken was 4s
+For cnn, psnr average 35.246986, stddev 3.399178
+For cnn, ssim average 0.914809, stddev 0.034701
+Working on image 67
+Time taken was 4s
+For cnn, psnr average 34.642131, stddev 2.966088
+For cnn, ssim average 0.899833, stddev 0.043794
+Working on image 68
+Time taken was 4s
+For cnn, psnr average 31.182598, stddev 4.034556
+For cnn, ssim average 0.847142, stddev 0.068842
+Working on image 69
+Time taken was 4s
+For cnn, psnr average 31.936126, stddev 3.443722
+For cnn, ssim average 0.932756, stddev 0.023999
+Working on image 70
+Time taken was 4s
+For cnn, psnr average 33.613839, stddev 3.606279
+For cnn, ssim average 0.877048, stddev 0.061557
+Working on image 71
+Time taken was 4s
+For cnn, psnr average 37.892851, stddev 2.635171
+For cnn, ssim average 0.940880, stddev 0.022676
+Working on image 72
+Time taken was 4s
+For cnn, psnr average 37.745519, stddev 3.223554
+For cnn, ssim average 0.933913, stddev 0.031524
+Working on image 73
+Time taken was 4s
+For cnn, psnr average 37.239668, stddev 2.955995
+For cnn, ssim average 0.930400, stddev 0.031857
+Working on image 74
+Time taken was 4s
+For cnn, psnr average 37.251475, stddev 3.106334
+For cnn, ssim average 0.932877, stddev 0.033177
+Working on image 75
+Time taken was 5s
+For cnn, psnr average 31.611859, stddev 3.857720
+For cnn, ssim average 0.909435, stddev 0.033789
+Working on image 76
+Time taken was 4s
+For cnn, psnr average 33.850763, stddev 3.188737
+For cnn, ssim average 0.889816, stddev 0.055870
+Working on image 77
+Time taken was 4s
+For cnn, psnr average 31.272201, stddev 3.725226
+For cnn, ssim average 0.950833, stddev 0.017571
+Working on image 78
+Time taken was 5s
+For cnn, psnr average 36.927013, stddev 3.070892
+For cnn, ssim average 0.924516, stddev 0.033725
+Working on image 79
+Time taken was 5s
+For cnn, psnr average 29.324450, stddev 3.898681
+For cnn, ssim average 0.946536, stddev 0.020827
+Working on image 80
+Time taken was 5s
+For cnn, psnr average 31.026266, stddev 3.191506
+For cnn, ssim average 0.922517, stddev 0.023729
+Working on image 81
+Time taken was 5s
+For cnn, psnr average 30.900002, stddev 3.526587
+For cnn, ssim average 0.884622, stddev 0.042108
+Working on image 82
+Time taken was 4s
+For cnn, psnr average 35.985122, stddev 3.113154
+For cnn, ssim average 0.919213, stddev 0.036988
+Working on image 83
+Time taken was 4s
+For cnn, psnr average 36.961333, stddev 2.389007
+For cnn, ssim average 0.930014, stddev 0.025156
+Working on image 84
+Time taken was 4s
+For cnn, psnr average 35.960898, stddev 2.887193
+For cnn, ssim average 0.922209, stddev 0.031602
+Working on image 85
+Time taken was 4s
+For cnn, psnr average 33.181619, stddev 3.451923
+For cnn, ssim average 0.898751, stddev 0.038444
+Working on image 86
+Time taken was 4s
+For cnn, psnr average 29.343495, stddev 4.139743
+For cnn, ssim average 0.958169, stddev 0.019486
+Working on image 87
+Time taken was 4s
+For cnn, psnr average 37.483066, stddev 2.741847
+For cnn, ssim average 0.939024, stddev 0.018986
+Working on image 88
+Time taken was 4s
+For cnn, psnr average 35.632037, stddev 2.972278
+For cnn, ssim average 0.927082, stddev 0.022755
+Working on image 89
+Time taken was 5s
+For cnn, psnr average 36.501316, stddev 2.641861
+For cnn, ssim average 0.925905, stddev 0.024000
+Working on image 90
+Time taken was 4s
+For cnn, psnr average 35.111711, stddev 3.165280
+For cnn, ssim average 0.894752, stddev 0.044538
+Working on image 91
+Time taken was 4s
+For cnn, psnr average 38.114239, stddev 2.719510
+For cnn, ssim average 0.929772, stddev 0.026541
+Working on image 92
+Time taken was 4s
+For cnn, psnr average 34.210482, stddev 3.171473
+For cnn, ssim average 0.925883, stddev 0.028916
+Working on image 93
+Time taken was 4s
+For cnn, psnr average 29.881184, stddev 3.814195
+For cnn, ssim average 0.929112, stddev 0.024259
+Working on image 94
+Time taken was 4s
+For cnn, psnr average 36.074217, stddev 3.010046
+For cnn, ssim average 0.947402, stddev 0.021760
+Working on image 95
+Time taken was 4s
+For cnn, psnr average 37.541305, stddev 2.676350
+For cnn, ssim average 0.959043, stddev 0.012407
+Working on image 96
+Time taken was 4s
+For cnn, psnr average 38.229749, stddev 2.621527
+For cnn, ssim average 0.949183, stddev 0.018501
+Working on image 97
+Time taken was 4s
+For cnn, psnr average 33.834314, stddev 3.390135
+For cnn, ssim average 0.892966, stddev 0.049118
+Working on image 98
+Time taken was 4s
+For cnn, psnr average 37.358672, stddev 3.251558
+For cnn, ssim average 0.941518, stddev 0.024711
+Working on image 99
+Time taken was 4s
+For cnn, psnr average 32.959671, stddev 3.112551
+For cnn, ssim average 0.909626, stddev 0.035146
+
+Overall cnn psnr average 34.338175, stddev 2.636725
+Overall cnn ssim average 0.923498, stddev 0.022864
