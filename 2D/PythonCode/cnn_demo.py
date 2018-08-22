@@ -187,13 +187,13 @@ def do_one_demo(args, config, hdf5_file, model, sample_num, cuda):
                 psnr_accumulator = welford.update(psnr_accumulator, psnr)
                 ssim_accumulator = welford.update(ssim_accumulator, ssim)
 
-            psnr_mean, psnr_var, _ = welford.finalize(psnr_accumulator)
-            ssim_mean, ssim_var, _ = welford.finalize(ssim_accumulator)
-            print("For no cnn, psnr average {:5f}, stddev {:5f}".format(
-                psnr_mean, math.sqrt(psnr_var)))
-            print("For no cnn, ssim average {:5f}, stddev {:5f}".format(
-                ssim_mean, math.sqrt(ssim_var)))
-            psnr2, ssim2 = psnr_mean, ssim_mean
+        psnr_mean, psnr_var, _ = welford.finalize(psnr_accumulator)
+        ssim_mean, ssim_var, _ = welford.finalize(ssim_accumulator)
+        print("For no cnn, psnr average {:5f}, stddev {:5f}".format(
+            psnr_mean, math.sqrt(psnr_var)))
+        print("For no cnn, ssim average {:5f}, stddev {:5f}".format(
+            ssim_mean, math.sqrt(ssim_var)))
+        psnr2, ssim2 = psnr_mean, ssim_mean
 
     return psnr1, ssim1, psnr2, ssim2
 
