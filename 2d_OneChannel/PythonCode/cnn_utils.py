@@ -47,7 +47,7 @@ def load_from_checkpoint(model, optimizer, args, config):
         checkpoint = torch.load(resume_location)
         args.start_epoch = checkpoint["epoch"] + 1
         model.load_state_dict(
-            checkpoint["model"].state_dict(), first=args.first)
+            checkpoint["model"].state_dict())
         best_loss = checkpoint["best_loss"]
         optimizer.load_state_dict(checkpoint["optimizer"])
         print("=> loaded checkpoint '{}' (epoch {})".format(
@@ -67,9 +67,9 @@ def load_weights(model, args, config):
         weights = torch.load(weights_location)
         if 'model' in weights:
             model.load_state_dict(
-                weights["model"].state_dict(), first=args.first)
+                weights["model"].state_dict())
         else:
-            model.load_state_dict(weights, first=args.first)
+            model.load_state_dict(weights)
     else:
         print("=> no model found at '{}'".format(weights_location))
 
