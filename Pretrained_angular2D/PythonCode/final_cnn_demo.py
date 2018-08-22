@@ -279,6 +279,8 @@ if __name__ == '__main__':
                         help="Number of sample to evaluate")
     PARSER.add_argument("--no_save", "--ns", action='store_true',
                         help="Should not save images")
+    PARSER.add_argument('--first', "--f", default=True, type=bool,
+                        help="Load the first layer pretrained - default True")
     #Any unknown argument will go to unparsed
     ARGS, UNPARSED = PARSER.parse_known_args()
 
