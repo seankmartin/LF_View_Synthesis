@@ -150,7 +150,7 @@ def main(args, config, sample_index):
         ssim_accumulator = (0, 0, 0)
 
         if args.no_cnn:
-            squeeze_input = torch.squeeze(denormalise_lf(im_input))
+            squeeze_input = torch.squeeze(denormalise_lf(im_input[:, :-1]))
             squeeze_input = data_transform.torch_unstack(squeeze_input)
             cpu_input = np.around(
                 squeeze_input.cpu().detach().numpy()).astype(np.uint8)
@@ -215,7 +215,7 @@ if __name__ == '__main__':
         'Otherwise image_dir is used'))
     PARSER = argparse.ArgumentParser(
         description='Process modifiable parameters from command line')
-    PARSER.add_argument('--pretrained', default="best_model.pth", type=str,
+    PARSER.add_argument('--pretrained', default="best_2D_OneChannel_model.pth", type=str,
                         help=MODEL_HELP_STR)
     PARSER.add_argument('--no_cnn', action='store_true',
                         help="output the images with and without the cnn")
