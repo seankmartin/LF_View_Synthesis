@@ -40,8 +40,8 @@ cuda = True
 GRID_SIZE = 64
 SIZE = 1024
 OUT_SIZE = inviwopy.glm.size2_t(SIZE, SIZE)
-SAMPLE_SIZE = inviwopy.glm.size2_t(256, 256)
-SAMPLE_SIZE_LIST = [256, 256]
+SAMPLE_SIZE = inviwopy.glm.size2_t(512, 512)
+SAMPLE_SIZE_LIST = [512, 512]
 OUT_SIZE_LIST = [SIZE, SIZE]
 DTYPE = inviwopy.data.formats.DataVec4UINT8
 

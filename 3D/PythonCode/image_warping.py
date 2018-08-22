@@ -96,26 +96,27 @@ def depth_rendering(ref_view, disparity_map, lf_size = (64, 512, 512, 3)):
 
     #indices for linear interpolation in a square around the central point
     x_low = np.floor(x_shifted).astype(int)
-    x_high = x_low + 1
+    #x_high = x_low + 1
 
     y_low = np.floor(y_shifted).astype(int)
-    y_high = y_low + 1
+    #y_high = y_low + 1
 
     #Place co-ordinates outside the image back into the image
     x_low_clip = np.clip(x_low, 0, ref_view.shape[0] - 1)
-    x_high_clip = np.clip(x_high, 0, ref_view.shape[0] - 1)
+    #x_high_clip = np.clip(x_high, 0, ref_view.shape[0] - 1)
     y_low_clip = np.clip(y_low, 0, ref_view.shape[1] - 1)
-    y_high_clip = np.clip(y_high, 0, ref_view.shape[1] - 1)
+    #y_high_clip = np.clip(y_high, 0, ref_view.shape[1] - 1)
 
     #Gather the interpolation points
     interp_pts_1 = np.stack((x_low_clip, y_low_clip))
-    interp_pts_2 = np.stack((x_low_clip, y_high_clip))
-    interp_pts_3 = np.stack((x_high_clip, y_low_clip))
-    interp_pts_4 = np.stack((x_high_clip, y_high_clip))
+    #interp_pts_2 = np.stack((x_low_clip, y_high_clip))
+    #interp_pts_3 = np.stack((x_high_clip, y_low_clip))
+    #interp_pts_4 = np.stack((x_high_clip, y_high_clip))
 
     #Index into the images
     desired_shape = lf_size
     res_1 = torch_big_sample(ref_view, interp_pts_1, desired_shape)
+    return res_1
     res_2 = torch_big_sample(ref_view, interp_pts_2, desired_shape)
     res_3 = torch_big_sample(ref_view, interp_pts_3, desired_shape)
     res_4 = torch_big_sample(ref_view, interp_pts_4, desired_shape)

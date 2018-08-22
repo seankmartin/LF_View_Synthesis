@@ -40,8 +40,8 @@ cuda = True
 GRID_SIZE = 64
 SIZE = 1024
 OUT_SIZE = inviwopy.glm.size2_t(SIZE, SIZE)
-SAMPLE_SIZE = inviwopy.glm.size2_t(256, 256)
-SAMPLE_SIZE_LIST = [256, 256]
+SAMPLE_SIZE = inviwopy.glm.size2_t(512, 512)
+SAMPLE_SIZE_LIST = [512, 512]
 OUT_SIZE_LIST = [SIZE, SIZE]
 DTYPE = inviwopy.data.formats.DataVec4UINT8
 
@@ -161,9 +161,12 @@ def process(self):
         'depth': torch.tensor(im_depth[0], dtype=torch.float32).unsqueeze_(0), 
         'colour': torch.tensor(im_colour[0], dtype=torch.float32).unsqueeze_(0),
         'grid_size': GRID_SIZE}
-
+    
+    start_warp = time.time()
     warped = data_transform.transform_inviwo_to_warped(sample)
     im_input = warped['inputs'].unsqueeze_(0)
+    print("warping alone took {:4f} to this point {:4f}".format(
+         time.time() - start_warp, time.time() - start_time))
     
     if cuda:
         im_input = im_input.cuda()
