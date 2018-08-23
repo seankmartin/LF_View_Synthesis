@@ -1,0 +1,172 @@
+Program started with the following options
+Config file contains: 
+{(('hdf5_dir', '/users/pgrad/martins7/turing/overflow-storage/numpy_set'), ('hdf5_name', 'lf_set.h5'), ('model_dir', '/users/pgrad/martins7/turing/overflow-storage/outputs/models'), ('checkpoint_dir', '/users/pgrad/martins7/turing/overflow-storage/outputs/checkpoints'), ('image_dir', '/users/pgrad/martins7/turing/overflow-storage/example'), ('output_dir', '/users/pgrad/martins7/turing/overflow-storage/example'), ('tboard', '/users/pgrad/martins7/turing/overflow-storage/outputs/runs')), 'PATH'}
+{'NETWORK', (('batch_size', '8'), ('cuda', 'True'), ('gpu_id', '0'), ('patch_size', '128'), ('num_crops', '4'), ('num_workers', '8'))}
+Command Line arguments
+Namespace(first=True, get_diff=False, no_cnn=True, no_eval=False, pretrained='best_angular_model.pth', sample=43, verbose=True)
+
+=> using gpu id: '0'
+=> cudnn version is 7102
+=> loading model '/users/pgrad/martins7/turing/overflow-storage/outputs/models/best_angular_model.pth'
+Loading sub_mean.weight
+Loading sub_mean.bias
+Loading add_mean.weight
+Loading add_mean.bias
+Loading head.0.weight
+Loading head.0.bias
+Loading body.0.body.0.weight
+Loading body.0.body.0.bias
+Loading body.0.body.2.weight
+Loading body.0.body.2.bias
+Loading body.1.body.0.weight
+Loading body.1.body.0.bias
+Loading body.1.body.2.weight
+Loading body.1.body.2.bias
+Loading body.2.body.0.weight
+Loading body.2.body.0.bias
+Loading body.2.body.2.weight
+Loading body.2.body.2.bias
+Loading body.3.body.0.weight
+Loading body.3.body.0.bias
+Loading body.3.body.2.weight
+Loading body.3.body.2.bias
+Loading body.4.weight
+Loading body.4.bias
+Loading tail.0.weight
+Loading tail.0.bias
+Time taken was 5s
+Saving output to /users/pgrad/martins7/turing/overflow-storage/example/warped/0039
+Saving images of size  (512, 512, 3)
+Position (0, 0): PSNR 34.610688, SSIM 0.883361
+Position (0, 1): PSNR 35.074006, SSIM 0.890064
+Position (0, 2): PSNR 35.303189, SSIM 0.893730
+Position (0, 3): PSNR 35.450198, SSIM 0.895786
+Position (0, 4): PSNR 35.351014, SSIM 0.892942
+Position (0, 5): PSNR 35.323934, SSIM 0.893330
+Position (0, 6): PSNR 35.017873, SSIM 0.888972
+Position (0, 7): PSNR 34.534325, SSIM 0.882280
+Position (1, 0): PSNR 35.726230, SSIM 0.903425
+Position (1, 1): PSNR 36.330632, SSIM 0.910434
+Position (1, 2): PSNR 36.708735, SSIM 0.915726
+Position (1, 3): PSNR 36.916934, SSIM 0.918176
+Position (1, 4): PSNR 36.852461, SSIM 0.916254
+Position (1, 5): PSNR 36.776974, SSIM 0.915905
+Position (1, 6): PSNR 36.345459, SSIM 0.910975
+Position (1, 7): PSNR 35.656741, SSIM 0.902805
+Position (2, 0): PSNR 36.968917, SSIM 0.924578
+Position (2, 1): PSNR 37.808915, SSIM 0.932871
+Position (2, 2): PSNR 38.411521, SSIM 0.939166
+Position (2, 3): PSNR 38.789340, SSIM 0.942788
+Position (2, 4): PSNR 38.802054, SSIM 0.942088
+Position (2, 5): PSNR 38.551160, SSIM 0.939869
+Position (2, 6): PSNR 37.921557, SSIM 0.934067
+Position (2, 7): PSNR 37.020266, SSIM 0.925548
+Position (3, 0): PSNR 38.305159, SSIM 0.942970
+Position (3, 1): PSNR 39.651502, SSIM 0.952951
+Position (3, 2): PSNR 40.895129, SSIM 0.961653
+Position (3, 3): PSNR 41.735223, SSIM 0.966768
+Position (3, 4): PSNR 42.136262, SSIM 0.968532
+Position (3, 5): PSNR 41.320782, SSIM 0.963979
+Position (3, 6): PSNR 40.150773, SSIM 0.956962
+Position (3, 7): PSNR 38.672556, SSIM 0.946439
+Position (4, 0): PSNR 38.749845, SSIM 0.948341
+Position (4, 1): PSNR 40.538414, SSIM 0.961018
+Position (4, 2): PSNR 42.697746, SSIM 0.973623
+Position (4, 3): PSNR 44.834204, SSIM 0.982685
+Position (4, 4): PSNR 50.766630, SSIM 0.996730
+Position (4, 5): PSNR 44.506982, SSIM 0.982195
+Position (4, 6): PSNR 42.119569, SSIM 0.972952
+Position (4, 7): PSNR 39.828123, SSIM 0.959889
+Position (5, 0): PSNR 37.775319, SSIM 0.936465
+Position (5, 1): PSNR 39.011005, SSIM 0.946570
+Position (5, 2): PSNR 40.282357, SSIM 0.956574
+Position (5, 3): PSNR 41.296716, SSIM 0.963730
+Position (5, 4): PSNR 42.013654, SSIM 0.968077
+Position (5, 5): PSNR 41.513451, SSIM 0.966113
+Position (5, 6): PSNR 40.457889, SSIM 0.960640
+Position (5, 7): PSNR 38.948738, SSIM 0.950978
+Position (6, 0): PSNR 36.495843, SSIM 0.917369
+Position (6, 1): PSNR 37.383681, SSIM 0.926482
+Position (6, 2): PSNR 38.115091, SSIM 0.934332
+Position (6, 3): PSNR 38.660020, SSIM 0.939915
+Position (6, 4): PSNR 38.929860, SSIM 0.942200
+Position (6, 5): PSNR 38.886181, SSIM 0.942817
+Position (6, 6): PSNR 38.391914, SSIM 0.939040
+Position (6, 7): PSNR 37.475781, SSIM 0.931502
+Position (7, 0): PSNR 35.323917, SSIM 0.897731
+Position (7, 1): PSNR 35.936025, SSIM 0.905386
+Position (7, 2): PSNR 36.414912, SSIM 0.912164
+Position (7, 3): PSNR 36.723670, SSIM 0.916290
+Position (7, 4): PSNR 36.839082, SSIM 0.917287
+Position (7, 5): PSNR 36.895537, SSIM 0.918855
+Position (7, 6): PSNR 36.647406, SSIM 0.916450
+Position (7, 7): PSNR 36.053758, SSIM 0.909900
+For cnn, psnr average 38.431779, stddev 2.861026
+For cnn, ssim average 0.933589, stddev 0.027438
+Saving images of size  (512, 512, 3)
+Position (0, 0): PSNR 33.956336, SSIM 0.871494
+Position (0, 1): PSNR 34.223261, SSIM 0.876990
+Position (0, 2): PSNR 34.420836, SSIM 0.881046
+Position (0, 3): PSNR 34.562116, SSIM 0.883086
+Position (0, 4): PSNR 34.435446, SSIM 0.879045
+Position (0, 5): PSNR 34.464835, SSIM 0.880573
+Position (0, 6): PSNR 34.207412, SSIM 0.876341
+Position (0, 7): PSNR 33.898543, SSIM 0.870555
+Position (1, 0): PSNR 35.205661, SSIM 0.895472
+Position (1, 1): PSNR 35.605493, SSIM 0.901625
+Position (1, 2): PSNR 35.949949, SSIM 0.907331
+Position (1, 3): PSNR 36.148324, SSIM 0.909936
+Position (1, 4): PSNR 36.037540, SSIM 0.906926
+Position (1, 5): PSNR 36.032916, SSIM 0.907601
+Position (1, 6): PSNR 35.656378, SSIM 0.902547
+Position (1, 7): PSNR 35.133009, SSIM 0.894716
+Position (2, 0): PSNR 36.731021, SSIM 0.920940
+Position (2, 1): PSNR 37.466311, SSIM 0.929195
+Position (2, 2): PSNR 38.059609, SSIM 0.935715
+Position (2, 3): PSNR 38.453965, SSIM 0.939798
+Position (2, 4): PSNR 38.369773, SSIM 0.937704
+Position (2, 5): PSNR 38.222409, SSIM 0.936820
+Position (2, 6): PSNR 37.604180, SSIM 0.930611
+Position (2, 7): PSNR 36.764703, SSIM 0.921646
+Position (3, 0): PSNR 38.310230, SSIM 0.942501
+Position (3, 1): PSNR 39.621698, SSIM 0.953041
+Position (3, 2): PSNR 40.972355, SSIM 0.962402
+Position (3, 3): PSNR 41.907213, SSIM 0.967714
+Position (3, 4): PSNR 42.211227, SSIM 0.968684
+Position (3, 5): PSNR 41.459484, SSIM 0.964804
+Position (3, 6): PSNR 40.201072, SSIM 0.957595
+Position (3, 7): PSNR 38.667761, SSIM 0.945921
+Position (4, 0): PSNR 38.809571, SSIM 0.948021
+Position (4, 1): PSNR 40.629816, SSIM 0.961626
+Position (4, 2): PSNR 43.038319, SSIM 0.974726
+Position (4, 3): PSNR 45.853806, SSIM 0.984914
+Position (4, 4): PSNR 100.000000, SSIM 1.000000
+Position (4, 5): PSNR 45.512014, SSIM 0.984598
+Position (4, 6): PSNR 42.435015, SSIM 0.974301
+Position (4, 7): PSNR 39.979527, SSIM 0.960470
+Position (5, 0): PSNR 37.788496, SSIM 0.935968
+Position (5, 1): PSNR 39.006351, SSIM 0.946780
+Position (5, 2): PSNR 40.378123, SSIM 0.957547
+Position (5, 3): PSNR 41.521479, SSIM 0.965013
+Position (5, 4): PSNR 42.231954, SSIM 0.968917
+Position (5, 5): PSNR 41.826452, SSIM 0.967829
+Position (5, 6): PSNR 40.627506, SSIM 0.962247
+Position (5, 7): PSNR 39.070631, SSIM 0.951837
+Position (6, 0): PSNR 36.241561, SSIM 0.913940
+Position (6, 1): PSNR 37.010511, SSIM 0.923192
+Position (6, 2): PSNR 37.711373, SSIM 0.931397
+Position (6, 3): PSNR 38.270579, SSIM 0.937663
+Position (6, 4): PSNR 38.441564, SSIM 0.938819
+Position (6, 5): PSNR 38.507730, SSIM 0.940808
+Position (6, 6): PSNR 37.989942, SSIM 0.936517
+Position (6, 7): PSNR 37.207979, SSIM 0.928974
+Position (7, 0): PSNR 34.904492, SSIM 0.890259
+Position (7, 1): PSNR 35.375797, SSIM 0.897630
+Position (7, 2): PSNR 35.819455, SSIM 0.904861
+Position (7, 3): PSNR 36.122736, SSIM 0.909356
+Position (7, 4): PSNR 36.178097, SSIM 0.909517
+Position (7, 5): PSNR 36.290160, SSIM 0.912154
+Position (7, 6): PSNR 36.036418, SSIM 0.909464
+Position (7, 7): PSNR 35.590718, SSIM 0.903314
+For no cnn, psnr average 38.927644, stddev 8.186603
+For no cnn, ssim average 0.929579, stddev 0.031997
