@@ -38,6 +38,28 @@ def main():
         , 'EDSR_remap': 0.022864
     }
 
+    fig, ax = plt.subplots()
+
+    index = np.arange(psnr_mean_dict.__len__())
+    bar_width = 0.5
+
+    opacity = 0.4
+    error_config = {'ecolor': '0.3'}
+
+    rects1 = ax.bar(index, psnr_mean_dict.items(), bar_width,
+                    alpha=opacity, color='b',
+                    yerr=psnr_std_dict.items(), error_kw=error_config,
+                    label='PSNR')
+
+    ax.set_xlabel('Group')
+    ax.set_ylabel('Scores')
+    ax.set_title('Scores by group and gender')
+    ax.set_xticks(index + bar_width / 2)
+    ax.set_xticklabels(psnr_mean_dict.keys())
+    ax.legend()
+
+    fig.tight_layout()
+    plt.show()
 #Image number 43 has the highest pnsr after edsr remap
 #Image number 14 has the highest ssim after edsr remap
 
