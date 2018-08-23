@@ -40,15 +40,15 @@ def main():
 
     fig, ax = plt.subplots()
 
-    index = np.arange(psnr_mean_dict.__len__())
+    index = np.arange(len(psnr_mean_dict))
     bar_width = 0.5
 
     opacity = 0.4
     error_config = {'ecolor': '0.3'}
 
-    rects1 = ax.bar(index, psnr_mean_dict.items(), bar_width,
+    rects1 = ax.bar(index + 0.5 * bar_width, psnr_mean_dict.values(), bar_width,
                     alpha=opacity, color='b',
-                    yerr=psnr_std_dict.items(), error_kw=error_config,
+                    yerr=psnr_std_dict.values(), error_kw=error_config,
                     label='PSNR')
 
     ax.set_xlabel('Group')
@@ -59,7 +59,7 @@ def main():
     ax.legend()
 
     fig.tight_layout()
-    plt.show()
+    fig.savefig("psnr_barchart.png")
 #Image number 43 has the highest pnsr after edsr remap
 #Image number 14 has the highest ssim after edsr remap
 
@@ -69,3 +69,6 @@ def main():
 #Image 57 is bad too and 44
 
 #7 is bad and I think this would be the best one to show!
+
+if __name__ == "__main__":
+    main()
