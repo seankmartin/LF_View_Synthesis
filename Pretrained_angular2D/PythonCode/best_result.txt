@@ -1,0 +1,44 @@
+Program started with the following options
+Config file contains: 
+{(('hdf5_dir', '/users/pgrad/martins7/turing/overflow-storage/numpy_set'), ('hdf5_name', 'lf_set.h5'), ('model_dir', '/users/pgrad/martins7/turing/overflow-storage/outputs/models'), ('checkpoint_dir', '/users/pgrad/martins7/turing/overflow-storage/outputs/checkpoints'), ('image_dir', '/users/pgrad/martins7/turing/overflow-storage/example'), ('output_dir', '/users/pgrad/martins7/turing/overflow-storage/example'), ('tboard', '/users/pgrad/martins7/turing/overflow-storage/outputs/runs')), 'PATH'}
+{'NETWORK', (('batch_size', '8'), ('cuda', 'True'), ('gpu_id', '0'), ('patch_size', '128'), ('num_crops', '4'), ('num_workers', '8'))}
+Command Line arguments
+Namespace(first=True, get_diff=True, no_cnn=True, no_eval=False, pretrained='best_angular_model.pth', sample=43)
+
+=> using gpu id: '0'
+=> cudnn version is 7102
+=> loading model '/users/pgrad/martins7/turing/overflow-storage/outputs/models/best_angular_model.pth'
+Loading sub_mean.weight
+Loading sub_mean.bias
+Loading add_mean.weight
+Loading add_mean.bias
+Loading head.0.weight
+Loading head.0.bias
+Loading body.0.body.0.weight
+Loading body.0.body.0.bias
+Loading body.0.body.2.weight
+Loading body.0.body.2.bias
+Loading body.1.body.0.weight
+Loading body.1.body.0.bias
+Loading body.1.body.2.weight
+Loading body.1.body.2.bias
+Loading body.2.body.0.weight
+Loading body.2.body.0.bias
+Loading body.2.body.2.weight
+Loading body.2.body.2.bias
+Loading body.3.body.0.weight
+Loading body.3.body.0.bias
+Loading body.3.body.2.weight
+Loading body.3.body.2.bias
+Loading body.4.weight
+Loading body.4.bias
+Loading tail.0.weight
+Loading tail.0.bias
+Time taken was 3s
+Saving output to /users/pgrad/martins7/turing/overflow-storage/example/warped/0032
+Saving images of size  (512, 512, 3)
+For cnn, psnr average 38.431779, stddev 2.861026
+For cnn, ssim average 0.933589, stddev 0.027438
+Saving images of size  (512, 512, 3)
+For no cnn, psnr average 38.927644, stddev 8.186603
+For no cnn, ssim average 0.929579, stddev 0.031997

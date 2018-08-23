@@ -40,3 +40,10 @@ def main():
 
 #Image number 43 has the highest pnsr after edsr remap
 #Image number 14 has the highest ssim after edsr remap
+
+#Image 93 has a bad result, image 86 does too
+# Pattern seems to be if there is information occluding and information close to the camera so it goes out of view quickly. - these make sense
+
+#Image 57 is bad too and 44
+
+#7 is bad and I think this would be the best one to show!
