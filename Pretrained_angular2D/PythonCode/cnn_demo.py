@@ -137,6 +137,11 @@ def main(args, config, sample_index):
                 ssim = evaluate.ssim(
                     cpu_output[i], 
                     img)
+                
+                if args.verbose:
+                     print("Position ({}, {}): PSNR {:4f}, SSIM {:4f}".format(
+                        row, col, psnr, ssim))
+
                 psnr_accumulator = welford.update(psnr_accumulator, psnr)
                 ssim_accumulator = welford.update(ssim_accumulator, ssim)
 
@@ -182,6 +187,11 @@ def main(args, config, sample_index):
                     ssim = evaluate.ssim(
                         cpu_input[i], 
                         img)
+                
+                    if args.verbose:               
+                        print("Position ({}, {}): PSNR {:4f}, SSIM {:4f}".format(
+                            row, col, psnr, ssim))
+
                     psnr_accumulator = welford.update(psnr_accumulator, psnr)
                     ssim_accumulator = welford.update(ssim_accumulator, ssim)
 
@@ -227,6 +237,8 @@ if __name__ == '__main__':
                         help='which light field sample to use, default 0')
     PARSER.add_argument('--get_diff', action='store_true',
                         help="Should get difference images")
+    PARSER.add_argument('--verbose', '--v', action='store_true',
+                        help="Should print eval for all positions")
     PARSER.add_argument('--first', "--f", default=True, type=bool,
                         help="Load the first layer pretrained - default True")
     #Any unknown argument will go to unparsed
