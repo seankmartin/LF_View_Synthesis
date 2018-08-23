@@ -1,0 +1,102 @@
+Program started with the following options
+Config file contains: 
+{(('hdf5_dir', '/users/pgrad/martins7/turing/overflow-storage/heart_new_tf'), ('hdf5_name', 'lf_set.h5'), ('model_dir', '/users/pgrad/martins7/turing/overflow-storage/outputs/models'), ('checkpoint_dir', '/users/pgrad/martins7/turing/overflow-storage/outputs/checkpoints'), ('image_dir', '/users/pgrad/martins7/turing/overflow-storage/example'), ('output_dir', '/users/pgrad/martins7/turing/overflow-storage/example'), ('tboard', '/users/pgrad/martins7/turing/overflow-storage/outputs/runs')), 'PATH'}
+{'NETWORK', (('batch_size', '8'), ('cuda', 'True'), ('gpu_id', '0'), ('patch_size', '128'), ('num_crops', '4'), ('num_workers', '8'))}
+Command Line arguments
+Namespace(first=True, get_diff=False, nSamples=10, no_cnn=True, no_eval=False, no_save=True, pretrained='best_angular_model.pth')
+
+=> using gpu id: '0'
+=> cudnn version is 7102
+=> loading model '/users/pgrad/martins7/turing/overflow-storage/outputs/models/best_angular_model.pth'
+Loading sub_mean.weight
+Loading sub_mean.bias
+Loading add_mean.weight
+Loading add_mean.bias
+Loading head.0.weight
+Loading head.0.bias
+Loading body.0.body.0.weight
+Loading body.0.body.0.bias
+Loading body.0.body.2.weight
+Loading body.0.body.2.bias
+Loading body.1.body.0.weight
+Loading body.1.body.0.bias
+Loading body.1.body.2.weight
+Loading body.1.body.2.bias
+Loading body.2.body.0.weight
+Loading body.2.body.0.bias
+Loading body.2.body.2.weight
+Loading body.2.body.2.bias
+Loading body.3.body.0.weight
+Loading body.3.body.0.bias
+Loading body.3.body.2.weight
+Loading body.3.body.2.bias
+Loading body.4.weight
+Loading body.4.bias
+Loading tail.0.weight
+Loading tail.0.bias
+Working on image 0
+Time taken was 4s
+For cnn, psnr average 38.178707, stddev 3.138313
+For cnn, ssim average 0.939612, stddev 0.023088
+For no cnn, psnr average 39.618654, stddev 8.250818
+For no cnn, ssim average 0.953717, stddev 0.021724
+Working on image 1
+Time taken was 4s
+For cnn, psnr average 38.113837, stddev 3.440860
+For cnn, ssim average 0.931687, stddev 0.032808
+For no cnn, psnr average 38.865750, stddev 8.430634
+For no cnn, ssim average 0.935772, stddev 0.036178
+Working on image 2
+Time taken was 4s
+For cnn, psnr average 33.037651, stddev 3.379776
+For cnn, ssim average 0.910430, stddev 0.033027
+For no cnn, psnr average 33.571334, stddev 8.689494
+For no cnn, ssim average 0.905299, stddev 0.034893
+Working on image 3
+Time taken was 4s
+For cnn, psnr average 37.150964, stddev 3.045145
+For cnn, ssim average 0.900719, stddev 0.031287
+For no cnn, psnr average 37.982541, stddev 8.234945
+For no cnn, ssim average 0.908688, stddev 0.033240
+Working on image 4
+Time taken was 4s
+For cnn, psnr average 37.064411, stddev 3.290293
+For cnn, ssim average 0.926567, stddev 0.031454
+For no cnn, psnr average 38.189782, stddev 8.393883
+For no cnn, ssim average 0.935224, stddev 0.032558
+Working on image 5
+Time taken was 4s
+For cnn, psnr average 33.620516, stddev 4.179909
+For cnn, ssim average 0.928174, stddev 0.030588
+For no cnn, psnr average 34.441977, stddev 9.141541
+For no cnn, ssim average 0.928411, stddev 0.031704
+Working on image 6
+Time taken was 4s
+For cnn, psnr average 37.465150, stddev 3.257950
+For cnn, ssim average 0.938575, stddev 0.023494
+For no cnn, psnr average 38.731110, stddev 8.368785
+For no cnn, ssim average 0.946954, stddev 0.023782
+Working on image 7
+Time taken was 4s
+For cnn, psnr average 38.822302, stddev 3.390552
+For cnn, ssim average 0.941346, stddev 0.021530
+For no cnn, psnr average 39.050898, stddev 8.277397
+For no cnn, ssim average 0.940162, stddev 0.026615
+Working on image 8
+Time taken was 4s
+For cnn, psnr average 36.640592, stddev 3.179957
+For cnn, ssim average 0.903272, stddev 0.036771
+For no cnn, psnr average 37.641456, stddev 8.436664
+For no cnn, ssim average 0.913303, stddev 0.038000
+Working on image 9
+Time taken was 4s
+For cnn, psnr average 38.694779, stddev 3.705634
+For cnn, ssim average 0.952402, stddev 0.020223
+For no cnn, psnr average 39.740646, stddev 8.429437
+For no cnn, ssim average 0.958041, stddev 0.020722
+
+Overall cnn psnr average 36.878891, stddev 1.901840
+Overall cnn ssim average 0.927278, stddev 0.016417
+
+Overall no cnn psnr average 37.139051, stddev 1.991233
+Overall no cnn ssim average 0.930075, stddev 0.017978
