@@ -222,9 +222,9 @@ def main(args, config):
             
             if args.no_cnn:
                 overalln_psnr_accum = welford.update(
-                    overall_psnr_accum, p2)
+                    overalln_psnr_accum, p2)
                 overalln_ssim_accum = welford.update(
-                    overall_ssim_accum, s2)
+                    overalln_ssim_accum, s2)
 
         if args.nSamples > 1:
             psnr_mean, psnr_var, _ = welford.finalize(overall_psnr_accum)
