@@ -1,13 +1,15 @@
 Program started with the following options
 Config file contains: 
-{(('hdf5_dir', '/users/pgrad/martins7/turing/overflow-storage/heart_new_tf'), ('hdf5_name', 'lf_set.h5'), ('model_dir', '/users/pgrad/martins7/turing/overflow-storage/outputs/models'), ('checkpoint_dir', '/users/pgrad/martins7/turing/overflow-storage/outputs/checkpoints'), ('image_dir', '/users/pgrad/martins7/turing/overflow-storage/example'), ('output_dir', '/users/pgrad/martins7/turing/overflow-storage/example'), ('tboard', '/users/pgrad/martins7/turing/overflow-storage/outputs/runs')), 'PATH'}
+{'PATH', (('hdf5_dir', '/users/pgrad/martins7/overflow-storage/heart_new_tf'), ('hdf5_name', 'lf_set.h5'), ('model_dir', '/users/pgrad/martins7/overflow-storage/outputs/models'), ('checkpoint_dir', '/users/pgrad/martins7/overflow-storage/outputs/checkpoints'), ('image_dir', '/users/pgrad/martins7/overflow-storage/example'), ('output_dir', '/users/pgrad/martins7/overflow-storage/example'), ('tboard', '/users/pgrad/martins7/overflow-storage/outputs/runs'))}
 {'NETWORK', (('batch_size', '8'), ('cuda', 'True'), ('gpu_id', '0'), ('patch_size', '128'), ('num_crops', '4'), ('num_workers', '8'))}
 Command Line arguments
 Namespace(first=True, get_diff=False, nSamples=10, no_cnn=True, no_eval=False, no_save=True, pretrained='best_angular_model.pth')
 
 => using gpu id: '0'
 => cudnn version is 7102
-=> loading model '/users/pgrad/martins7/turing/overflow-storage/outputs/models/best_angular_model.pth'
+/users/pgrad/martins7/pytorch_p35/lib/python3.5/site-packages/torch/serialization.py:367: SourceChangeWarning: source code of class 'model_2d.C2D' has changed. you can retrieve the original source code by accessing the object's source attribute or set `torch.nn.Module.dump_patches = True` and use the patch tool to revert the changes.
+  warnings.warn(msg, SourceChangeWarning)
+=> loading model '/users/pgrad/martins7/overflow-storage/outputs/models/best_angular_model.pth'
 Loading sub_mean.weight
 Loading sub_mean.bias
 Loading add_mean.weight
@@ -35,7 +37,7 @@ Loading body.4.bias
 Loading tail.0.weight
 Loading tail.0.bias
 Working on image 0
-Time taken was 4s
+Time taken was 5s
 For cnn, psnr average 38.178707, stddev 3.138313
 For cnn, ssim average 0.939612, stddev 0.023088
 For no cnn, psnr average 39.618654, stddev 8.250818
@@ -53,19 +55,19 @@ For cnn, ssim average 0.910430, stddev 0.033027
 For no cnn, psnr average 33.571334, stddev 8.689494
 For no cnn, ssim average 0.905299, stddev 0.034893
 Working on image 3
-Time taken was 4s
+Time taken was 3s
 For cnn, psnr average 37.150964, stddev 3.045145
 For cnn, ssim average 0.900719, stddev 0.031287
 For no cnn, psnr average 37.982541, stddev 8.234945
 For no cnn, ssim average 0.908688, stddev 0.033240
 Working on image 4
-Time taken was 4s
+Time taken was 3s
 For cnn, psnr average 37.064411, stddev 3.290293
 For cnn, ssim average 0.926567, stddev 0.031454
 For no cnn, psnr average 38.189782, stddev 8.393883
 For no cnn, ssim average 0.935224, stddev 0.032558
 Working on image 5
-Time taken was 4s
+Time taken was 3s
 For cnn, psnr average 33.620516, stddev 4.179909
 For cnn, ssim average 0.928174, stddev 0.030588
 For no cnn, psnr average 34.441977, stddev 9.141541
@@ -98,5 +100,5 @@ For no cnn, ssim average 0.958041, stddev 0.020722
 Overall cnn psnr average 36.878891, stddev 1.901840
 Overall cnn ssim average 0.927278, stddev 0.016417
 
-Overall no cnn psnr average 37.139051, stddev 1.991233
-Overall no cnn ssim average 0.930075, stddev 0.017978
+Overall no cnn psnr average 37.783415, stddev 2.000168
+Overall no cnn ssim average 0.932557, stddev 0.017551
