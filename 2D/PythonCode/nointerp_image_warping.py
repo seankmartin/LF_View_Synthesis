@@ -486,7 +486,7 @@ def main(args, config):
         for sample_num in range(args.nSamples):
             SNUM = sample_num
             print("Working on image", SNUM)
-            depth_image = np.squeeze(depth_grp['images'][SNUM, sample_index])
+            depth_image = np.squeeze(depth_grp['images'][SNUM, sample_index, :192, :192])
 
             #Hardcoded some values for now
             colour_grp = hdf5_file['val']['colour']
@@ -507,7 +507,7 @@ def main(args, config):
 
             start_time = time()
             if warp_type == WARP_TYPE.TORCH_ALL:
-                final = depth_rendering(colour_image, depth_image)
+                final = depth_rendering(colour_image, depth_image, lf_size=(64, 192, 192, 3))
                 print("Time taken was {:4f}".format(time() - start_time))
 
             if warp_type == WARP_TYPE.TORCH_GPU:
