@@ -22,8 +22,7 @@ Inside each of these folders, PythonCode contains the python files, Inviwo conta
     - Note that the number of cores used for building must be changed in the script, by         default it is 8.
     - Make sure to pass the location of the Qt cmake directory to the script, see [Inviwo       Wiki](https://github.com/inviwo/inviwo/wiki/Building-Inviwo-on-Linux) on how to install   Qt. For example, home/Qt5.6.1/5.6/gcc_64/lib/cmake is the location of this in my case.
     - If building on Windows, the process is very similar, and the script provided for linux    should help. However, cmake should produce visual studio files.
-3. Verify modules correctly installed by opening inviwo/data/workspaces/myworkspaces/
-    /depth_heuristics.inv in your built version of Inviwo.
+3. Verify modules correctly installed by opening inviwo/data/workspaces/myworkspaces/depth_heuristics.inv in your built version of Inviwo.
 
 ### Once Inviwo is installed, open up a terminal or command prompt and follow these steps
 
