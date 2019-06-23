@@ -8,13 +8,13 @@ import sys
 import warnings
 
 # Location of torch and torch vision
-sys.path.insert(0, "/users/pgrad/martins7/pytorch35/lib/python3.5/site-packages")
+sys.path.insert(0, "/home/sean/pytorch35/lib/python3.5/site-packages")
 
 # Location of other scripts
 #sys.path.insert(0, "/users/pgrad/martins7/.local/lib/python3.5/site-packages")
 
 # Location of pythonCode
-sys.path.insert(0, "/users/pgrad/martins7/LF_View_Synthesis/Pretrained_angular2D/PythonCode")
+sys.path.insert(0, "/home/sean/LF_View_Synthesis/Pretrained_angular2D/PythonCode")
 
 import inviwopy
 from inviwopy.data import ImageOutport, ImageInport
@@ -40,14 +40,14 @@ cuda = True
 GRID_SIZE = 64
 SIZE = 1024
 OUT_SIZE = inviwopy.glm.size2_t(SIZE, SIZE)
-SAMPLE_SIZE = inviwopy.glm.size2_t(512, 512)
-SAMPLE_SIZE_LIST = [512, 512]
+SAMPLE_SIZE = inviwopy.glm.size2_t(256, 256)
+SAMPLE_SIZE_LIST = [256, 256]
 OUT_SIZE_LIST = [SIZE, SIZE]
 DTYPE = inviwopy.data.formats.DataVec4UINT8
 
 if model is None:
     """Load the model to be used"""
-    model_dir = "/users/pgrad/martins7/turing/overflow-storage/outputs/models"
+    model_dir = "/home/sean/outputs_20180820/models"
     name = "best_angular_model.pth"
 
     #Load model architecture
